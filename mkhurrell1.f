@@ -1,10 +1,16 @@
-c  $HOME/src/cd77/cd77 -ezget -lats mkhurrell1.f -o mkhurrell1
+c  cd77 -ezget -lats mkhurrell1.f -o mkhurrell1
+
+c To compile (once LD_LIBRARY_PATH includes lats lib)
+c [durack1@oceanonly 150219_AMIPForcingData]$ cd77 -ezget -lats mkhurrell1.f -o mkhurrell1 -fcray-pointer -std=legacy
+
+c For debugging
+c [durack1@oceanonly 150219_AMIPForcingData]$ valgrind --log-file=mkhurrell1.valout2 --track-origins=yes mkhurrell1
 
 c 3456789012345678901234567890123456789012345678901234567890123456789012
 
 c    21 August 1997
 c    program description and comments added 8 February 2002
-c    minor changes (new paths and updated libraries): jfp May 2015
+c    Code tweaks and recompile on oceanonly 10 June 2015 - PJD
 
 c    Karl E. Taylor
 c    PCMDI
@@ -415,15 +421,15 @@ c
 
 c *****************************************************************
 
+      parameter (nmon=147*12, nlon=360, nlat=180, mlat=90, ! PJD Oceanonly 1870-2014
 c      parameter (nmon=4*12, nlon=12, nlat=6, mlat=4, !test
 c      parameter (nmon=27*12, nlon=288, nlat=181, mlat=46, !bala
 c      parameter (nmon=51*12, nlon=360, nlat=180,  mlat=60, !AMIP            
-      parameter (nmon=145*12, nlon=360, nlat=180, mlat=45, !obs           
-cshortrun      parameter (nmon=5*12, nlon=360, nlat=180, mlat=45, !obs           
-c      parameter (nmon=141*12, nlon=192, nlat=96,  mlat=48, !    
-c      parameter (nmon=141*12, nlon=96, nlat=73,  mlat=73, !    
-c      parameter (nmon=139*12, nlon=288, nlat=217,  mlat=31, !    
-c      parameter (nmon=141*12, nlon=192, nlat=145,  mlat=29, !    
+c      parameter (nmon=142*12, nlon=360, nlat=180, mlat=45, !obs           
+c      parameter (nmon=142*12, nlon=32, nlat=64,  mlat=64, !    
+c      parameter (nmon=142*12, nlon=96, nlat=73,  mlat=73, !    
+c      parameter (nmon=142*12, nlon=288, nlat=217,  mlat=31, !    
+c      parameter (nmon=142*12, nlon=192, nlat=145,  mlat=29, !    
      &       nzon=6, nzonp=nzon+1, n1=nzonp*21, n2=nzonp*41,
      &       nmon12=12, nlagm=13, nchunks=(nlat-1)/mlat+1,
      &       niofiles=150)
@@ -461,7 +467,7 @@ c *****************************************************************
      &    inputfil(niofiles), outfile, pathout, tempbc(nchunks),
      &    tempobs(nchunks), fclimbc, fclimobs, fspinup, fobs, 
      &    inputsic(niofiles), inputsst(niofiles), outcopy,
-     &    sftfilis, sftfilic
+     &    sftfilis, sftfilic  ! PJD Oceanonly 1870-2014
       character*16 vname, varin, model, sftnameo, sftnamei
       character varout*6, varout1*3        
       character*40 units, units2
@@ -469,7 +475,7 @@ c *****************************************************************
       character*30 suff
       character*3 suffix, c3
       character*4 ayr
-      character*16 abbrev, src, src1
+      character*16 abbrev, src, src1  ! PJD Oceanonly 1870-2014
       character*9 cclim
       character*15 fnclim, blnk
 c      double precision sum
@@ -522,7 +528,6 @@ c      iout(4) = 0     !GISST
 
 c  1 for sst 2 for ice 3 for both
           icntl = 3
-c          icntl = 1
 
 c     SPECIFY source for boundary condition data (used to control 
 c        description stored in output file cd77 -ezget -lats mkgisst16.f -o mkgisst16) 
@@ -551,8 +556,10 @@ c    SPECIFY either 'obs' (if not regridding input data and EzGet input
 c       has been specified) or a brief indicator of the target grid.
 c          (< 17 characters).
 
+      model = 'obs' ! PJD Oceanonly 1870-2014
+c      model = 'obs'       !obs
 c      model = 'CCM3-T159'
-      model = 'pcmdi'     !AMIP  & test & bala 
+c      model = 'pcmdi'     !AMIP  & test & bala 
 
 c     SPECIFY the research center that has requested the data (written
 c        as a comment in ascii and lats output files).  For grib and 
@@ -620,38 +627,42 @@ c *********************************************************************
 c      original grid (iregrid=0) or regrid (iregrid=1)?
 
 c       iregrid=1    ! AMIP
-       iregrid=0    ! obs
+       iregrid=0    ! obs ! PJD Oceanonly 1870-2014
 
-c          abbrev = 'T63'
-c          abbrev = '96x73'
+          abbrev = '360x180' ! PJD Oceanonly 1870-2014
+c          abbrev = 'T21'
+c          abbrev = '64x32'
 c          abbrev = '288x181'   !bala
 c          abbrev = '12x6'     !test
-          abbrev = '360x180'  !obs 
-           
+c          abbrev = '360x180'  !obs 
+
+      gtype = 'cosine' ! PJD Oceanonly 1870-2014
 c           gtype  = 'gaussian'
-         gtype = 'cosine'
+c         gtype = 'cosine'
           
 C    the following will appear only on ascii files:
-c      grid = '1 x 1 degree uniformly-spaced longitude/latitude grid'
+      grid = '1 x 1 degree uniformly-spaced longitude/latitude grid' ! PJD Oceanonly 1870-2014
 c      grid = '0.5 x 0.5 degree uniformly-spaced longitude/latitude grid'
 c       grid = 'Gaussian grid'
-      grid = 'uniformly spaced'
+c      grid = 'uniformly spaced'
 
 c     outftype options include 'drs', 'coards', 'grib', 'ascii', 
 c                     'coards&grib' and 'all'
-c          outftype = 'grib'        !obs & test
+c          outftype = 'grib'        test
 c          outftype = 'coards&grib'
 c          outftype = 'coards&asc'
-          outftype = 'notdrs'
+c          outftype = 'notdrs'       !obs
 c          outftype = 'all'        !AMIP & bala
 c          outftype = 'ascii'
-c          outftype = 'coards'
+          outftype = 'coards'
 
+          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
+     & // '360x180'
+c     !PJD Oceanonly 1870-2014
 c          pathout = '/pcmdi/tobala/288x181/ORIG/'    !bala
-          pathout = '/tmp/zooks1/SSTCICE/360x180/'     !obs
-c          pathout = '/home/taylor13/zooks1/SSTCICE/360x180/'     !obs
+c          pathout = '/pcmdi/zooks1/SSTCICE/360x180/'     !obs
 c          pathout = '/pcmdi/zooks1/SSTCICE/96x73/'     !AMIP
-c          pathout = '/pcmdi/zooks1/SSTCICE/T63/'     !AMIP
+c          pathout = '/pcmdi/zooks1/SSTCICE/T21/'     !AMIP
 c          pathout = '/pcmdi/zooks1/SSTCICE/12x6/'    !test
 c          pathout = '/pcmdi/zooks1/SSTCICE/T255_NtoS/'   !AMIP
 c          pathout = '/pcmdi/zooks1/SSTCICE/SMIP_T42/'   !AMIP
@@ -683,14 +694,13 @@ c         rlon0 = first longitude location
 c      
         ntlat = nlat
         rlat0 = -89.5  !AMIP obs
-c        rlat0 = 88.928  !AMIP obs
 c        rlat0 = 75.    !test
 c        rlat0 = 90.0   !bala
 c        rlat0 = -90.    !Hadley
         ntlon = nlon
-         rlon0 = 0.5     !obs
+        rlon0 = 0.5     !obs ! PJD Oceanonly 1870-2014
 c         rlon0 = 0.5    !AMIP regular
-c         rlon0 = 0.    ! gaussian
+c         rlon0 = 0.    ! gaussian ! PJD Oceanonly 1870-2014
 c        rlon0 = -177.5  ! GISS
 c         rlon0 = 0.0     ! Hadley
 
@@ -719,9 +729,13 @@ c       msklndi = 1
         sftnamei = 'sftlf'
 
         sftfilis = 
-     &     '/pcmdi/AMIP2/data_fixed/ldseamsk/obs/sftlf_180x360.nc'
+     &     '/work/durack1/Shared/150219_AMIPForcingData/SSTCICE/OBS/'
+     & // 'Hurrell_Shea/sftlf_360x180.nc' ! PJD Oceanonly 1870-2014
+c     &     '/pcmdi/AMIP2/data_fixed/ldseamsk/obs/sftlf_180x360.nc'
         sftfilic = 
-     &     '/pcmdi/AMIP2/data_fixed/ldseamsk/obs/sftlf_180x360.nc'
+     &     '/work/durack1/Shared/150219_AMIPForcingData/SSTCICE/OBS/'
+     & // 'Hurrell_Shea/sftlf_360x180.nc' ! PJD Oceanonly 1870-2014
+c     &     '/pcmdi/AMIP2/data_fixed/ldseamsk/obs/sftlf_180x360.nc'
 
 c    &  '/pcmdi/staff/longterm/doutriau/ldseamsk/bcamip2/mask.1deg.ctl'
 c        sftfilis = 
@@ -768,8 +782,8 @@ c    last month and year for entire period that will be treated (period
 c        of interest plus buffers at ends).  Note the entire period 
 c        treated should be an integral number of years.
       monn = 12           !hurrell
-      iyrn = 2013         !hurrell
-cshortrun      iyrn = 1873         !hurrell
+      iyrn = 2015 ! PJD Oceanonly 1870-2014
+c      iyrn = 2010         !hurrell
 c      monn = 12           !AMIP & bala
 c      iyrn = 2007         !AMIP & bala
 c      monn = 12           !GISST
@@ -792,9 +806,10 @@ c      iyr1rd = 1979         !test
 
 c    last month and year for period in which observed monthly mean data
 c           will be read (must not follow monn, iyrn) 
-      monnrd = 3            !AMIP & bala
-      iyrnrd = 2013          !AMIP & bala
-cshortrun      iyrnrd = 1873          !AMIP & bala
+      monnrd = 5 ! PJD Oceanonly 1870-2014
+      iyrnrd = 2015 ! PJD Oceanonly 1870-2014
+c      monnrd = 6            !AMIP & bala
+c      iyrnrd = 2010          !AMIP & bala
 c      iyrnrd = 1981         !test3
 c      monnrd = 12           !GISST
 c      iyrnrd = 1996         !GISST
@@ -806,7 +821,6 @@ c      iyrnrd = 1981         !test
 c     first month and year that will be included in climatological mean
       mon1clm = 1            !1/18/07
       iyr1clm = 1988         !1/18/07
-cshortrun      iyr1clm = 1870         !1/18/07
 c      mon1clm = 1            !SMIP
 c      iyr1clm = 1979         !SMIP 
 c      mon1clm = 1            !AMIP & bala
@@ -822,7 +836,6 @@ c      iyr1clm = 1979         !test
 c     last month and year that will be included in climatological mean
       monnclm = 12            !1/18/07
       iyrnclm = 2007          !1/18/07
-cshortrun      iyrnclm = 1872          !1/18/07
 c      monnclm = 12            !SMIP
 c      iyrnclm = 2001          !SMIP
 c      monnclm = 12            !AMIP & bala
@@ -849,9 +862,10 @@ c      mon1out = 1            !test
 c      iyr1out = 1979         !test
 
 c     last month and year written to output file
-      monnout = 12            ! 1/18/07
-      iyrnout = 2012          ! 1/18/07
-cshortrun      iyrnout = 1872          ! 1/18/07
+      monnout = 3 ! PJD Oceanonly 1870-2014
+      iyrnout = 2015 ! PJD Oceanonly 1870-2014
+c      monnout = 3            ! 1/18/07
+c      iyrnout = 2010          ! 1/18/07
 c      monnout = 6            !AMIP & test
 c      iyrnout = 2005         !AMIP & test
 c      monnout = 12           !AMIP
@@ -881,10 +895,12 @@ c              specify year of first month of data in each file.
 c              (Note, last month in each file, except possibly last
 c               file, should be December) 
         inputsst(1) = 
-     &     '/work/durack1/Shared/150219_AMIPForcingData/SST_NEW/' //
-     &     'MODEL.SST.HAD187001-198110.OI198111-201503.nc'
-c     &     '/home/taylor13/zooks1/SSTCICE/OBS/Hurrell_Shea/' //
-c     &     'MODEL.SST.HAD187001-198110.OI198111-201303.nc'
+     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+     & //  'SST_NEW3/'
+     & //  'MODEL.SST.HAD187001-198110.OI198111-201505.nc' ! PJD Oceanonly 1870-2014
+
+c     &     '/pcmdi/zooks1/SSTCICE/OBS/Hurrell_Shea/' //
+c     &     'MODEL.SST.HAD187001-198110.OI198111-201006.nc'
 c     &     '/pcmdi/zooks1/SSTCICE/sst.ctl'
 c     &     '/pcmdi/roseland0/amip2/bcs/data/latest/sst/sst.ctl'
 c     &     '/pcmdi/zooks1/SSTCICE/sst.ctl'
@@ -912,10 +928,12 @@ c              specify year of first month of data in each file.
 c              (Note, last month in each file, except possibly last
 c               file, should be December)
         inputsic(1) = 
-     &     '/work/durack1/Shared/150219_AMIPForcingData/SST_NEW/' //
-     &     'MODEL.ICE.HAD187001-198110.OI198111-201503.nc'
-c     &     '/home/taylor13/zooks1/SSTCICE/OBS/Hurrell_Shea/' //
-c     &     'MODEL.ICE.HAD187001-198110.OI198111-201303.nc'
+     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+     & //  'SST_NEW3/'
+     & //  'MODEL.ICE.HAD187001-198110.OI198111-201505.nc' ! PJD Oceanonly 1870-2014
+
+c     &     '/pcmdi/zooks1/SSTCICE/OBS/Hurrell_Shea/' //
+c     &     'MODEL.ICE.HAD187001-198110.OI198111-201006.nc'
 c     &     '/pcmdi/zooks1/SSTCICE/sic.ctl'
 c     &     '/pcmdi/roseland0/amip2/bcs/data/latest/sic/sic.ctl'
 c     &     '/pcmdi/zooks1/SSTCICE/sic.ctl'
@@ -1427,16 +1445,16 @@ c ***      fclimobs = pathout(1:je)//'/climobs_'//suffix//'_'//abbrev(1:ie)
      &    '/'//src1(1:isrc1)//'obs_'//suffix//'_'//abbrev(1:ie)
 
 c      the following only used for lats output
-cjfp was      parmtabl = 
-cjfp was     &    '/home/taylor13/zooks0/ktaylor/pcmdi/util/ketgrib.parms'
-      parmtabl = 
-     &    '/export_backup/painter1/src/karl/ketgrip.parms'
+c      parmtabl = '/home/taylor13/pcmdi/util/ketgrib.parms'
 c      dfltparm = '/usr/local/lats/table/amip2.lats.table' ! sunOS
 c      dfltparm = '/usr/local/lib/lats/amip2.lats.table' ! stargate
-cjfp was      dfltparm = '/usr/local/lib/lats/amip2.parms' ! linux
-c      dfltparm = '/Users/painter1/src/lats/amip2.parms' ! caradoc Mac OS
-cjfp was      dfltparm = '/export_backup/painter1/src/lats/amip2.parms' ! crunchy Linux OS
-      dfltparm = '/export_backup/painter1/src/karl/ketgrib.parms' ! crunchy Linux OS
+c      dfltparm = '/usr/local/lib/lats/amip2.parms' ! linux
+c      dfltparm = '/work/durack1/Shared/150219_AMIPForcingData/src/lats/'
+c     & // 'amip2.parms' ! PJD Oceanonly 1870-2014
+      parmtabl = '/work/durack1/Shared/150219_AMIPForcingData/'
+     & // 'ketgrip.parms' ! PJD Oceanonly 1870-2014
+      dfltparm = '/work/durack1/Shared/150219_AMIPForcingData/'
+     & // 'ketgrib.parms' ! PJD Oceanonly 1870-2014
 
       open(9, file=outfile, status='new')
 
@@ -2451,7 +2469,7 @@ c         write climatology of obs
 
         endif
 
-cjfp was        if (iout(6) .gt. 0) then
+c        if (iout(6) .gt. 0) then
 cjfp no calls of wrtlats, effectively ignoring iout(6):
         if (iout(6) .gt. 0 .and. iout(6).lt.0 ) then
           vname = varout1//'max'
@@ -3130,7 +3148,7 @@ c    solve for climatological mid-month values
 
       do 500 j=j1,jn
 
-       print*, 
+        print*, 
      &      'Computing climatological mid-month values for latitude ',
      &                alats(j)
 
@@ -3499,7 +3517,7 @@ c               calculate correlations
       implicit none
       integer nmont, nmon12
 
-      parameter (nmont=12*145, nmon12=12)
+      parameter (nmont=12*147, nmon12=12) ! PJD Oceanonly 1870-2014
 
       integer nmon, icnt, jcnt, maxiter
       real conv, tmin, tmax, dt, bbmin, alon, alat
@@ -4563,7 +4581,7 @@ c *********************************************************************
       INTEGER n,nmax
       REAL alon,alat,a(n),b(n),c(n),r(n)
       double precision u(n)
-      PARAMETER (nmax=12*145)
+      PARAMETER (nmax=12*147) ! PJD Oceanonly 1870-2014
       INTEGER j
       REAL bet, gam(nmax)
       if (nmax .lt. n) then
@@ -4600,7 +4618,7 @@ c *********************************************************************
       INTEGER n,nmax
       real alon,alat,alpha,beta,a(n),b(n),c(n),r(n)
       double precision x(n)
-      PARAMETER (nmax=12*145)
+      PARAMETER (nmax=12*147) ! PJD Oceanonly 1870-2014
 CU    USES tridag
       INTEGER i
       REAL fact,gamma,bb(nmax),u(nmax)
@@ -4640,7 +4658,7 @@ CU    USES tridag
       character*16 vname
       character*120 source
       character*80 title
-      character*120 outfile, chnkname(nchunks)
+      character*120 outfile, chnkname(nchunks) ! PJD Oceanonly - 1870-2014
       character*40 units
 
       print*, 'Your version of the code is unable to write '
@@ -4658,8 +4676,11 @@ CU    USES tridag
      &         iyrn, monn, chnkname, jyr1out, elem1, elemn,
      &         source, vname, title, units, gauss, array)
      
-include "../libdrs/lib/drsdef.h"
-cjfp was      include '/usr/local/include/drsdef.h'
+c #include "drsdef.h"
+c      include '/usr/local/include/drsdef.h'
+c      include '/work/durack1/Shared/150219_AMIPForcingData/src/'
+c     & // 'libdrs/lib/drsdef.h'
+      include '/work/durack1/Shared/150219_AMIPForcingData/src/drsdef.h'
       
 c      implicit none
 
@@ -4670,7 +4691,7 @@ c      implicit none
       character*15 fnclim
       character*120 source
       character*80 title
-      character*120 outfile, chnkname(nchunks), fullfile
+      character*120 outfile, chnkname(nchunks), fullfile ! PJD Oceanonly - 1870-2014
       character*40 units
       integer seterr, aslun, cluvdb, setname, setdim, 
      +    putdat, cllun, setvdim, putvdim
@@ -5706,6 +5727,7 @@ c        ** extract all monthly mean data, but don't mask or regrid
         call defmisc('data size', 'integer', len)
         call getfield(2,sst)
 
+
         if (mlat .ne. lats) then
 c         rearrange in memory:
 
@@ -5902,7 +5924,7 @@ c       copy weights from first month to sstwts
       call getcoord(2, 1, alons)
       call getcoord(2, 2, alats)
 
-      do 390 j=1,ilat
+      do 390 j=1,ilat ! PJD Oceanonly - 1870-2014
          if (abs(alats(j)) .lt. 0.00001) alats(j) = 0.0
          if (alats(j) .gt. 90.) alats(j) = 90.
          if (alats(j) .lt. -90.) alats(j) = -90.
@@ -6049,7 +6071,8 @@ c         call exit(1)
       real alons(*), alats(*), amiss, array(*)
       character*80 center, varcomm
       character*120 outfile, chnkname(nchunks), filecomm
-      character*256 parmtabl
+c      character*256 parmtabl ! PJD Oceanonly - 1870-2014
+      character*(*) parmtabl ! PJD Oceanonly - 1870-2014
       character*16 outftype, calendar, gtype, model
       character*15 fnclim
       character*(*) varname, stat, date
@@ -6071,13 +6094,11 @@ c         call exit(1)
      &      chnkname, jyr1out)
 
       implicit none
-cjfp was      include '/usr/local/include/lats.inc' ! stargate
-cjfp      include '/Users/painter1/src/lats/lats.inc' ! caradoc Mac OS
-      include '/export_backup/painter1/src/lats/lats.inc' ! crunchy linux
+c      include '/usr/local/include/lats.inc' ! stargate
 c      include '/pcmdi/ktaylor/rosinski/pcmdisst/lats.inc' ! zooks
-
 c      include '/usr/local/lats/include/lats.inc' ! sunOS
-
+c      include '/work/durack1/Shared/150219_AMIPForcingData/src/lats/lats.inc' ! PJD Oceanonly - 1870-2014
+      include '/work/durack1/Shared/150219_AMIPForcingData/src/lats.inc' ! PJD Oceanonly - 1870-2014
       save idfile, igrid
 
       integer maxlon, maxlat
@@ -6087,11 +6108,11 @@ c      include '/usr/local/lats/include/lats.inc' ! sunOS
      &   iendyr, jyr1out(*)
       real alons(*), alats(*), amiss, array(*)
       character*80 center, varcomm
-      character*120 outfile, chnkname(nchunks), filecomm
+      character*120 outfile, chnkname(nchunks), filecomm ! PJD Oceanonly - 1870-2014
       character*16 outftype, calendar, gtype, model
       character*15 fnclim
-c jfp was      character*256 parmtabl
-      character*(*) parmtabl
+c      character*256 parmtabl ! PJD Oceanonly - 1870-2014
+      character*(*) parmtabl ! PJD Oceanonly - 1870-2014
       character*(*) varname, stat, date
 
       integer latsgrid, latsvar, latscreate, latswrite,
@@ -6202,7 +6223,6 @@ c jfp was      character*256 parmtabl
 
       if ((lwrite .gt. 0) .and. (lconcat .gt. 0)) then
         do 200 ichunk=1,nchunks
-
           OPEN (12+ichunk,FILE=chnkname(ichunk),STATUS='OLD',
      &           FORM='UNFORMATTED')
   200   continue
@@ -6516,6 +6536,7 @@ c    completely blank.
       character*(*) a, b
       character*1 c, d
       integer i, j, k, m, n, j1, k1, ii
+      logical caseindp1 ! 150610 PJD added to suppress warnings
 
 c     look for leading blanks and neglect
 
