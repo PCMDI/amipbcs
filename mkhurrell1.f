@@ -6300,8 +6300,9 @@ c              the following corrects a problem with lats.
           else
             if (.not. caseindp(outftype, 'grads')) then
               ifreq = LATS_DAILY
+c              ifreq = LATs_HOURLY ! PJD Oceanonly 1870-2014
             else
-              ifreq = LATS_MONTHLY
+              ifreq = LATS_MONTHLY ! PJD Oceanonly 1870-2014
             endif
           endif
 
@@ -6335,6 +6336,10 @@ c          iyr = 0 if no time-dimension; iyr=2 if climatology
           print*, ' '
           print*, '     Creating ', outftype, ' file with LATS:'
           print*, '          ', fullfile        
+
+
+          print*, 'ifreq: ',ifreq ! PJD Oceanonly 1870-2014
+
 
           idfile = latscreate(fullfile, ifiletyp, icalend, 
      &         ifreq, inctime, center, model, filecomm)
