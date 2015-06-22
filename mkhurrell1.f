@@ -1,9 +1,10 @@
-c  cd77 -ezget -lats mkhurrell1.f -o mkhurrell1
+c  $HOME/src/cd77/cd77 -ezget -lats mkhurrell1.f -o mkhurrell1
 
 c 3456789012345678901234567890123456789012345678901234567890123456789012
 
 c    21 August 1997
 c    program description and comments added 8 February 2002
+c    minor changes (new paths and updated libraries): jfp May 2015
 
 c    Karl E. Taylor
 c    PCMDI
@@ -417,11 +418,12 @@ c *****************************************************************
 c      parameter (nmon=4*12, nlon=12, nlat=6, mlat=4, !test
 c      parameter (nmon=27*12, nlon=288, nlat=181, mlat=46, !bala
 c      parameter (nmon=51*12, nlon=360, nlat=180,  mlat=60, !AMIP            
-c      parameter (nmon=142*12, nlon=360, nlat=180, mlat=45, !obs           
-      parameter (nmon=142*12, nlon=32, nlat=64,  mlat=64, !    
-c      parameter (nmon=142*12, nlon=96, nlat=73,  mlat=73, !    
-c      parameter (nmon=142*12, nlon=288, nlat=217,  mlat=31, !    
-c      parameter (nmon=142*12, nlon=192, nlat=145,  mlat=29, !    
+      parameter (nmon=145*12, nlon=360, nlat=180, mlat=45, !obs           
+cshortrun      parameter (nmon=5*12, nlon=360, nlat=180, mlat=45, !obs           
+c      parameter (nmon=141*12, nlon=192, nlat=96,  mlat=48, !    
+c      parameter (nmon=141*12, nlon=96, nlat=73,  mlat=73, !    
+c      parameter (nmon=139*12, nlon=288, nlat=217,  mlat=31, !    
+c      parameter (nmon=141*12, nlon=192, nlat=145,  mlat=29, !    
      &       nzon=6, nzonp=nzon+1, n1=nzonp*21, n2=nzonp*41,
      &       nmon12=12, nlagm=13, nchunks=(nlat-1)/mlat+1,
      &       niofiles=150)
@@ -520,6 +522,7 @@ c      iout(4) = 0     !GISST
 
 c  1 for sst 2 for ice 3 for both
           icntl = 3
+c          icntl = 1
 
 c     SPECIFY source for boundary condition data (used to control 
 c        description stored in output file cd77 -ezget -lats mkgisst16.f -o mkgisst16) 
@@ -548,7 +551,6 @@ c    SPECIFY either 'obs' (if not regridding input data and EzGet input
 c       has been specified) or a brief indicator of the target grid.
 c          (< 17 characters).
 
-c      model = 'obs'       !obs
 c      model = 'CCM3-T159'
       model = 'pcmdi'     !AMIP  & test & bala 
 
@@ -617,38 +619,39 @@ c *********************************************************************
 
 c      original grid (iregrid=0) or regrid (iregrid=1)?
 
-       iregrid=1    ! AMIP
-c       iregrid=0    ! obs
+c       iregrid=1    ! AMIP
+       iregrid=0    ! obs
 
-          abbrev = 'T21'
-c          abbrev = '64x32'
+c          abbrev = 'T63'
+c          abbrev = '96x73'
 c          abbrev = '288x181'   !bala
 c          abbrev = '12x6'     !test
-c          abbrev = '360x180'  !obs 
+          abbrev = '360x180'  !obs 
            
-           gtype  = 'gaussian'
-c         gtype = 'cosine'
+c           gtype  = 'gaussian'
+         gtype = 'cosine'
           
 C    the following will appear only on ascii files:
 c      grid = '1 x 1 degree uniformly-spaced longitude/latitude grid'
 c      grid = '0.5 x 0.5 degree uniformly-spaced longitude/latitude grid'
-       grid = 'Gaussian grid'
-c      grid = 'uniformly spaced'
+c       grid = 'Gaussian grid'
+      grid = 'uniformly spaced'
 
 c     outftype options include 'drs', 'coards', 'grib', 'ascii', 
 c                     'coards&grib' and 'all'
-c          outftype = 'grib'        test
+c          outftype = 'grib'        !obs & test
 c          outftype = 'coards&grib'
 c          outftype = 'coards&asc'
-c          outftype = 'notdrs'       !obs
+          outftype = 'notdrs'
 c          outftype = 'all'        !AMIP & bala
 c          outftype = 'ascii'
-          outftype = 'coards'
+c          outftype = 'coards'
 
 c          pathout = '/pcmdi/tobala/288x181/ORIG/'    !bala
-c          pathout = '/pcmdi/zooks1/SSTCICE/360x180/'     !obs
+          pathout = '/tmp/zooks1/SSTCICE/360x180/'     !obs
+c          pathout = '/home/taylor13/zooks1/SSTCICE/360x180/'     !obs
 c          pathout = '/pcmdi/zooks1/SSTCICE/96x73/'     !AMIP
-          pathout = '/pcmdi/zooks1/SSTCICE/T21/'     !AMIP
+c          pathout = '/pcmdi/zooks1/SSTCICE/T63/'     !AMIP
 c          pathout = '/pcmdi/zooks1/SSTCICE/12x6/'    !test
 c          pathout = '/pcmdi/zooks1/SSTCICE/T255_NtoS/'   !AMIP
 c          pathout = '/pcmdi/zooks1/SSTCICE/SMIP_T42/'   !AMIP
@@ -680,13 +683,14 @@ c         rlon0 = first longitude location
 c      
         ntlat = nlat
         rlat0 = -89.5  !AMIP obs
+c        rlat0 = 88.928  !AMIP obs
 c        rlat0 = 75.    !test
 c        rlat0 = 90.0   !bala
 c        rlat0 = -90.    !Hadley
         ntlon = nlon
-c         rlon0 = 0.5     !obs
+         rlon0 = 0.5     !obs
 c         rlon0 = 0.5    !AMIP regular
-         rlon0 = 0.    ! gaussian
+c         rlon0 = 0.    ! gaussian
 c        rlon0 = -177.5  ! GISS
 c         rlon0 = 0.0     ! Hadley
 
@@ -764,7 +768,8 @@ c    last month and year for entire period that will be treated (period
 c        of interest plus buffers at ends).  Note the entire period 
 c        treated should be an integral number of years.
       monn = 12           !hurrell
-      iyrn = 2010         !hurrell
+      iyrn = 2013         !hurrell
+cshortrun      iyrn = 1873         !hurrell
 c      monn = 12           !AMIP & bala
 c      iyrn = 2007         !AMIP & bala
 c      monn = 12           !GISST
@@ -787,8 +792,9 @@ c      iyr1rd = 1979         !test
 
 c    last month and year for period in which observed monthly mean data
 c           will be read (must not follow monn, iyrn) 
-      monnrd = 6            !AMIP & bala
-      iyrnrd = 2010          !AMIP & bala
+      monnrd = 3            !AMIP & bala
+      iyrnrd = 2013          !AMIP & bala
+cshortrun      iyrnrd = 1873          !AMIP & bala
 c      iyrnrd = 1981         !test3
 c      monnrd = 12           !GISST
 c      iyrnrd = 1996         !GISST
@@ -800,6 +806,7 @@ c      iyrnrd = 1981         !test
 c     first month and year that will be included in climatological mean
       mon1clm = 1            !1/18/07
       iyr1clm = 1988         !1/18/07
+cshortrun      iyr1clm = 1870         !1/18/07
 c      mon1clm = 1            !SMIP
 c      iyr1clm = 1979         !SMIP 
 c      mon1clm = 1            !AMIP & bala
@@ -815,6 +822,7 @@ c      iyr1clm = 1979         !test
 c     last month and year that will be included in climatological mean
       monnclm = 12            !1/18/07
       iyrnclm = 2007          !1/18/07
+cshortrun      iyrnclm = 1872          !1/18/07
 c      monnclm = 12            !SMIP
 c      iyrnclm = 2001          !SMIP
 c      monnclm = 12            !AMIP & bala
@@ -841,8 +849,9 @@ c      mon1out = 1            !test
 c      iyr1out = 1979         !test
 
 c     last month and year written to output file
-      monnout = 3            ! 1/18/07
-      iyrnout = 2010          ! 1/18/07
+      monnout = 12            ! 1/18/07
+      iyrnout = 2012          ! 1/18/07
+cshortrun      iyrnout = 1872          ! 1/18/07
 c      monnout = 6            !AMIP & test
 c      iyrnout = 2005         !AMIP & test
 c      monnout = 12           !AMIP
@@ -872,8 +881,10 @@ c              specify year of first month of data in each file.
 c              (Note, last month in each file, except possibly last
 c               file, should be December) 
         inputsst(1) = 
-     &     '/pcmdi/zooks1/SSTCICE/OBS/Hurrell_Shea/' //
-     &     'MODEL.SST.HAD187001-198110.OI198111-201006.nc'
+     &     '/work/durack1/Shared/150219_AMIPForcingData/SST_NEW/' //
+     &     'MODEL.SST.HAD187001-198110.OI198111-201503.nc'
+c     &     '/home/taylor13/zooks1/SSTCICE/OBS/Hurrell_Shea/' //
+c     &     'MODEL.SST.HAD187001-198110.OI198111-201303.nc'
 c     &     '/pcmdi/zooks1/SSTCICE/sst.ctl'
 c     &     '/pcmdi/roseland0/amip2/bcs/data/latest/sst/sst.ctl'
 c     &     '/pcmdi/zooks1/SSTCICE/sst.ctl'
@@ -901,8 +912,10 @@ c              specify year of first month of data in each file.
 c              (Note, last month in each file, except possibly last
 c               file, should be December)
         inputsic(1) = 
-     &     '/pcmdi/zooks1/SSTCICE/OBS/Hurrell_Shea/' //
-     &     'MODEL.ICE.HAD187001-198110.OI198111-201006.nc'
+     &     '/work/durack1/Shared/150219_AMIPForcingData/SST_NEW/' //
+     &     'MODEL.ICE.HAD187001-198110.OI198111-201503.nc'
+c     &     '/home/taylor13/zooks1/SSTCICE/OBS/Hurrell_Shea/' //
+c     &     'MODEL.ICE.HAD187001-198110.OI198111-201303.nc'
 c     &     '/pcmdi/zooks1/SSTCICE/sic.ctl'
 c     &     '/pcmdi/roseland0/amip2/bcs/data/latest/sic/sic.ctl'
 c     &     '/pcmdi/zooks1/SSTCICE/sic.ctl'
@@ -1414,10 +1427,16 @@ c ***      fclimobs = pathout(1:je)//'/climobs_'//suffix//'_'//abbrev(1:ie)
      &    '/'//src1(1:isrc1)//'obs_'//suffix//'_'//abbrev(1:ie)
 
 c      the following only used for lats output
-      parmtabl = '/home/taylor13/pcmdi/util/ketgrib.parms'
+cjfp was      parmtabl = 
+cjfp was     &    '/home/taylor13/zooks0/ktaylor/pcmdi/util/ketgrib.parms'
+      parmtabl = 
+     &    '/export_backup/painter1/src/karl/ketgrip.parms'
 c      dfltparm = '/usr/local/lats/table/amip2.lats.table' ! sunOS
 c      dfltparm = '/usr/local/lib/lats/amip2.lats.table' ! stargate
-      dfltparm = '/usr/local/lib/lats/amip2.parms' ! linux
+cjfp was      dfltparm = '/usr/local/lib/lats/amip2.parms' ! linux
+c      dfltparm = '/Users/painter1/src/lats/amip2.parms' ! caradoc Mac OS
+cjfp was      dfltparm = '/export_backup/painter1/src/lats/amip2.parms' ! crunchy Linux OS
+      dfltparm = '/export_backup/painter1/src/karl/ketgrib.parms' ! crunchy Linux OS
 
       open(9, file=outfile, status='new')
 
@@ -2432,7 +2451,9 @@ c         write climatology of obs
 
         endif
 
-        if (iout(6) .gt. 0) then
+cjfp was        if (iout(6) .gt. 0) then
+cjfp no calls of wrtlats, effectively ignoring iout(6):
+        if (iout(6) .gt. 0 .and. iout(6).lt.0 ) then
           vname = varout1//'max'
           title = 
      &        ' Maximum (Monthly) Mean Climatological '// suff(1:iie)
@@ -3109,7 +3130,7 @@ c    solve for climatological mid-month values
 
       do 500 j=j1,jn
 
-        print*, 
+       print*, 
      &      'Computing climatological mid-month values for latitude ',
      &                alats(j)
 
@@ -3478,7 +3499,7 @@ c               calculate correlations
       implicit none
       integer nmont, nmon12
 
-      parameter (nmont=12*142, nmon12=12)
+      parameter (nmont=12*145, nmon12=12)
 
       integer nmon, icnt, jcnt, maxiter
       real conv, tmin, tmax, dt, bbmin, alon, alat
@@ -4542,7 +4563,7 @@ c *********************************************************************
       INTEGER n,nmax
       REAL alon,alat,a(n),b(n),c(n),r(n)
       double precision u(n)
-      PARAMETER (nmax=12*142)
+      PARAMETER (nmax=12*145)
       INTEGER j
       REAL bet, gam(nmax)
       if (nmax .lt. n) then
@@ -4579,7 +4600,7 @@ c *********************************************************************
       INTEGER n,nmax
       real alon,alat,alpha,beta,a(n),b(n),c(n),r(n)
       double precision x(n)
-      PARAMETER (nmax=12*142)
+      PARAMETER (nmax=12*145)
 CU    USES tridag
       INTEGER i
       REAL fact,gamma,bb(nmax),u(nmax)
@@ -4637,8 +4658,8 @@ CU    USES tridag
      &         iyrn, monn, chnkname, jyr1out, elem1, elemn,
      &         source, vname, title, units, gauss, array)
      
-c #include "drsdef.h"
-      include '/usr/local/include/drsdef.h'
+include "../libdrs/lib/drsdef.h"
+cjfp was      include '/usr/local/include/drsdef.h'
       
 c      implicit none
 
@@ -5685,7 +5706,6 @@ c        ** extract all monthly mean data, but don't mask or regrid
         call defmisc('data size', 'integer', len)
         call getfield(2,sst)
 
-
         if (mlat .ne. lats) then
 c         rearrange in memory:
 
@@ -5882,7 +5902,7 @@ c       copy weights from first month to sstwts
       call getcoord(2, 1, alons)
       call getcoord(2, 2, alats)
 
-      do 390 j=1,ilon
+      do 390 j=1,ilat
          if (abs(alats(j)) .lt. 0.00001) alats(j) = 0.0
          if (alats(j) .gt. 90.) alats(j) = 90.
          if (alats(j) .lt. -90.) alats(j) = -90.
@@ -6051,7 +6071,9 @@ c         call exit(1)
      &      chnkname, jyr1out)
 
       implicit none
-      include '/usr/local/include/lats.inc' ! stargate
+cjfp was      include '/usr/local/include/lats.inc' ! stargate
+cjfp      include '/Users/painter1/src/lats/lats.inc' ! caradoc Mac OS
+      include '/export_backup/painter1/src/lats/lats.inc' ! crunchy linux
 c      include '/pcmdi/ktaylor/rosinski/pcmdisst/lats.inc' ! zooks
 
 c      include '/usr/local/lats/include/lats.inc' ! sunOS
@@ -6068,7 +6090,8 @@ c      include '/usr/local/lats/include/lats.inc' ! sunOS
       character*120 outfile, chnkname(nchunks), filecomm
       character*16 outftype, calendar, gtype, model
       character*15 fnclim
-      character*256 parmtabl 
+c jfp was      character*256 parmtabl
+      character*(*) parmtabl
       character*(*) varname, stat, date
 
       integer latsgrid, latsvar, latscreate, latswrite,
@@ -6179,6 +6202,7 @@ c      include '/usr/local/lats/include/lats.inc' ! sunOS
 
       if ((lwrite .gt. 0) .and. (lconcat .gt. 0)) then
         do 200 ichunk=1,nchunks
+
           OPEN (12+ichunk,FILE=chnkname(ichunk),STATUS='OLD',
      &           FORM='UNFORMATTED')
   200   continue
@@ -6502,9 +6526,9 @@ c     check whether both strings are length zero
 
       if ((j .eq. 0) .or. (k .eq. 0)) then
         if (j .eq. k) then
-          caseindp = .true.
+          caseindp1 = .true.
         else
-          caseindp = .false.
+          caseindp1 = .false.
         endif
         return
       endif
@@ -6528,9 +6552,9 @@ c   check whether either string is completely blank
 
       if ((j1 .eq. j) .or. (k1 .eq. k)) then
         if ((j1 .eq. j) .and. (k1 .eq. k)) then
-          caseindp = .true.
+          caseindp1 = .true.
         else
-          caseindp = .false.
+          caseindp1 = .false.
         endif
         return
       endif
@@ -6564,12 +6588,12 @@ c   look for trailing blanks and neglect
         d = b(n:n)
         if (lge(d,'A') .and. lle(d,'Z')) d = char(ichar(d)+32)
         if (c .ne. d) then
-           caseindp = .false.
+           caseindp1 = .false.
            return
         endif
   100 continue
 
-      caseindp = .true. 
+      caseindp1 = .true. 
       return
       end
           
