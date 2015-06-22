@@ -421,7 +421,8 @@ c
 
 c *****************************************************************
 
-      parameter (nmon=147*12, nlon=360, nlat=180, mlat=90, ! PJD Oceanonly 1870-2014
+      parameter (nmon=147*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2014 - '147*12' requires changing in subroutines
+c      parameter (nmon=147*12, nlon=360, nlat=180, mlat=90, ! PJD Oceanonly 1870-2014
 c      parameter (nmon=4*12, nlon=12, nlat=6, mlat=4, !test
 c      parameter (nmon=27*12, nlon=288, nlat=181, mlat=46, !bala
 c      parameter (nmon=51*12, nlon=360, nlat=180,  mlat=60, !AMIP            
@@ -1452,7 +1453,7 @@ c      dfltparm = '/usr/local/lib/lats/amip2.parms' ! linux
 c      dfltparm = '/work/durack1/Shared/150219_AMIPForcingData/src/lats/'
 c     & // 'amip2.parms' ! PJD Oceanonly 1870-2014
       parmtabl = '/work/durack1/Shared/150219_AMIPForcingData/'
-     & // 'ketgrip.parms' ! PJD Oceanonly 1870-2014
+     & // 'ketgrib.parms' ! PJD Oceanonly 1870-2014
       dfltparm = '/work/durack1/Shared/150219_AMIPForcingData/'
      & // 'ketgrib.parms' ! PJD Oceanonly 1870-2014
 
@@ -2469,9 +2470,9 @@ c         write climatology of obs
 
         endif
 
-c        if (iout(6) .gt. 0) then
+        if (iout(6) .gt. 0) then
 cjfp no calls of wrtlats, effectively ignoring iout(6):
-        if (iout(6) .gt. 0 .and. iout(6).lt.0 ) then
+c        if (iout(6) .gt. 0 .and. iout(6).lt.0 ) then
           vname = varout1//'max'
           title = 
      &        ' Maximum (Monthly) Mean Climatological '// suff(1:iie)
@@ -3517,7 +3518,7 @@ c               calculate correlations
       implicit none
       integer nmont, nmon12
 
-      parameter (nmont=12*147, nmon12=12) ! PJD Oceanonly 1870-2014
+      parameter (nmont=147*12, nmon12=12) ! PJD Oceanonly 1870-2014
 
       integer nmon, icnt, jcnt, maxiter
       real conv, tmin, tmax, dt, bbmin, alon, alat
@@ -4581,7 +4582,7 @@ c *********************************************************************
       INTEGER n,nmax
       REAL alon,alat,a(n),b(n),c(n),r(n)
       double precision u(n)
-      PARAMETER (nmax=12*147) ! PJD Oceanonly 1870-2014
+      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
       INTEGER j
       REAL bet, gam(nmax)
       if (nmax .lt. n) then
@@ -4618,7 +4619,7 @@ c *********************************************************************
       INTEGER n,nmax
       real alon,alat,alpha,beta,a(n),b(n),c(n),r(n)
       double precision x(n)
-      PARAMETER (nmax=12*147) ! PJD Oceanonly 1870-2014
+      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
 CU    USES tridag
       INTEGER i
       REAL fact,gamma,bb(nmax),u(nmax)
@@ -6457,6 +6458,8 @@ c             read chunk in pp-format
             return
 
           endif
+
+            print*,'time out: ',iyr,imon,iday,ihour ! PJD Oceanonly 1870-2014
 
           ierr1 = latswrite(idfile, idvar, alev, iyr,
      &            imon, iday, ihour, array(nnn))
