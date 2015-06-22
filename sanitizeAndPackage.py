@@ -12,6 +12,7 @@ PJD 16 Jun 2015     - Finalised outputs - organized by variables and subdir
 PJD 19 Jun 2015     - Added tarfile creation
 PJD 19 Jun 2015     - Added sanitize/package control options
 PJD 22 Jun 2015     - Following zos_AVISO obs4MIPS data added and further clarified global_atts
+PJD 22 Jun 2015     - Updated source_id = 'PCMDI-AMIPBCS-1.0' -> 'PCMDI-AMIP-1.0.0'
 
 @author: durack1
 """
@@ -150,7 +151,7 @@ Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. d
         fO.realm            = realmTxt
         fO.references       = refTxt ; fO.sync()
         fO.source           = 'Merged SST based on UK MetOffice HadISST and NCEP OI2'
-        fO.source_id        = 'PCMDI-AMIPBCS-1.0'
+        fO.source_id        = 'PCMDI-AMIP-1.0.0'
         fO.write(var.astype('float32'));
         del(var,time,outFile,latitude,longitude) ; gc.collect()
         fO.close()
