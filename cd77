@@ -1,0 +1,145 @@
+#!/usr/bin/env python
+
+# Commandline:
+# cd77 -ezget -lats mkhurrell1.f -o mkhurrell1 -fcray-pointer -std=legacy
+
+# Compile a Fortran EzGet/LATS/CDMS application
+# Everything marked with "jfp" or with a path containing "painter1" is customized
+# for my particular circumstances and you will have to change it for yours.
+
+usage = """
+cd77 simplifies the process of building FORTRAN EzGet,
+  CDMS, and LATS applications.
+
+Usage: cd77.py [-ezget] [-cdms] [-lats] [-verbose] <f77-options>
+  -ezget: Compile with the EzGet library
+  -cdms: Compile with the CDMS library (DRS emulation)
+  -lats: Compile with the LATS library
+  -verbose: Print the generated f77 command
+  <f77-options>: Options to be passed to f77
+
+Note: Any combination of the options can be specified,
+  in any order. -ezget implies -cdms.
+
+Examples:
+  cd77 -ezget -o ezsample ezsample.F
+  cd77 -lats -verbose -o lats_sample lats_sample.f
+"""
+
+# Locations of libraries and include files on the various platforms
+
+ezgetinc = {"irix6" : "",
+            "sunos5" : "",
+            "linux2" : "",
+            "darwin10" : "",
+            "darwin13" : "-I/Users/painter1/drs/libdrs/lib"
+            }
+ezgetlib = {"irix6" : "-L/pcmdi/ktaylor/pcmdi/util/ezget/Sgi6.2 -lezget",
+            "sunos5" : "-L/pcmdi/cirrus/ktaylor/ezget/solaris -lezget",
+#jfp was            "linux2" : "-L/usr/local/lib -lezget",
+#            "linux2" : "-L/export_backup/painter1/src/EzGet -lezget",
+            "linux2" : "-L/work/durack1/Shared/150219_AMIPForcingData/src/EzGet -lezget",
+            "darwin10" : "-L/usr/local/lib -lezget",
+            "darwin13" : "-L/Users/painter1/drs/ezget -lezget"
+            }
+cdmsinc = {"irix6" : "-I/usr/local/include -I/usr/local/HDF4.0r2/include",
+           "sunos5" : "-I/usr/local/include",
+#jfp was           "linux2" : "-I/usr/local/include",
+           "linux2" : "-I$UVCDAT_SETUP_PATH/Externals/include",
+           "darwin10" : "-I/usr/local/include",
+           "darwin13" : "-I$UVCDAT_SETUP_PATH/Externals/include"
+           }
+cdmslib = {"irix6" : "-L/usr/local/lib -lcdms -lnetcdf -L/usr/local/HDF4.0r2/lib -lmfhdf -ldf -ljpeg -lz -ldrs",
+           "sunos5" : "-L/usr/local/lib -lcdms -lmfhdf -ldf -ljpeg -lz -lnetcdf -lnsl -ldrs -lm -lsunmath",
+           # "linux2" : "-L/usr/local/lib -lcdms -lnetcdf -lmfhdf -ldf -ljpeg -lz -lmfhdf -ldf -ljpeg -lz -ldrs -lm"
+           #jfp was "linux2" : "-L/usr/local/lib -lcdms -lnetcdf -ldrs -lm",
+#           "linux2" : "-L$UVCDAT_SETUP_PATH/Externals/lib -lcdms -lnetcdf -L/export_backup/painter1/src//libdrs/lib -ldrs -lcdms -lgrib2c -lm",
+#           "linux2" : "-L$UVCDAT_SETUP_PATH/Externals/lib -lcdms -lnetcdf -L/work/durack1/Shared/150219_AMIPForcingData/src/libdrs/lib -ldrs -lcdms -lgrib2c -lm",
+           "linux2" : "-L$UVCDAT_SETUP_PATH/Externals/lib -lcdms -lnetcdf -L/work/durack1/Shared/150219_AMIPForcingData/src/ -ldrs -lcdms -lgrib2c -lm",
+           "darwin10" : "-L/usr/local/lib -lcdms -lnetcdf -ldrs -lm",
+           "darwin13" : "-L$UVCDAT_SETUP_PATH/Externals/lib -L/Users/painter1/drs/libdrs/lib -lcdms -lnetcdf -ldrs -lm"
+           }
+latsinc = {"irix6" : "-I/usr/local/include",
+           "sunos5" : "-I/usr/local/include",
+           "linux2" : "-I/usr/local/include",
+           "darwin10" : "-I/usr/local/include",
+           "darwin13" : "-I/Users/painter1/src/lats"}
+latslib = {"irix6" : "-L/usr/local/lib -llats -lnetcdf -lm",
+           "sunos5" : "-L/usr/local/lib -llats -lnetcdf -lnsl -lm",
+#jfp was           "linux2" : "-L/usr/local/lib -llats -lnetcdf -lm",
+#           "linux2" : "-L/export_backup/painter1/src/lats -llats -lnetcdf -lm",
+           "linux2" : "-L/work/durack1/Shared/150219_AMIPForcingData/src/lats -llats -lnetcdf -lm",
+           "darwin10" : "-L/usr/local/lib -llats -lnetcdf -lm",
+           "darwin13" : "-L/Users/painter1/src/lats -llats -lnetcdf -lm"}
+f77exec = {"irix6" : "f77",
+           "sunos5" : "f77",
+#           "linux2" : "pgf77",
+           "linux2" : "gfortran",
+           "darwin10" : "gfortran",
+           "darwin13" : "gfortran"}
+
+import sys, os, string
+
+# Get the host type and major operating system version
+def getplatform():
+    uname = string.split(os.popen("uname -a",'r').readlines()[0])
+    ostype = uname[0]
+    osmajor = string.split(uname[2],".")[0]
+    return string.lower(ostype+osmajor)
+
+def main(argv):
+    ezget = 0
+    cdms = 0
+    lats = 0
+    verbose = 0
+    includes = ""
+    libs = ""
+    
+#jfp was    f77opts = ""
+    f77opts = "-g -fcray-pointer"   #jfp cray-pointer is for gfortran
+    
+    # Process the options
+    for arg in argv[1:]:
+        if arg=="-ezget":
+            ezget = 1
+            cdms = 1
+        elif arg=="-cdms":
+            cdms = 1
+        elif arg=="-lats":
+            lats = 1
+        elif arg=="-verbose":
+            verbose = 1
+        else:
+            f77opts = f77opts+' '+arg
+
+    # Error if no options are set
+    if not (ezget or cdms or lats):
+        print usage
+        sys.exit(0)
+
+    # Get the platform and include, lib directives
+    # for this platform
+    platform = getplatform()
+    try:
+        f77 = f77exec[platform]
+        if ezget:
+            includes = includes+' '+ezgetinc[platform]
+            libs = libs+' '+ezgetlib[platform]
+        if cdms:
+            includes = includes+' '+cdmsinc[platform]
+            libs = libs+' '+cdmslib[platform]
+        if lats:
+            includes = includes+' '+latsinc[platform]
+            libs = libs+' '+latslib[platform]
+    except KeyError:
+        print "Platform not supported:",platform
+        sys.exit(1)
+            
+    # Build and execute the command
+    command = f77+" "+includes+' '+f77opts+libs
+    if verbose:
+        print command
+    os.system(command)
+
+if __name__=='__main__':
+    main(sys.argv)
