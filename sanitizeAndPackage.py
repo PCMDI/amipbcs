@@ -11,17 +11,18 @@ PJD 16 Jun 2015     - Started
 PJD 16 Jun 2015     - Finalised outputs - organized by variables and subdir
 PJD 19 Jun 2015     - Added tarfile creation
 PJD 19 Jun 2015     - Added sanitize/package control options
+PJD 22 Jun 2015     - Following zos_AVISO obs4MIPS data added and further clarified global_atts
 
 @author: durack1
 """
 
-import gc,glob,os,re,tarfile
+import datetime,gc,glob,os,pytz,re,tarfile
 import cdms2 as cdm
 import cdutil as cdu
 from durolib import globalAttWrite,mkDirNoOSErr
 
 #%% Set process options
-sanitize = False
+sanitize = True
 package = True
 
 #%% Set cdms format criteria
@@ -63,6 +64,7 @@ if sanitize:
         # time
         time                    = var.getAxis(0)
         time.standard_name      = 'time'
+        time.long_name          = 'time'
         time.axis               = 'T'
         cdu.setTimeBoundsMonthly(time) ; # Resolve issues with bounds being mid-time values rather than month-end/start values
         time.toRelativeTime('days since 1870-1-1') ; # Fix negative values
@@ -105,15 +107,17 @@ http://www-pcmdi.llnl.gov/projects/amip/AMIP2EXPDSN/BCS/amip2bcs.php'
 Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. doi: 10.1175/2008JCLI2292.1'
     
         if varName == 'sst':
-            var.name            = 'tos'
+            var.name            = ''.join(['tos',BC])
             var.long_name       = ' '.join(['AMIP',longTxt,'sea surface temperature'])
             var.standard_name   = 'sea_surface_temperature'
             var.units           = 'K'
+            realmTxt            = 'ocean'
         elif varName == 'sic':
-            var.name            = 'sic'
+            var.name            = ''.join(['sic',BC])
             var.long_name       = ' '.join(['AMIP',longTxt,'sea ice area fraction'])
             var.standard_name   = 'sea_ice_area_fraction'
             var.units           = '%'
+            realmTxt            = 'seaIce'
     
         #%% Create output file
         outFile = os.path.join(sanPath,varPath,filePath.split('/')[-1])
@@ -125,25 +129,28 @@ Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. d
         fO = cdm.open(outFile,'w')
         # global atts
         globalAttWrite(fO,options='noid'); # 'noid' option prevents data_contact and institution being written
-        fO.Conventions      = 'CF-1.6'
-        fO.sync()
-        fO.contact          = 'pcmdi-cmip@lists.llnl.gov' ; # Overwritten globalAttWrite
-        fO.sync()
-        fO.frequency        = 'mon'
-        fO.sync()
-        fO.institute_id     = 'PCMDI'
-        fO.sync()
-        fO.institution      = 'Program for Climate Model Diagnosis and Intercomparison (LLNL), Livermore, CA, U.S.A.'
-        fO.sync()
-        fO.reference        = refTxt
-        fO.sync()
-        fO.data_usage_tips  = dataUsageTips
-        fO.sync()
-        fO.comments         = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2015-03)'
-        fO.sync()
-        #fO.creation_date   = ''
-        #fO.source          = ''
-        #fO.history         = ''
+        fO.Conventions      = 'CF-1.6' ; fO.sync()
+        fO.comment          = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2015-03)' ; fO.sync()
+        fO.contact          = 'pcmdi-cmip@lists.llnl.gov' ; fO.sync() ; # Overwritten globalAttWrite
+        local               = pytz.timezone("America/Los_Angeles")
+        time_now            = datetime.datetime.now();
+        local_time_now      = time_now.replace(tzinfo = local)
+        utc_time_now        = local_time_now.astimezone(pytz.utc)
+        time_format         = utc_time_now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        fO.creation_date    = time_format
+        fO.data_structure   = 'grid'
+        fO.data_usage_tips  = dataUsageTips ; fO.sync()
+        fO.frequency        = 'mon' ; fO.sync()
+        fO.institute_id     = 'PCMDI' ; fO.sync()
+        fO.institution      = 'Program for Climate Model Diagnosis and Intercomparison (LLNL), Livermore, CA, U.S.A.' ; fO.sync()
+        fO.mip_specs        = 'AMIP CMIP5 CMIP6'
+        if BC == '':
+            fO.product      = 'observations'
+        fO.project_id       = 'AMIP'
+        fO.realm            = realmTxt
+        fO.references       = refTxt ; fO.sync()
+        fO.source           = 'Merged SST based on UK MetOffice HadISST and NCEP OI2'
+        fO.source_id        = 'PCMDI-AMIPBCS-1.0'
         fO.write(var.astype('float32'));
         del(var,time,outFile,latitude,longitude) ; gc.collect()
         fO.close()
@@ -173,7 +180,7 @@ if package:
     test2000s = re.compile('20[0-9]{2}.nc')
     
     tests       = [test1800s,test1900s,test1950s,test2000s]
-    testNames   = ['1870-1899','1900-1949','1950-1999','2000-1015']
+    testNames   = ['1870-1899','1900-1949','1950-1999','2000-2015']
     
     # Change to output dir
     os.chdir(os.path.join(homePath,'360x180_san'))
