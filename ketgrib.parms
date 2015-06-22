@@ -44,9 +44,9 @@
 #
 
 tos     |  80 | Sea Surface Temperature                                       | K          | float | sfc    |  2   | -999 | 1    | g1 |
-tosbcs  | 251 | AMIP II BCS Psuedo Sea Surface Temperature                    | K          | float | sfc    |  2   | -999 | 6    | g1 |
+tosbcs  | 251 | AMIP II BCS Pseudo Sea Surface Temperature                    | K          | float | sfc    |  2   | -999 | 6    | g1 |
 sic     | 227 | Sea-ice concentration                                         | %          | float | sfc    |  0   | -999 | 2    |    |
-sicbcs  | 250 | AMIP II BCS Psuedo Sea-ice concentration                      | %          | float | sfc    |  0   | -999 | 2    |    |
+sicbcs  | 250 | AMIP II BCS Pseudo Sea-ice concentration                      | %          | float | sfc    |  0   | -999 | 2    |    |
 tosmax  | 201 | Maximum Sea Surface Temperature                               | K          | float | sfc    |  2   | -999 | 6    | g1 |
 tosbcsmax| 202| Maximum AMIP II BCS Pseudo Sea Surface Temperature            | K          | float | sfc    |  2   | -999 | 6    | g1 |
 tosmin  | 203 | Minimum Sea Surface Temperature                               | K          | float | sfc    |  2   | -999 | 6    | g1 |
