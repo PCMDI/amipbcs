@@ -17,12 +17,17 @@ PJD 17 Jun 2015     - Updated to deal with 4 variables obs and bcs
 PJD 18 Jun 2015     - Added time and memory statements
 PJD 18 Jun 2015     - Updated 'new' data to 360x180_150618 path
 PJD 24 Jun 2015     - Updated levels for 'sic' and corrected outFiles indentation to fix over-runs in mp4 files
+PJD 15 Jul 2015     - Added UV-CDAT version attribution to be logged
+PJD 16 Jul 2015     - Added delFudge variable
 
 @author: durack1
 """
-import EzTemplate,gc,glob,os,time,re,resource,vcs
+import cdat_info,EzTemplate,gc,glob,os,time,re,resource,vcs
 import cdms2 as cdm
 import numpy as np
+
+#%% Turn on purging of VCS objects?
+delFudge = True
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -185,25 +190,30 @@ for var in ['sic','sst']:
                 for k in vcs.elements.keys():
                     pass
                     #print k, len(vcs.elements[k].keys())
-                del(vcs.elements["isofill"][iso1.name])
-                del(vcs.elements["isofill"][iso2.name])
-                del(vcs.elements["textcombined"][title.name])                
-                del(vcs.elements["template"][t1.name])
-                del(vcs.elements["template"][t2.name])
-                del(vcs.elements["template"][t3.name])
-                for nm in vcs.elements["texttable"].keys():
-                    if not nm in basic_tt:
-                        del(vcs.elements["texttable"][nm])
-                for nm in vcs.elements["textorientation"].keys():
-                    if not nm in basic_to:
-                        del(vcs.elements["textorientation"][nm])
-                for nm in vcs.elements["textcombined"].keys():
-                    if not nm in basic_tc:
-                        del(vcs.elements["textcombined"][nm])
+                if delFudge:
+                    del(vcs.elements["isofill"][iso1.name])
+                    del(vcs.elements["isofill"][iso2.name])
+                    del(vcs.elements["textcombined"][title.name])                
+                    del(vcs.elements["template"][t1.name])
+                    del(vcs.elements["template"][t2.name])
+                    del(vcs.elements["template"][t3.name])
+                    for nm in vcs.elements["texttable"].keys():
+                        if not nm in basic_tt:
+                            del(vcs.elements["texttable"][nm])
+                    for nm in vcs.elements["textorientation"].keys():
+                        if not nm in basic_to:
+                            del(vcs.elements["textorientation"][nm])
+                    for nm in vcs.elements["textcombined"].keys():
+                        if not nm in basic_tc:
+                            del(vcs.elements["textcombined"][nm])
                 endTime                 = time.time()
                 timeStr                 = 'Time: %06.3f secs;' % (endTime-startTime)
                 memStr                  = 'Max mem: %05.3f GB' % (np.float32(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/1.e6)
                 counterStr              = '%05d' % counter
+                if counter == 1:
+                    print 'UV-CDAT version: ', cdat_info.get_version()
+                    print 'UV-CDAT prefix: ', cdat_info.get_prefix()
+                    print 'delFudge: ',delFudge
                 print counterStr,printStr,varName.ljust(6),BC,timeStr,memStr
                 #del() ; # Do a cleanup
                 counter                 = counter+1
