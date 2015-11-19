@@ -19,6 +19,7 @@ PJD 18 Jun 2015     - Updated 'new' data to 360x180_150618 path
 PJD 24 Jun 2015     - Updated levels for 'sic' and corrected outFiles indentation to fix over-runs in mp4 files
 PJD 15 Jul 2015     - Added UV-CDAT version attribution to be logged
 PJD 16 Jul 2015     - Added delFudge variable
+PJD 18 Nov 2015     - Added pyObj variable
 
 @author: durack1
 """
@@ -143,7 +144,7 @@ for var in ['sic','sst']:
     #bg = True ; # For 1 yr uses ~2.4GB
     # [durack1@oceanonly 150219_AMIPForcingData]$ xeyes ; # Should display in foreground
     # [durack1@oceanonly 150219_AMIPForcingData]$ Xvfb :2 -screen 0 1600x1200x16
-    # [durack1@oceanonly 150219_AMIPForcingData]$ bg
+    # [durack1@oceanonly 150219_AMIPForcingData]$ bg ; # Ctrl-z called to send to background
     # [durack1@oceanonly 150219_AMIPForcingData]$ setenv DISPLAY :2
     # [durack1@oceanonly 150219_AMIPForcingData]$ xeyes ; # Should display in background
     # [durack1@oceanonly 150219_AMIPForcingData]$ jobs
@@ -210,11 +211,12 @@ for var in ['sic','sst']:
                 timeStr                 = 'Time: %06.3f secs;' % (endTime-startTime)
                 memStr                  = 'Max mem: %05.3f GB' % (np.float32(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/1.e6)
                 counterStr              = '%05d' % counter
+                pyObj                   = 'PyObj#: %07d;' % (len(gc.get_objects()))
                 if counter == 1:
                     print 'UV-CDAT version: ', cdat_info.get_version()
                     print 'UV-CDAT prefix: ', cdat_info.get_prefix()
                     print 'delFudge: ',delFudge
-                print counterStr,printStr,varName.ljust(6),BC,timeStr,memStr
+                print counterStr,printStr,varName.ljust(6),BC,timeStr,memStr,pyObj
                 #del() ; # Do a cleanup
                 counter                 = counter+1
             f1.close()
