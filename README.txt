@@ -5,9 +5,10 @@ The following documents the steps to update the boundary conditions:
 1. Install Anaconda
 > Visit https://www.continuum.io/downloads and follow the prompts for your OS
 
-2. Install UVCDAT with cd77 (ezget/lats/drs support) and CMOR
-[durack1@oceanonly ~]$ conda create -n uvcdat -c uvcdat/label/nightly -c uvcdat --show-channel-urls uvcdat cd77 ; # Need to check this
-[durack1@oceanonly ~]$ conda create -n cmor -c pcmdi cmor -c uvcdat ; # Need to check this
+2. Install UVCDAT with cd77 (ezget/lats/drs support), CMOR3 and the input4MIPS-cmor-tables
+[durack1@oceanonly ~]$ conda create -n uvcdat -c uvcdat/label/nightly -c uvcdat --show-channel-urls uvcdat cd77
+[durack1@oceanonly ~]$ conda create -n cmor -c pcmdi cmor -c uvcdat
+[durack1@oceanonly 150219_AMIPForcingData/CMOR]$ git clone https://github.com/PCMDI/input4MIPs-cmor-tables
 
 3. Copy the previous directory
 [durack1@oceanonly 150219_AMIPForcingData]$ cp -R SST_NEW4/ SST_NEW5/
