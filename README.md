@@ -1,4 +1,4 @@
-# amipbcs - PCMDI-AMIP dataset prepared for input4MIPs
+# amipbcs - AMIP dataset prepared for input4MIPs
 Code to generate boundary condition data for the AMIP experiment suite
 
 Generated data can be obtained from the [PCMDI ESGF data portal](https://pcmdi.llnl.gov/search/input4mips/)
