@@ -12,4 +12,4 @@ The following required libraries are included in UV-CDAT 2.6.0+
 - [lats](https://github.com/UV-CDAT/lats)
 - [libdrs](https://github.com/UV-CDAT/libdrs)
 
-These libraries are currently available x86_64 linux-64 and osx-64 architectures
+These libraries are currently available on linux-64 and osx-64 (x86_64) architectures
