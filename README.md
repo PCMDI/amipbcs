@@ -1,5 +1,5 @@
 # amipbcs - AMIP dataset prepared for input4MIPs
-Code to generate boundary condition data for the AMIP experiment suite
+Code to generate boundary condition data for the AMIP (Atmospheric Model Intercomparison Project) experiment as part of CMIP6 and the input4MIPs project
 
 Generated data can be obtained from the [PCMDI ESGF data portal](https://pcmdi.llnl.gov/search/input4mips/)
 
