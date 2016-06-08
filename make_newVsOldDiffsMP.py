@@ -21,16 +21,20 @@ PJD 15 Jul 2015     - Added UV-CDAT version attribution to be logged
 PJD 16 Jul 2015     - Added delFudge variable
 PJD 18 Nov 2015     - Added pyObj variable
 PJD  6 Jun 2016     - Updated for new input data format
+PJD  7 Jun 2016     - Converted to parallel execution
+PJD  8 Jun 2016     - Updated calendar to be overwritten in input files (resolved CMOR/input data conflict)
 
 @author: durack1
 """
-import cdat_info,EzTemplate,gc,glob,os,time,re,resource,vcs
+import EzTemplate,gc,glob,os,time,re,resource,sys,vcs ; # cdat_info
 import cdms2 as cdm
 import numpy as np
+from durolib import mkDirNoOSErr
 from string import replace
 
 #%% Turn on purging of VCS objects?
 delFudge = True
+outPathVer = 'pngs_v1.1.0'
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -85,19 +89,18 @@ def initVCS(x,levs1,levs2,split):
 
 
 #%% Create input file list
-newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/AMIPForcing/PCMDI-AMIP-1-1-0/*/gs1x1/*/*.nc'))
-sicList,sicbcList,tosList,tosbcList = [[] for _ in range(4)]
+newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/AMIPForcing/mon/ocean/PCMDI-AMIP-1-1-0/*/gs1x1/*/*.nc'))
 for x,filePath in enumerate(newList):
-    if 'siconc' in filePath.split('/')[10]:
-        if 'bcs' in filePath.split('/')[10]:
-            sicbcList.append(filePath)
+    if 'siconc' in filePath.split('/')[12]:
+        if 'bcs' in filePath.split('/')[12]:
+            sicbcList = filePath
         else:
-            sicList.append(filePath)
-    if 'tos' in filePath.split('/')[10]:
-        if 'bcs' in filePath.split('/')[10]:
-            tosbcList.append(filePath)
+            sicList = filePath
+    if 'tos' in filePath.split('/')[12]:
+        if 'bcs' in filePath.split('/')[12]:
+            tosbcList = filePath
         else:
-            tosList.append(filePath)
+            tosList = filePath
 del(filePath,newList,x); gc.collect()
 
 oldList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/_obsolete/150616_AMIPweb/www-pcmdi.llnl.gov/360x180/*.nc'))
@@ -117,14 +120,6 @@ for x,filePath in enumerate(oldList):
                 tosbcList2.append(filePath)
 del(filePath,oldList,yrTest,x); gc.collect()
 
-outPath = '/work/durack1/Shared/150219_AMIPForcingData'
-
-#%% Purge existing files
-for root, dirs, files in os.walk('./pngs', topdown=False):
-    for name in files:
-        #print os.path.join(root,name)
-        os.remove(os.path.join(root, name))
-
 #%% Loop through vars and files
 counter = 1
 for var in ['sic','sst']:
@@ -141,7 +136,6 @@ for var in ['sic','sst']:
         split       = 0
 
     #%% Setup canvas options and plot
-    #bg = True ; # For 1 yr uses ~2.4GB
     # [durack1@oceanonly 150219_AMIPForcingData]$ xeyes ; # Should display in foreground
     # [durack1@oceanonly 150219_AMIPForcingData]$ Xvfb :2 -screen 0 1600x1200x16
     # [durack1@oceanonly 150219_AMIPForcingData]$ bg ; # Ctrl-z called to send to background
@@ -150,9 +144,11 @@ for var in ['sic','sst']:
     # [durack1@oceanonly 150219_AMIPForcingData]$ jobs
     # [1]  + Running                       spyder
     # [2]  - Running                       Xvfb :2 -screen 0 1600x1200x16
-    bg = False ; # For 1 yr uses ~260MB
-    y2 = 2013 ; #1871; #2013
-    outFiles = []
+    #bg = False ; # For 1 yr uses ~260MB
+    bg = True ; # For 1 yr uses ~2.4GB
+    y1 = int(sys.argv[1])
+    y2 = y1+1 ; #1871; #2013
+    outPath = '.'
 
     #%% Set obs vs bcs
     for data in ['obs','bcs']:
@@ -170,35 +166,37 @@ for var in ['sic','sst']:
             varNameNewRead = varNameRead
             inflationFactor = 1
         newList = eval(''.join([varName,BC,'List']))
-        newList = newList[0]
         oldList = eval(''.join([varName,BC,'List2']))
         x = vcs.init()
         basic_tt = vcs.elements["texttable"].keys()
         basic_to = vcs.elements["textorientation"].keys()
         basic_tc = vcs.elements["textcombined"].keys()
         # Open new input file
-        monthCount = 0
         f1  = cdm.open(newList) ; # New files
-        for count,y in enumerate(range(1870,y2)):
-            #f1  = cdm.open(newList[count]) ; # New files
+        s1  = f1(varNameNewRead,time=(str(y1),str(y2)))
+        # Deal with older file formats
+        for count,y in enumerate(range(y1,y2),start=y1-1870):
             f2  = cdm.open(oldList[count]) ; # Downloadable files ~2012
             for m in range(12):
                 startTime                   = time.time()
                 printStr                    = 'processing: %i-%.2i' % (y,m+1)
-                s1                          = f1(varNameNewRead,slice(monthCount,monthCount+1))
-                s1                          = s1*inflationFactor ; # Correct siconc variables for unit difference
-                monthCount                  = monthCount+1
+                s1s                         = s1[m:m+1,]
+                s1s                         = s1s*inflationFactor ; # Correct siconc variables for unit difference
                 s2                          = f2(varNameRead,slice(m,m+1))
-                diff                        = s2-s1
+                # Test times
+                print 'new:',varNameNewRead.ljust(7),s1s.getTime().asComponentTime()
+                print 'old:',varNameRead.ljust(7),s2.getTime().asComponentTime()
+                diff                        = s2-s1s
                 iso1,iso2,title,t1,t2,t3    = initVCS(x,levs1,levs2,split)
                 title.string                = '%i-%.2i' % (y,m+1)
                 x.plot(title,bg=bg)
-                x.plot(s1,t1,iso1,bg=bg); #,ratio="autot"); #,vtk_backend_grid=g)
+                x.plot(s1s,t1,iso1,bg=bg); #,ratio="autot"); #,vtk_backend_grid=g)
                 x.plot(diff,t2,iso2,bg=bg); #,ratio="autot") ; #,vtk_backend_grid=g)
                 x.plot(s2,t3,iso1,bg=bg); #,ratio="autot") ; #,vtk_backend_grid=g)
                 fnm                         = '%i-%.2i.png' % (y,m+1)
-                fileName                    = os.path.join(outPath,'pngs',varNameRead,fnm)
-                outFiles.append(fileName)
+                fileName                    = os.path.join(outPath,outPathVer,varNameRead,fnm)
+                if not os.path.exists(os.path.join(outPath,outPathVer,varNameRead)):
+                    mkDirNoOSErr(os.path.join(outPath,outPathVer,varNameRead))
                 x.png(fileName)
                 x.clear()
                 for k in vcs.elements.keys():
@@ -225,27 +223,19 @@ for var in ['sic','sst']:
                 memStr                  = 'Max mem: %05.3f GB' % (np.float32(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/1.e6)
                 counterStr              = '%05d' % counter
                 pyObj                   = 'PyObj#: %07d;' % (len(gc.get_objects()))
-                if counter == 1:
-                    print 'UV-CDAT version:'.ljust(21),cdat_info.get_version()
-                    print 'UV-CDAT prefix:'.ljust(21),cdat_info.get_prefix()
-                    print 'delFudge:'.ljust(21),delFudge
-                    print 'Background graphics:'.ljust(21),bg
-                print counterStr,printStr,varName.ljust(6),BC,timeStr,memStr,pyObj
+                #if counter == 1:
+                #    print 'UV-CDAT version:'.ljust(21),cdat_info.get_version()
+                #    print 'UV-CDAT prefix:'.ljust(21),cdat_info.get_prefix()
+                #    print 'delFudge:'.ljust(21),delFudge
+                #    print 'Background graphics:'.ljust(21),bg
+                #print counterStr,printStr,varName.ljust(6),BC,timeStr,memStr,pyObj
                 #del() ; # Do a cleanup
                 counter                 = counter+1
-            #f1.close()
             f2.close()
             gc.collect() ; # Attempt to force a memory flush
         x.close()
         f1.close()
-        outMP4File = ''.join(['AMIPBCS_newVsOld_',varNameRead,'.mp4'])
-        print 'Processing: ',outMP4File
-        x = vcs.init()
-        x.ffmpeg(os.path.join(outPath,outMP4File),outFiles,rate=5,bitrate=2048); #,options=u'-r 2') ; # Rate is frame per second - 1/2s per month
-        #x.animation.create()
-        #x.animation.save('demo.mp4')
-        x.close()
-        outFiles = [] ; # Reset for obs vs bcs
+        # Generate movies outside of this function
 
 #%%
 '''
