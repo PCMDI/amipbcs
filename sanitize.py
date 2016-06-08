@@ -26,6 +26,7 @@ PJD  8 Jun 2016     - Updated to generate calendar using makeCalendar (rather th
                       solves issue with hour offset between cdms and cmor written files
 PJD  8 Jun 2016     - Update to write bcs vars with no time_bounds
 PJD  8 Jun 2016     - Turned off landsea/masking in areacello to maintain consistency with the other variables
+PJD  8 Jun 2016     - Corrected unit issue with areacello - km2 -> m2
                     - TODO:
 
 @author: durack1
@@ -141,7 +142,7 @@ for filePath in newList:
         if 'amipbc_sic' in filePath:
             areacello                   = cdu.area_weights(var[0,]) ; # areacello.sum() = 1.0
             earthSurfaceArea            = 510.1 ; # million km2
-            earthSurfaceAreaM2          = earthSurfaceArea*1e9 ; # m2
+            earthSurfaceAreaM2          = earthSurfaceArea*1e12 ; # m2
             areacelloM2                 = areacello*earthSurfaceAreaM2
             areacelloM2.standard_name   = 'cell_area'
             areacelloM2.long_name       = 'Ocean Grid-Cell Area'
