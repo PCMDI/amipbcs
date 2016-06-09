@@ -13,4 +13,4 @@ The sub-libraries of UV-CDAT 2.6.0+ are required:
 - [lats](https://github.com/UV-CDAT/lats)
 - [libdrs](https://github.com/UV-CDAT/libdrs)
 
-These libraries are available for linux-64 and osx-64 (x86_64) architectures
+These packages and libraries are available for linux-64 and osx-64 (x86_64) architectures
