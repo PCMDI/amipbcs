@@ -184,8 +184,8 @@ for var in ['sic','sst']:
                 s1s                         = s1s*inflationFactor ; # Correct siconc variables for unit difference
                 s2                          = f2(varNameRead,slice(m,m+1))
                 # Test times
-                print 'new:',varNameNewRead.ljust(7),s1s.getTime().asComponentTime()
-                print 'old:',varNameRead.ljust(7),s2.getTime().asComponentTime()
+                print 'new:',varNameNewRead.ljust(9),s1s.getTime().asComponentTime()
+                print 'old:',varNameRead.ljust(9),s2.getTime().asComponentTime()
                 diff                        = s2-s1s
                 iso1,iso2,title,t1,t2,t3    = initVCS(x,levs1,levs2,split)
                 title.string                = '%i-%.2i' % (y,m+1)
