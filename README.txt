@@ -1,4 +1,4 @@
-Wed 08 Jun 2016 02:38:45 PM PDT
+Wed 15 Jun 2016 02:41:03 PM PDT
 
 The following documents the steps to update the boundary conditions:
 
@@ -58,3 +58,14 @@ c (cmor)durack1@oceanonly:[150219_AMIPForcingData]:[203]> sanitize.py
 
 14. Upload/publish data to ESGF
 > Will need to involve Sasha for this step
+
+15. Update github repo
+> cd /export/durack1/git/amipbcs
+> rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/*.f .
+> rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/ketgrib.parms .
+> rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/*.py .
+> rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/*.txt .
+> rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/SST_NEW5/ SST_NEW5/
+> rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/CMOR/ CMOR/
+> git commit -am 'Updated for new release'
+> git push
