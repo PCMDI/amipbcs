@@ -27,6 +27,10 @@ PJD  8 Jun 2016     - Updated to generate calendar using makeCalendar (rather th
 PJD  8 Jun 2016     - Update to write bcs vars with no time_bounds
 PJD  8 Jun 2016     - Turned off landsea/masking in areacello to maintain consistency with the other variables
 PJD  8 Jun 2016     - Corrected unit issue with areacello - km2 -> m2
+PJD  6 Sep 2016     - Update to out-of-band 1.1.0a update (Peter Rensch - CSIRO)
+PJD  6 Sep 2016     - Updated to deal with partial years (varLen)
+PJD  6 Sep 2016     - Deal with amipbc_sst_360x180_v1.1.0a.out
+PJD  7 Sep 2016     - Deal with makeCalendar quirks - off by one
                     - TODO:
 
 @author: durack1
@@ -44,22 +48,22 @@ cdm.setNetcdfDeflateFlag(1) ; # 1 = amipbc files sic 75.2MB, tos 239.2MB; amipob
 
 #%% Set version info
 activity_id         = 'input4MIPs'
-comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2015-12)' ; # WILL REQUIRE UPDATING
+comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2016-08)' ; # WILL REQUIRE UPDATING
 contact             = 'pcmdi-cmip@lists.llnl.gov'
-dataVer             = 'PCMDI-AMIP-1-1-0' ; # WILL REQUIRE UPDATING
-dataVerSht          = 'v1.1.0' ; # WILL REQUIRE UPDATING
+dataVer             = 'PCMDI-AMIP-1-1-0a' ; # WILL REQUIRE UPDATING
+dataVerSht          = 'v1.1.0a' ; # WILL REQUIRE UPDATING
 data_structure      = 'grid'
 further_info_url    = 'http://www-pcmdi.llnl.gov/projects/amip/AMIP2EXPDSN/BCS/amip2bcs.php' ; # WILL REQUIRE UPDATING - point to GMD paper when available
 institute_id        = 'PCMDI'
 institution         = 'Program for Climate Model Diagnosis and Intercomparison (LLNL), Livermore, CA, USA'
-last_year           = '2015' ; # WILL REQUIRE UPDATING
+last_year           = '2016' ; # WILL REQUIRE UPDATING
 license_txt         = 'AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution \"Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). The data producers and data providers make no warranty, either express or implied, including but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.'
 mip_specs           = 'AMIP CMIP5 CMIP6'
 project_id          = 'AMIP'
 ref_obs             = 'Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski (2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. doi: 10.1175/2008JCLI2292.1'
 ref_bcs             = 'Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf'
-source              = 'PCMDI-AMIP 1.1.0: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
-time_period         = '187001-201512' ; # WILL REQUIRE UPDATING
+source              = 'PCMDI-AMIP 1.1.0a: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
+time_period         = '187001-201605' ; # WILL REQUIRE UPDATING
 
 #%% Set directories
 homePath    = '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -73,7 +77,7 @@ fileCount = 0
 for fileName in newList:
     if 'amipbc_sst' in fileName:
         fileCount = fileCount + 1
-fileCount   = fileCount - 1
+fileCount   = fileCount - 1 ; # Deal with amipbc_sst_360x180_v1.1.0a.out
 varComp     = np.ma.zeros([fileCount*12,180,360])
 timeComp    = np.zeros([fileCount*12])
 
@@ -83,7 +87,7 @@ for filePath in newList:
     obsVsBC     = filePath.split('/')[-1].split('_')[0]
     varName     = filePath.split('/')[-1].split('_')[1]
     climCheck   = filePath.split('/')[-1].split('_')[-1]
-    if obsVsBC == 'bcinfo' or obsVsBC == 'spinup' or climCheck == 'clim.nc':
+    if obsVsBC == 'bcinfo' or obsVsBC == 'spinup' or obsVsBC == '.out' or climCheck == 'clim.nc':
         print 'Invalid file, skipping..'
         continue
     if 'bc' in obsVsBC:
@@ -116,7 +120,10 @@ for filePath in newList:
         time._bounds_ = None ; # Required to purge bounds created by cdu call above
 
     #%% Write timestep to composite variable
-    countUp                     = count + 12
+    if varLen == 12:
+        countUp = count + 12
+    else:
+        countUp = count + varLen
     varComp[count:countUp]      = var
     timeComp[count:countUp]     = time
     count                       = countUp
@@ -209,7 +216,18 @@ for filePath in newList:
         time.calendar           = 'gregorian'
         time.axis               = 'T'
         '''
-        time = makeCalendar('1870',last_year,calendarStep='months')
+        #end_year = str(int(last_year)+1) ; # Correct off by one, full year
+        end_year = last_year ; # Same year
+        time = makeCalendar('1870',end_year,monthEnd=6,calendarStep='months') ; # May (5) 2016 completion
+        # Test new time axis        
+        #print time.asComponentTime()[0]
+        #print time.asComponentTime()[-1]
+        #print len(time)
+        # Trim blank entries
+        #print varComp.shape
+        varComp = varComp[0:count,]
+        #print varComp.shape
+        # Create new variable and append axes
         var = cdm.createVariable(varComp)
         var.setAxis(0,time)
         var.setAxis(1,latitude)

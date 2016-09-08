@@ -21,6 +21,10 @@ PJD 15 Jul 2015     - Added UV-CDAT version attribution to be logged
 PJD 16 Jul 2015     - Added delFudge variable
 PJD 18 Nov 2015     - Added pyObj variable
 PJD  6 Jun 2016     - Updated for new input data format
+PJD 27 Jun 2016     - Updated to run against vtk bug fixes (uvcdatNightly)
+PJD 28 Jun 2016     - Updated to write mp4's to png subdir, test with bg=False
+PJD 28 Jun 2016     - Corrected pngs path for mp4s
+PJD 30 Jun 2016     - Added donotstoredisplay argument
 
 @author: durack1
 """
@@ -28,9 +32,6 @@ import cdat_info,EzTemplate,gc,glob,os,time,re,resource,vcs
 import cdms2 as cdm
 import numpy as np
 from string import replace
-
-#%% Turn on purging of VCS objects?
-delFudge = True
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -85,19 +86,18 @@ def initVCS(x,levs1,levs2,split):
 
 
 #%% Create input file list
-newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/AMIPForcing/PCMDI-AMIP-1-1-0/*/gs1x1/*/*.nc'))
-sicList,sicbcList,tosList,tosbcList = [[] for _ in range(4)]
+newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-0/*/gs1x1/*/*.nc'))
 for x,filePath in enumerate(newList):
-    if 'siconc' in filePath.split('/')[10]:
-        if 'bcs' in filePath.split('/')[10]:
-            sicbcList.append(filePath)
+    if 'siconc' in filePath.split('/')[13]:
+        if 'bcs' in filePath.split('/')[13]:
+            sicbcList = filePath
         else:
-            sicList.append(filePath)
-    if 'tos' in filePath.split('/')[10]:
-        if 'bcs' in filePath.split('/')[10]:
-            tosbcList.append(filePath)
+            sicList = filePath
+    if 'tos' in filePath.split('/')[13]:
+        if 'bcs' in filePath.split('/')[13]:
+            tosbcList = filePath
         else:
-            tosList.append(filePath)
+            tosList = filePath
 del(filePath,newList,x); gc.collect()
 
 oldList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/_obsolete/150616_AMIPweb/www-pcmdi.llnl.gov/360x180/*.nc'))
@@ -150,7 +150,9 @@ for var in ['sic','sst']:
     # [durack1@oceanonly 150219_AMIPForcingData]$ jobs
     # [1]  + Running                       spyder
     # [2]  - Running                       Xvfb :2 -screen 0 1600x1200x16
-    bg = False ; # For 1 yr uses ~260MB
+    bg = True ; # For 1 yr uses ~260MB
+    delFudge = True ; #Turn on purging of VCS objects?
+    donotstoredisplay = True ; # Fix from fries2
     y2 = 2013 ; #1871; #2013
     outFiles = []
 
@@ -170,7 +172,6 @@ for var in ['sic','sst']:
             varNameNewRead = varNameRead
             inflationFactor = 1
         newList = eval(''.join([varName,BC,'List']))
-        newList = newList[0]
         oldList = eval(''.join([varName,BC,'List2']))
         x = vcs.init()
         basic_tt = vcs.elements["texttable"].keys()
@@ -179,15 +180,22 @@ for var in ['sic','sst']:
         # Open new input file
         monthCount = 0
         f1  = cdm.open(newList) ; # New files
+        s1  = f1(varNameNewRead,time=('1870',str(y2)))
         for count,y in enumerate(range(1870,y2)):
             #f1  = cdm.open(newList[count]) ; # New files
             f2  = cdm.open(oldList[count]) ; # Downloadable files ~2012
             for m in range(12):
                 startTime                   = time.time()
                 printStr                    = 'processing: %i-%.2i' % (y,m+1)
-                s1                          = f1(varNameNewRead,slice(monthCount,monthCount+1))
-                s1                          = s1*inflationFactor ; # Correct siconc variables for unit difference
+                #s1                          = f1(varNameNewRead,slice(monthCount,monthCount+1))
+                #s1                          = s1*inflationFactor ; # Correct siconc variables for unit difference
+                s1s                         = s1[monthCount:monthCount+1,]
+                s1s                         = s1s*inflationFactor ; # Correct siconc variables for unit difference
+                s2                          = f2(varNameRead,slice(m,m+1))
                 monthCount                  = monthCount+1
+                # Test times
+                #print 'new:',varNameNewRead.ljust(9),s1s.getTime().asComponentTime()
+                #print 'old:',varNameRead.ljust(9),s2.getTime().asComponentTime()
                 s2                          = f2(varNameRead,slice(m,m+1))
                 diff                        = s2-s1
                 iso1,iso2,title,t1,t2,t3    = initVCS(x,levs1,levs2,split)
@@ -199,6 +207,13 @@ for var in ['sic','sst']:
                 fnm                         = '%i-%.2i.png' % (y,m+1)
                 fileName                    = os.path.join(outPath,'pngs',varNameRead,fnm)
                 outFiles.append(fileName)
+                # Create directory tree
+                if not os.path.exists(os.path.join(outPath,'pngs',varNameRead)):
+                    os.makedirs(os.path.join(outPath,'pngs',varNameRead))
+                # Check file exists
+                if os.path.exists(fileName):
+                    #print "** File exists.. removing **"
+                    os.remove(fileName)
                 x.png(fileName)
                 x.clear()
                 for k in vcs.elements.keys():
@@ -230,6 +245,7 @@ for var in ['sic','sst']:
                     print 'UV-CDAT prefix:'.ljust(21),cdat_info.get_prefix()
                     print 'delFudge:'.ljust(21),delFudge
                     print 'Background graphics:'.ljust(21),bg
+                    print 'donotstoredisplay:'.ljust(21),donotstoredisplay
                 print counterStr,printStr,varName.ljust(6),BC,timeStr,memStr,pyObj
                 #del() ; # Do a cleanup
                 counter                 = counter+1
@@ -238,7 +254,7 @@ for var in ['sic','sst']:
             gc.collect() ; # Attempt to force a memory flush
         x.close()
         f1.close()
-        outMP4File = ''.join(['AMIPBCS_newVsOld_',varNameRead,'.mp4'])
+        outMP4File = os.path.join('pngs',''.join(['AMIPBCS_newVsOld_',varNameRead,'.mp4']))
         print 'Processing: ',outMP4File
         x = vcs.init()
         x.ffmpeg(os.path.join(outPath,outMP4File),outFiles,rate=5,bitrate=2048); #,options=u'-r 2') ; # Rate is frame per second - 1/2s per month

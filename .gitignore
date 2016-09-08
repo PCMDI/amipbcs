@@ -7,13 +7,22 @@ CMOR/input4MIPs-cmor-tables
 SST_NEW5/*.tar.bz2
 SST_NEW5/*.nc
 
+# SST_1-1-0a* files
+SST_1-1-0a/*.tar.bz2
+SST_1-1-0a/*.nc
+
 # Executables
 mkhurrell1
 
 # Netcdf files
 *.nc
 
+# Log files
+make_newVOldDiffs*.txt
+
 # Other files
 *.csh~
+*.f~
 *.py~
 *.sh~
+*.txt~

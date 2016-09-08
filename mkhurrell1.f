@@ -638,7 +638,8 @@ c      original grid (iregrid=0) or regrid (iregrid=1)?
 c       iregrid=1    ! AMIP
        iregrid=0    ! obs ! PJD Oceanonly 1870-2014
 
-          abbrev = '360x180_v1.1.0' ! PJD Oceanonly 1870-2014 - 160602
+          abbrev = '360x180_v1.1.0a' ! PJD Oceanonly 1870-2014 - 160906
+c          abbrev = '360x180_v1.1.0' ! PJD Oceanonly 1870-2014 - 160602
 c          abbrev = '360x180_v1.0.1' ! PJD Oceanonly 1870-2014 - 160414
 c          abbrev = '360x180' ! PJD Oceanonly 1870-2014
 c          abbrev = 'T21'
@@ -668,7 +669,7 @@ c          outftype = 'ascii'
           outftype = 'coards'
 
           pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
-     & // '360x180_v1.1.0' ! PJD Oceanonly 160602
+     & // '360x180_v1.1.0a' ! PJD Oceanonly 160602
 c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & // '360x180_v1.0.1' ! PJD Oceanonly 160414
 c     !PJD Oceanonly 1870-2014
@@ -820,7 +821,8 @@ c      iyr1rd = 1979         !test
 
 c    last month and year for period in which observed monthly mean data
 c           will be read (must not follow monn, iyrn)
-      monnrd = 4 ! PJD Oceanonly 1870-2014 - 160526
+      monnrd = 8 ! PJD Oceanonly 1870-2014 - 160906
+c      monnrd = 4 ! PJD Oceanonly 1870-2014 - 160526
 c      monnrd = 3 ! PJD Oceanonly 1870-2014 - 160414
 c      monnrd = 5 ! PJD Oceanonly 1870-2014
       iyrnrd = 2016 ! PJD Oceanonly 1870-2014 - 160414
@@ -879,9 +881,11 @@ c      mon1out = 1            !test
 c      iyr1out = 1979         !test
 
 c     last month and year written to output file
-      monnout = 12 ! PJD Oceanonly 1870-2014 - 160414
+      monnout = 5 ! PJD Oceanonly 1870-2014 - 160907
+c      monnout = 12 ! PJD Oceanonly 1870-2014 - 160414
 c      monnout = 3 ! PJD Oceanonly 1870-2014
-      iyrnout = 2015 ! PJD Oceanonly 1870-2014
+      iyrnout = 2016 ! PJD Oceanonly 1870-2014 - 160906
+c      iyrnout = 2015 ! PJD Oceanonly 1870-2014
 c      monnout = 3            ! 1/18/07
 c      iyrnout = 2010          ! 1/18/07
 c      monnout = 6            !AMIP & test
@@ -915,8 +919,13 @@ c               file, should be December)
 
         inputsst(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_NEW5/'
-     & //  'MODEL.SST.HAD187001-198110.OI198111-201604.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160602
+     & //  'SST_1-1-0a/'
+     & //  'MODEL.SST.HAD187001-198110.OI198111-201608.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160906
+
+c        inputsst(1) =
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_NEW5/'
+c     & //  'MODEL.SST.HAD187001-198110.OI198111-201604.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160602
 
 c        inputsst(1) =
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -964,8 +973,13 @@ c               file, should be December)
 
         inputsic(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_NEW5/'
-     & //  'MODEL.ICE.HAD187001-198110.OI198111-201604.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160602
+     & //  'SST_1-1-0a/'
+     & //  'MODEL.ICE.HAD187001-198110.OI198111-201608.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160906
+
+c        inputsic(1) =
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_NEW5/'
+c     & //  'MODEL.ICE.HAD187001-198110.OI198111-201604.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160602
 
 c        inputsic(1) =
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
