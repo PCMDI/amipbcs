@@ -23,6 +23,7 @@ PJD 18 Nov 2015     - Added pyObj variable
 PJD  6 Jun 2016     - Updated for new input data format
 PJD  7 Jun 2016     - Converted to parallel execution
 PJD  8 Jun 2016     - Updated calendar to be overwritten in input files (resolved CMOR/input data conflict)
+PJD 20 Oct 2016     - Update to 1.1.1
 
 @author: durack1
 """
@@ -34,7 +35,7 @@ from string import replace
 
 #%% Turn on purging of VCS objects?
 delFudge = True
-outPathVer = 'pngs_v1.1.0'
+outPathVer = 'pngs_v1.1.1'
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -89,15 +90,15 @@ def initVCS(x,levs1,levs2,split):
 
 
 #%% Create input file list
-newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/AMIPForcing/mon/ocean/PCMDI-AMIP-1-1-0/*/gs1x1/*/*.nc'))
+newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-1/*/gn/*/*.nc'))
 for x,filePath in enumerate(newList):
-    if 'siconc' in filePath.split('/')[12]:
-        if 'bcs' in filePath.split('/')[12]:
+    if 'siconc' in filePath.split('/')[13]:
+        if 'bcs' in filePath.split('/')[13]:
             sicbcList = filePath
         else:
             sicList = filePath
-    if 'tos' in filePath.split('/')[12]:
-        if 'bcs' in filePath.split('/')[12]:
+    if 'tos' in filePath.split('/')[13]:
+        if 'bcs' in filePath.split('/')[13]:
             tosbcList = filePath
         else:
             tosList = filePath
@@ -148,7 +149,7 @@ for var in ['sic','sst']:
     bg = True ; # For 1 yr uses ~2.4GB
     y1 = int(sys.argv[1])
     y2 = y1+1 ; #1871; #2013
-    outPath = '.'
+    outPath = './pngs/' ; # Updated
 
     #%% Set obs vs bcs
     for data in ['obs','bcs']:

@@ -22,8 +22,6 @@ c    Karl E. Taylor
 c    PCMDI
 c    taylor13@llnl.gov
 c
-c
-c
 c *********************************************************************
 c *********************************************************************
 
@@ -638,7 +636,8 @@ c      original grid (iregrid=0) or regrid (iregrid=1)?
 c       iregrid=1    ! AMIP
        iregrid=0    ! obs ! PJD Oceanonly 1870-2014
 
-          abbrev = '360x180_v1.1.0a' ! PJD Oceanonly 1870-2014 - 160906
+          abbrev = '360x180_v1.1.1' ! PJD Oceanonly 1870-2014 - 161020
+c          abbrev = '360x180_v1.1.0a' ! PJD Oceanonly 1870-2014 - 160906
 c          abbrev = '360x180_v1.1.0' ! PJD Oceanonly 1870-2014 - 160602
 c          abbrev = '360x180_v1.0.1' ! PJD Oceanonly 1870-2014 - 160414
 c          abbrev = '360x180' ! PJD Oceanonly 1870-2014
@@ -669,7 +668,9 @@ c          outftype = 'ascii'
           outftype = 'coards'
 
           pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
-     & // '360x180_v1.1.0a' ! PJD Oceanonly 160602
+     & // '360x180_v1.1.1' ! PJD Oceanonly 161020
+c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & // '360x180_v1.1.0a' ! PJD Oceanonly 160602
 c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & // '360x180_v1.0.1' ! PJD Oceanonly 160414
 c     !PJD Oceanonly 1870-2014
@@ -821,7 +822,8 @@ c      iyr1rd = 1979         !test
 
 c    last month and year for period in which observed monthly mean data
 c           will be read (must not follow monn, iyrn)
-      monnrd = 8 ! PJD Oceanonly 1870-2014 - 160906
+      monnrd = 9 ! PJD Oceanonly 1870-2014 - 161020
+c      monnrd = 8 ! PJD Oceanonly 1870-2014 - 160906
 c      monnrd = 4 ! PJD Oceanonly 1870-2014 - 160526
 c      monnrd = 3 ! PJD Oceanonly 1870-2014 - 160414
 c      monnrd = 5 ! PJD Oceanonly 1870-2014
@@ -881,7 +883,8 @@ c      mon1out = 1            !test
 c      iyr1out = 1979         !test
 
 c     last month and year written to output file
-      monnout = 5 ! PJD Oceanonly 1870-2014 - 160907
+      monnout = 6 ! PJD Oceanonly 1870-2014 - 161020
+c      monnout = 5 ! PJD Oceanonly 1870-2014 - 160907
 c      monnout = 12 ! PJD Oceanonly 1870-2014 - 160414
 c      monnout = 3 ! PJD Oceanonly 1870-2014
       iyrnout = 2016 ! PJD Oceanonly 1870-2014 - 160906
@@ -909,8 +912,6 @@ c          time-coordinate value).
       mon1in = 1           !AMIP
 c      mon1in = 0            !GISST
 
-
-
 c     SPECIFY path to SST concentration data (not used if processing
 c              only sic data) Also if more than 1 SST input file, then
 c              specify year of first month of data in each file.
@@ -919,8 +920,13 @@ c               file, should be December)
 
         inputsst(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_1-1-0a/'
-     & //  'MODEL.SST.HAD187001-198110.OI198111-201608.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160906
+     & //  'SST_1-1-1/'
+     & //  'MODEL.SST.HAD187001-198110.OI198111-201609.nc' ! PJD Oceanonly 1870-2016 - v1.1.1 161020
+
+c        inputsst(1) =
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_1-1-0a/'
+c     & //  'MODEL.SST.HAD187001-198110.OI198111-201608.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160906
 
 c        inputsst(1) =
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -973,8 +979,13 @@ c               file, should be December)
 
         inputsic(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_1-1-0a/'
-     & //  'MODEL.ICE.HAD187001-198110.OI198111-201608.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160906
+     & //  'SST_1-1-1/'
+     & //  'MODEL.ICE.HAD187001-198110.OI198111-201609.nc' ! PJD Oceanonly 1870-2016 - v1.1.1 161020
+
+c        inputsic(1) =
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_1-1-0a/'
+c     & //  'MODEL.ICE.HAD187001-198110.OI198111-201608.nc' ! PJD Oceanonly 1870-2014 - v1.1.0 160906
 
 c        inputsic(1) =
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'

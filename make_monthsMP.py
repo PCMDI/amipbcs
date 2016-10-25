@@ -11,8 +11,8 @@ from durolib import mkDirNoOSErr
 from multiprocessing import Pool
 
 homeDir = '/work/durack1/Shared/150219_AMIPForcingData'
-dataVer = 'v1.1.0'
-homeDir = os.path.join(homeDir,'_'.join(['pngs',dataVer]))
+dataVer = 'v1.1.1'
+homeDir = os.path.join(homeDir,'pngs','_'.join(['pngs',dataVer]))
 
 if not os.path.exists(homeDir):
     mkDirNoOSErr(homeDir)
