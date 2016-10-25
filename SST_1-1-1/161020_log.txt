@@ -1,0 +1,27 @@
+2016-10-20 11:32:10 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/ [32387] -> ".listing" [1]
+2016-10-20 11:32:11 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201601.gz [198514] -> "oiv2mon.201601.gz" [1]
+2016-10-20 11:32:12 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201602.gz [196622] -> "oiv2mon.201602.gz" [1]
+2016-10-20 11:32:12 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201603.gz [197203] -> "oiv2mon.201603.gz" [1]
+2016-10-20 11:32:13 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201604.gz [197428] -> "oiv2mon.201604.gz" [1]
+2016-10-20 11:32:14 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201605.gz [198664] -> "oiv2mon.201605.gz" [1]
+2016-10-20 11:32:16 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201606.gz [199118] -> "oiv2mon.201606.gz" [1]
+2016-10-20 11:32:16 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201607.gz [200825] -> "oiv2mon.201607.gz" [1]
+2016-10-20 11:32:17 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201608.gz [203063] -> "oiv2mon.201608.gz" [1]
+2016-10-20 11:32:18 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201609.gz [203213] -> "oiv2mon.201609.gz" [1]
+FINISHED --2016-10-20 11:32:18--
+Downloaded: 9 files, 1.7M in 0s (3342796 GB/s)
+2016-10-20 11:32:19 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/ [32387] -> ".listing" [1]
+2016-10-20 11:32:20 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201501.gz [198070] -> "oiv2mon.201501.gz" [1]
+2016-10-20 11:32:21 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201502.gz [195578] -> "oiv2mon.201502.gz" [1]
+2016-10-20 11:32:22 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201503.gz [196056] -> "oiv2mon.201503.gz" [1]
+2016-10-20 11:32:22 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201504.gz [196924] -> "oiv2mon.201504.gz" [1]
+2016-10-20 11:32:23 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201505.gz [197966] -> "oiv2mon.201505.gz" [1]
+2016-10-20 11:32:23 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201506.gz [198512] -> "oiv2mon.201506.gz" [1]
+2016-10-20 11:32:24 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201507.gz [199384] -> "oiv2mon.201507.gz" [1]
+2016-10-20 11:32:25 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201508.gz [200925] -> "oiv2mon.201508.gz" [1]
+2016-10-20 11:32:26 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201509.gz [199175] -> "oiv2mon.201509.gz" [1]
+2016-10-20 11:32:27 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201510.gz [200042] -> "oiv2mon.201510.gz" [1]
+2016-10-20 11:32:28 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201511.gz [199439] -> "oiv2mon.201511.gz" [1]
+2016-10-20 11:32:29 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201512.gz [199890] -> "oiv2mon.201512.gz" [1]
+FINISHED --2016-10-20 11:32:29--
+Downloaded: 12 files, 2.3M in 0s (4436748 GB/s)

@@ -11,6 +11,10 @@ SST_NEW5/*.nc
 SST_1-1-0a/*.tar.bz2
 SST_1-1-0a/*.nc
 
+# SST_1-1-1* files
+SST_1-1-1/*.tar.bz2
+SST_1-1-1/*.nc
+
 # Executables
 mkhurrell1
 
