@@ -8,7 +8,7 @@ The code depends upon the following packages:
 - [**CMOR 3**](https://github.com/PCMDI/cmor) (Available through [conda](https://anaconda.org/PCMDI/cmor/files))
 - [**gfortran 4.4.7+**](https://gcc.gnu.org/wiki/GFortran)
 
-The sub-libraries of UV-CDAT 2.6.0+ are required:
+The optional libraries of UV-CDAT 2.8.0 are required:
 - [EzGet](https://github.com/UV-CDAT/EzGet)
 - [lats](https://github.com/UV-CDAT/lats)
 - [libdrs](https://github.com/UV-CDAT/libdrs)
