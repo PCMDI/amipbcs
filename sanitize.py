@@ -32,16 +32,41 @@ PJD  6 Sep 2016     - Updated to deal with partial years (varLen)
 PJD  6 Sep 2016     - Deal with amipbc_sst_360x180_v1.1.0a.out
 PJD  7 Sep 2016     - Deal with makeCalendar quirks - off by one
 PJD 20 Oct 2016     - Update to 1.1.1
+PJD 13 Apr 2017     - Update to 1.1.2 and generate sftof
+PJD 17 Apr 2017     - Corrected sftof mask to be correct indexes
+PJD 18 Apr 2017     - Updated CMOR to "2017.04.18.3.2.3" and corrected SImon table
                     - TODO:
+
+OIv2 info
+ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/OIv2_monthly.info.asc
+Last Day of             Analysis
+Month Falls on        Completed on
+--------------------------------
+Sunday                   8th
+Monday                   7th
+Tuesday                  6th
+Wednesday                5th
+Thursday                11th
+Friday                  10th
+Saturday                 9th
 
 @author: durack1
 """
 
-import cmor,datetime,gc,glob,os,pytz ; #pdb
+import cmor,datetime,gc,glob,os,pytz,sys ; #pdb
+sys.path.append('/export/durack1/git/durolib/lib/')
 import cdms2 as cdm
 import cdutil as cdu
+import MV2 as mv
 import numpy as np
 from durolib import globalAttWrite,makeCalendar,mkDirNoOSErr
+
+#%% Kludge for json/encoder warning
+#import warnings
+##warnings.filterwarnings('ignore', category=DeprecationWarning)
+#with warnings.catch_warnings():
+#    warnings.filterwarnings('ignore', category=DeprecationWarning)
+#    import vcs
 
 #%% Set cdms format criteria
 cdm.setNetcdfClassicFlag(0) ; # 1 = amipbc files 437.2MB; amipobs files 437.3MB
@@ -51,20 +76,20 @@ cdm.setNetcdfDeflateFlag(1) ; # 1 = amipbc files sic 75.2MB, tos 239.2MB; amipob
 activity_id         = 'input4MIPs'
 comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2016-06)' ; # WILL REQUIRE UPDATING
 contact             = 'pcmdi-cmip@lists.llnl.gov'
-dataVer             = 'PCMDI-AMIP-1-1-1' ; # WILL REQUIRE UPDATING
-dataVerSht          = 'v1.1.1' ; # WILL REQUIRE UPDATING
+dataVer             = 'PCMDI-AMIP-1-1-2' ; # WILL REQUIRE UPDATING
+dataVerSht          = 'v1.1.2' ; # WILL REQUIRE UPDATING
 data_structure      = 'grid'
 further_info_url    = 'http://www-pcmdi.llnl.gov/projects/amip/AMIP2EXPDSN/BCS/amip2bcs.php' ; # WILL REQUIRE UPDATING - point to GMD paper when available
 institute_id        = 'PCMDI'
-institution         = 'Program for Climate Model Diagnosis and Intercomparison (LLNL), Livermore, CA, USA'
+institution         = 'Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA'
 last_year           = '2016' ; # WILL REQUIRE UPDATING
 license_txt         = 'AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution \"Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). The data producers and data providers make no warranty, either express or implied, including but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.'
 mip_specs           = 'AMIP CMIP5 CMIP6'
 project_id          = 'AMIP'
 ref_obs             = 'Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski (2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. doi: 10.1175/2008JCLI2292.1'
 ref_bcs             = 'Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf'
-source              = 'PCMDI-AMIP 1.1.1: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
-time_period         = '187001-201606' ; # WILL REQUIRE UPDATING
+source              = 'PCMDI-AMIP 1.1.2: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
+time_period         = '187001-201612' ; # WILL REQUIRE UPDATING
 
 #%% Set directories
 homePath    = '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -146,8 +171,10 @@ for filePath in newList:
         longitude.axis          = 'X'
         delattr(longitude,'realtopology')
 
-        # Create areacello variable
+        # Create areacello and sftof variables
+        fxFiles = ['areacello','sftof']
         if 'amipbc_sic' in filePath:
+            # areacello
             areacello                   = cdu.area_weights(var[0,]) ; # areacello.sum() = 1.0
             earthSurfaceArea            = 510.1 ; # million km2
             earthSurfaceAreaM2          = earthSurfaceArea*1e12 ; # m2
@@ -156,48 +183,74 @@ for filePath in newList:
             areacelloM2.long_name       = 'Ocean Grid-Cell Area'
             areacelloM2.units           = 'm2'
             areacelloM2.id              = 'areacello'
-            # pdb.set_trace()
-            # Set landsea mask
-            #areacelloM2.mask            = cdu.generateLandSeaMask(var) ; # Enforce landsea mask on areacello
-            #areacelloM2.missing         = 1e20
-            # Create output file
-            outFileA = os.path.join(sanPath,filePath.split('/')[-1])
-            outFileA = outFileA.replace('_'.join(['',last_year]),'')
-            outFileA = outFileA.replace('sst','areacello')
-            outFileA = outFileA.replace('sic','areacello')
-            print 'Processing: ',outFileA
-            if not os.path.exists(sanPath):
-                mkDirNoOSErr(sanPath)
-            if os.path.exists(outFileA):
-                os.remove(outFileA)
-            fO = cdm.open(outFileA,'w')
-            # global atts
-            globalAttWrite(fO,options='noid'); # 'noid' option prevents data_contact and institution being written
-            fO.Conventions      = 'CF-1.6' ; fO.sync()
-            fO.title            = areacelloM2.long_name
-            fO.activity_id      = activity_id
-            fO.further_info_url = further_info_url
-            fO.comment          = comment ; fO.sync()
-            fO.contact          = contact ; fO.sync() ; # Overwritten globalAttWrite
-            local               = pytz.timezone("America/Los_Angeles")
-            time_now            = datetime.datetime.now();
-            local_time_now      = time_now.replace(tzinfo = local)
-            utc_time_now        = local_time_now.astimezone(pytz.utc)
-            time_format         = utc_time_now.strftime("%Y-%m-%dT%H:%M:%SZ")
-            fO.creation_date    = time_format
-            fO.data_structure   = data_structure
-            fO.institute_id     = institute_id ; fO.sync()
-            fO.institution      = institution ; fO.sync()
-            fO.license          = license_txt
-            fO.mip_specs        = mip_specs
-            fO.project_id       = project_id
-            fO.realm            = 'fx'
-            fO.references       = ref_obs ; fO.sync()
-            fO.source           = source
-            fO.source_id        = dataVer
-            fO.write(areacelloM2.astype('float32'));
-            fO.close()
-            del(areacello,areacelloM2,earthSurfaceArea,earthSurfaceAreaM2) ; gc.collect()
+            areacello                   = areacelloM2 ; del(areacelloM2)
+            # sftlf
+            maskFile                    = '/work/durack1/Shared/obs_data/WOD13/170306_WOD13_masks_1deg.nc'
+            fMask                       = cdm.open(maskFile)
+            landSea1deg                 = fMask('landsea')
+            # Fix longitude
+            a                           = landSea1deg[:,0:180]
+            b                           = landSea1deg[:,180:]
+            c = np.concatenate((b,a),axis=1) ; del(a,b)
+            landSea1degTmp              = cdm.createVariable(c,type='int16') ; del(c)
+            landSea1degTmp.setAxis(0,areacello.getAxis(0)) ; # Impose identical axes to areacello
+            landSea1degTmp.setAxis(1,areacello.getAxis(1))
+            landSea1deg                 = landSea1degTmp ; del(landSea1degTmp)
+            landSea1deg                 = mv.where(landSea1deg>1.,0.,landSea1deg) ; # sea=0, land=1
+            landSea1deg                 = mv.where(landSea1deg==1.,2.,landSea1deg) ; # Change land > 2.
+            landSea1deg                 = mv.where(landSea1deg==0.,100.,landSea1deg) ; # Change sea > 100.
+            landSea1deg                 = mv.where(landSea1deg==2.,0.,landSea1deg) ; # Change land > 0.
+            # Need to tweak some cells
+            sftof                       = cdm.createVariable(landSea1deg)
+            sftof.standard_name         = 'sea_area_fraction'
+            sftof.long_name             = 'Sea Area Fraction'
+            sftof.units                 = '%'
+            sftof.id                    = 'sftof'
+
+            # Create output files
+            for counter,output in enumerate(fxFiles):
+                outFileA = os.path.join(sanPath,filePath.split('/')[-1])
+                outFileA = outFileA.replace('_'.join(['',last_year]),'')
+                #outFileA = outFileA.replace('sst',output)
+                outFileA = outFileA.replace('sic',output)
+                print 'Processing: ',outFileA
+                if not os.path.exists(sanPath):
+                    mkDirNoOSErr(sanPath)
+                if os.path.exists(outFileA):
+                    os.remove(outFileA)
+                fO = cdm.open(outFileA,'w')
+                # global atts
+                globalAttWrite(fO,options='noid'); # 'noid' option prevents data_contact and institution being written
+                fO.Conventions      = 'CF-1.6' ; fO.sync()
+                fxVar               = eval(output)
+                fO.title            = fxVar.long_name
+                fO.activity_id      = activity_id
+                fO.further_info_url = further_info_url
+                fO.comment          = comment ; fO.sync()
+                fO.contact          = contact ; fO.sync() ; # Overwritten globalAttWrite
+                local               = pytz.timezone("America/Los_Angeles")
+                time_now            = datetime.datetime.now();
+                local_time_now      = time_now.replace(tzinfo = local)
+                utc_time_now        = local_time_now.astimezone(pytz.utc)
+                time_format         = utc_time_now.strftime("%Y-%m-%dT%H:%M:%SZ")
+                fO.creation_date    = time_format
+                fO.data_structure   = data_structure
+                fO.institute_id     = institute_id ; fO.sync()
+                fO.institution      = institution ; fO.sync()
+                fO.license          = license_txt
+                fO.mip_specs        = mip_specs
+                fO.project_id       = project_id
+                fO.realm            = 'fx'
+                fO.references       = ref_obs ; fO.sync()
+                fO.source           = source
+                fO.source_id        = dataVer
+                fO.write(fxVar.astype('float32'));
+                fO.close()
+                if counter == 0:
+                    outFileA1 = outFileA
+                elif counter == 1:
+                    outFileA2 = outFileA
+            del(areacello,sftof,earthSurfaceArea,earthSurfaceAreaM2,counter,outFileA) ; gc.collect()
     del(var,time) ; gc.collect()
     fH.close()
 
@@ -217,9 +270,9 @@ for filePath in newList:
         time.calendar           = 'gregorian'
         time.axis               = 'T'
         '''
-        #end_year = str(int(last_year)+1) ; # Correct off by one, full year
-        end_year = last_year ; # Same year
-        time = makeCalendar('1870',end_year,monthEnd=7,calendarStep='months') ; # June (6) 2016 completion
+        end_year = str(int(last_year)+1) ; # Correct off by one, full year
+        #end_year = last_year ; # Same year
+        time = makeCalendar('1870',end_year,monthEnd=1,calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
         # Test new time axis
         #print time.asComponentTime()[0]
         #print time.asComponentTime()[-1]
@@ -325,19 +378,21 @@ for filePath in newList:
             lon     = d.getLongitude()
             time    = d.getTime()
             cmor.set_cur_dataset_attribute('history',f.history) ; # Force local file attribute as history
-            table   = 'input4MIPs.json'
+            if 'sic' in varName:
+                table   = 'input4MIPs_SImon.json'
+            else:
+                table   = 'input4MIPs_Omon.json'
             cmor.load_table(table)
             axes    = [ {'table_entry': 'time2',
-                         'units': 'days since 1870-01-01',
-                         },
-                         {'table_entry': 'latitude',
-                          'units': 'degrees_north',
-                          'coord_vals': lat[:],
-                          'cell_bounds': lat.getBounds()},
-                         {'table_entry': 'longitude',
-                          'units': 'degrees_east',
-                          'coord_vals': lon[:],
-                          'cell_bounds': lon.getBounds()},
+                         'units': 'days since 1870-01-01'},
+                        {'table_entry': 'latitude',
+                         'units': 'degrees_north',
+                         'coord_vals': lat[:],
+                         'cell_bounds': lat.getBounds()},
+                        {'table_entry': 'longitude',
+                         'units': 'degrees_east',
+                         'coord_vals': lon[:],
+                         'cell_bounds': lon.getBounds()},
                       ]
             axis_ids = list()
             for axis in axes:
@@ -346,7 +401,7 @@ for filePath in newList:
             varid   = cmor.variable(var.id,var.units,axis_ids)
             values  = np.array(d[:],np.float32)
             cmor.set_deflate(varid,1,1,1) ; # shuffle=1,deflate=1,deflate_level=1 ; CMOR 3.0.6+
-            cmor.write(varid,values,time_vals=time[:])
+            cmor.write(varid,values,time_vals=time[:],time_bnds=time.getBounds())
             f.close()
             cmor.close()
             # Cleanup
@@ -362,19 +417,21 @@ for filePath in newList:
             lon     = d.getLongitude()
             time    = d.getTime()
             cmor.set_cur_dataset_attribute('history',f.history) ; # Force local file attribute as history
-            table   = 'input4MIPs.json'
+            if 'sic' in varName:
+                table   = 'input4MIPs_SImon.json'
+            else:
+                table   = 'input4MIPs_Omon.json'
             cmor.load_table(table)
             axes    = [ {'table_entry': 'time',
-                         'units': 'days since 1870-01-01',
-                         },
-                         {'table_entry': 'latitude',
-                          'units': 'degrees_north',
-                          'coord_vals': lat[:],
-                          'cell_bounds': lat.getBounds()},
-                         {'table_entry': 'longitude',
-                          'units': 'degrees_east',
-                          'coord_vals': lon[:],
-                          'cell_bounds': lon.getBounds()},
+                         'units': 'days since 1870-01-01'},
+                        {'table_entry': 'latitude',
+                         'units': 'degrees_north',
+                         'coord_vals': lat[:],
+                         'cell_bounds': lat.getBounds()},
+                        {'table_entry': 'longitude',
+                         'units': 'degrees_east',
+                         'coord_vals': lon[:],
+                         'cell_bounds': lon.getBounds()},
                       ]
             axis_ids = list()
             for axis in axes:
@@ -392,15 +449,16 @@ for filePath in newList:
 
         # Write areacello variable
         if 'amipbc_sic' in filePath:
+            # areacello
             cmor.setup(inpath='CMOR/input4MIPs-cmor-tables/Tables',netcdf_file_action=cmor.CMOR_REPLACE_4)
             cmor.dataset_json("CMOR/drive_input4MIPs_obs.json")
-            f       = cdm.open(outFileA)
+            f       = cdm.open(outFileA1)
             d       = f['areacello']
             lat     = d.getLatitude()
             lon     = d.getLongitude()
             time    = d.getTime()
             cmor.set_cur_dataset_attribute('history',f.history) ; # Force local file attribute as history
-            table   = 'input4MIPs.json'
+            table   = 'input4MIPs_Ofx.json'
             cmor.load_table(table)
             #cmor.set_table(tables[1]) ; # Change back to input4MIPs table
             axes    = [ {'table_entry': 'latitude',
@@ -423,7 +481,40 @@ for filePath in newList:
             f.close()
             cmor.close()
             # Cleanup
-            del(outFileA,f,d,lat,lon,time) ; gc.collect()
+            del(outFileA1,f,d,lat,lon,time) ; gc.collect()
+            # sftof
+            cmor.setup(inpath='CMOR/input4MIPs-cmor-tables/Tables',netcdf_file_action=cmor.CMOR_REPLACE_4)
+            cmor.dataset_json("CMOR/drive_input4MIPs_obs.json")
+            f       = cdm.open(outFileA2)
+            d       = f['sftof']
+            lat     = d.getLatitude()
+            lon     = d.getLongitude()
+            time    = d.getTime()
+            cmor.set_cur_dataset_attribute('history',f.history) ; # Force local file attribute as history
+            table   = 'input4MIPs_Ofx.json'
+            cmor.load_table(table)
+            #cmor.set_table(tables[1]) ; # Change back to input4MIPs table
+            axes    = [ {'table_entry': 'latitude',
+                         'units': 'degrees_north',
+                         'coord_vals': lat[:],
+                         'cell_bounds': lat.getBounds()},
+                        {'table_entry': 'longitude',
+                         'units': 'degrees_east',
+                         'coord_vals': lon[:],
+                         'cell_bounds': lon.getBounds()},
+                      ]
+            axis_ids = list()
+            for axis in axes:
+                axis_id = cmor.axis(**axis)
+                axis_ids.append(axis_id)
+            varid   = cmor.variable('sftof',d.units,axis_ids,missing_value=1e20)
+            values  = np.array(d[:],np.float32)
+            cmor.set_deflate(varid,1,1,1) ; # shuffle=1,deflate=1,deflate_level=1 ; CMOR 3.0.6+
+            cmor.write(varid,values)
+            f.close()
+            cmor.close()
+            # Cleanup
+            del(outFileA2,f,d,lat,lon,time) ; gc.collect()
         # Cleanup
         del(table,axes,axis_ids,varid,values) ; gc.collect()
 

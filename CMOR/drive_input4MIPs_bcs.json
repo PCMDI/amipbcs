@@ -1,34 +1,35 @@
 {
     "_control_vocabulary_file":     "input4MIPs_CV.json",
+    "_AXIS_ENTRY_FILE":             "CMOR/input4MIPs-cmor-tables/input4MIPs_coordinate.json",
+    "_FORMULA_VAR_FILE":            "CMOR/input4MIPs-cmor-tables/input4MIPs_formula_terms.json",
     "activity_id":                  "input4MIPs",
 
     "calendar":                     "gregorian",
     "data_structure":               "grid",
     "dataset_category":             "SSTsAndSeaIce",
-    "dataset_version_number":       "1.1.1",
+    "dataset_version_number":       "1.1.2",
     "frequency":                    "mon",
     "grid":                         "1x1 degree latitude x longitude",
     "grid_label":                   "gn",
-    "grid_resolution":              "1x1 degree",
+    "nominal_resolution":           "1x1 degree",
     "product":                      "derived",
     "realm":                        "ocean",
     "target_mip":                   "CMIP",
 
-    "comment":                      "Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2016-06)",
-    "contact ":                     "PCMDI (pcmdi-cmip@lists.llnl.gov)",
-    "further_info_url":             "http://www-pcmdi.llnl.gov/projects/amip/AMIP2EXPDSN/BCS/amip2bcs.php",
+    "comment":                      "Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2016-12)",
+    "contact ":                     "PCMDI (pcmdi-cmip@llnl.gov)",
+    "further_info_url":             "https://pcmdi.llnl.gov/mips/amip",
     "institution_id":               "PCMDI",
-    "institution":                  "Program for Climate Model Diagnosis and Intercomparison (LLNL), Livermore, CA, USA",
-    "references":                   "Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf",
-    "source":                       "PCMDI-AMIP 1.1.1: Merged SST based on UK MetOffice HadISST and NCEP OI2",
-    "source_id":                    "PCMDI-AMIP-1-1-1",
-    "title":                        "PCMDI-AMIP 1.1.1 dataset prepared for input4MIPs",
+    "institution":                  "Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA",
+    "references":                   "Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: https://pcmdi.llnl.gov/report/pdf/60.pdf?id=86",
+    "source":                       "PCMDI-AMIP 1.1.2: Merged SST based on UK MetOffice HadISST and NCEP OI2",
+    "source_id":                    "PCMDI-AMIP-1-1-2",
+    "title":                        "PCMDI-AMIP 1.1.2 dataset prepared for input4MIPs",
 
     "outpath":                      ".",
     "output_path_template":         "<mip_era><activity_id><institution_id><dataset_category><target_mip><frequency><realm><source_id><variable_id><grid_label><version>",
-    "output_file_template":         "<variable_id><table><dataset_category><target_mip><source_id><grid_label>",
+    "output_file_template":         "<variable_id><activity_id><dataset_category><target_mip><source_id><grid_label>",
 
-    "license":                      "AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution \"Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). The data producers and data providers make no warranty, either express or implied, including but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
-
-    "data_usage_tips":              "The mid-month data should be linearly interpolated in time and then clipped for use as boundary conditions to drive AMIP simulations as described at: http://www-pcmdi.llnl.gov/projects/amip/AMIP2EXPDSN/BCS/amip2bcs.php"
+    "license":                      "AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution-[NonCommercial-]ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing input4MIPs output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+    "data_usage_tips":              "The mid-month data should be linearly interpolated in time and then clipped for use as boundary conditions to drive AMIP simulations as described at: https://pcmdi.llnl.gov/mips/amip"
 }

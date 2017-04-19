@@ -24,18 +24,20 @@ PJD  6 Jun 2016     - Updated for new input data format
 PJD  7 Jun 2016     - Converted to parallel execution
 PJD  8 Jun 2016     - Updated calendar to be overwritten in input files (resolved CMOR/input data conflict)
 PJD 20 Oct 2016     - Update to 1.1.1
+PJD 14 Apr 2017     - Update to 1.1.2
 
 @author: durack1
 """
-import EzTemplate,gc,glob,os,time,re,resource,sys,vcs ; # cdat_info
+import EzTemplate,gc,glob,os,time,resource,sys,vcs ; # cdat_info,re
 import cdms2 as cdm
 import numpy as np
+sys.path.append('/export/durack1/git/durolib/lib/')
 from durolib import mkDirNoOSErr
 from string import replace
 
 #%% Turn on purging of VCS objects?
 delFudge = True
-outPathVer = 'pngs_v1.1.1'
+outPathVer = 'pngs_v1.1.2'
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -90,7 +92,7 @@ def initVCS(x,levs1,levs2,split):
 
 
 #%% Create input file list
-newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-1/*/gn/*/*.nc'))
+newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/*/PCMDI-AMIP-1-1-2/*/gn/*/*.nc'))
 for x,filePath in enumerate(newList):
     if 'siconc' in filePath.split('/')[13]:
         if 'bcs' in filePath.split('/')[13]:
@@ -104,27 +106,41 @@ for x,filePath in enumerate(newList):
             tosList = filePath
 del(filePath,newList,x); gc.collect()
 
-oldList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/_obsolete/150616_AMIPweb/www-pcmdi.llnl.gov/360x180/*.nc'))
-sicList2,sicbcList2,tosList2,tosbcList2 = [[] for _ in range(4)]
-yrTest      = re.compile('[0-9]{4}.nc')
+oldList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/*/PCMDI-AMIP-1-1-1/*/gn/*/*.nc'))
 for x,filePath in enumerate(oldList):
-    if 'amip' in filePath.split('/')[-1].split('_')[0] and yrTest.search(filePath.split('/')[-1].split('_')[-1]):
-        if filePath.split('/')[-1].split('_')[1] == 'sic':
-            if 'amipobs' in filePath.split('/')[-1].split('_')[0]:
-                sicList2.append(filePath)
-            else:
-                sicbcList2.append(filePath)
-        if filePath.split('/')[-1].split('_')[1] == 'sst':
-            if 'amipobs' in filePath.split('/')[-1].split('_')[0]:
-                tosList2.append(filePath)
-            else:
-                tosbcList2.append(filePath)
-del(filePath,oldList,yrTest,x); gc.collect()
+    if 'siconc' in filePath.split('/')[13]:
+        if 'bcs' in filePath.split('/')[13]:
+            sicbcList2 = filePath
+        else:
+            sicList2 = filePath
+    if 'tos' in filePath.split('/')[13]:
+        if 'bcs' in filePath.split('/')[13]:
+            tosbcList2 = filePath
+        else:
+            tosList2 = filePath
+del(filePath,oldList,x); gc.collect()
+
+#oldList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/_obsolete/150616_AMIPweb/www-pcmdi.llnl.gov/360x180/*.nc'))
+#sicList2,sicbcList2,tosList2,tosbcList2 = [[] for _ in range(4)]
+#yrTest      = re.compile('[0-9]{4}.nc')
+#for x,filePath in enumerate(oldList):
+#    if 'amip' in filePath.split('/')[-1].split('_')[0] and yrTest.search(filePath.split('/')[-1].split('_')[-1]):
+#        if filePath.split('/')[-1].split('_')[1] == 'sic':
+#            if 'amipobs' in filePath.split('/')[-1].split('_')[0]:
+#                sicList2.append(filePath)
+#            else:
+#                sicbcList2.append(filePath)
+#        if filePath.split('/')[-1].split('_')[1] == 'sst':
+#            if 'amipobs' in filePath.split('/')[-1].split('_')[0]:
+#                tosList2.append(filePath)
+#            else:
+#                tosbcList2.append(filePath)
+#del(filePath,oldList,yrTest,x); gc.collect()
 
 #%% Loop through vars and files
 counter = 1
-for var in ['sic','sst']:
-    if var == 'sst':
+for var in ['sic','tos']:
+    if var == 'tos':
         varName     = 'tos'
         levs1       = list(np.arange(270,310,2.5)) ; # TOS
         levs2       = list(np.arange(-.2,.21,.025))
@@ -162,7 +178,7 @@ for var in ['sic','sst']:
         # Fix new naming convention
         if 'sic' in varNameRead:
             varNameNewRead = replace(varNameRead,'sic','siconc')
-            inflationFactor = 1e2
+            inflationFactor = 1 #1e2
         else:
             varNameNewRead = varNameRead
             inflationFactor = 1
@@ -175,25 +191,27 @@ for var in ['sic','sst']:
         # Open new input file
         f1  = cdm.open(newList) ; # New files
         s1  = f1(varNameNewRead,time=(str(y1),str(y2)))
+        f2  = cdm.open(oldList) ; # Downloadable files ~2012
+        s2  = f1(varNameNewRead,time=(str(y1),str(y2)))
         # Deal with older file formats
         for count,y in enumerate(range(y1,y2),start=y1-1870):
-            f2  = cdm.open(oldList[count]) ; # Downloadable files ~2012
             for m in range(12):
                 startTime                   = time.time()
                 printStr                    = 'processing: %i-%.2i' % (y,m+1)
                 s1s                         = s1[m:m+1,]
                 s1s                         = s1s*inflationFactor ; # Correct siconc variables for unit difference
-                s2                          = f2(varNameRead,slice(m,m+1))
+                s2s                         = s2[m:m+1,]
+                s2s                         = s2s*inflationFactor ; # Correct siconc variables for unit difference
                 # Test times
                 print 'new:',varNameNewRead.ljust(9),s1s.getTime().asComponentTime()
-                print 'old:',varNameRead.ljust(9),s2.getTime().asComponentTime()
-                diff                        = s2-s1s
+                print 'old:',varNameNewRead.ljust(9),s2s.getTime().asComponentTime()
+                diff                        = s2s-s1s
                 iso1,iso2,title,t1,t2,t3    = initVCS(x,levs1,levs2,split)
                 title.string                = '%i-%.2i' % (y,m+1)
                 x.plot(title,bg=bg)
                 x.plot(s1s,t1,iso1,bg=bg); #,ratio="autot"); #,vtk_backend_grid=g)
                 x.plot(diff,t2,iso2,bg=bg); #,ratio="autot") ; #,vtk_backend_grid=g)
-                x.plot(s2,t3,iso1,bg=bg); #,ratio="autot") ; #,vtk_backend_grid=g)
+                x.plot(s2s,t3,iso1,bg=bg); #,ratio="autot") ; #,vtk_backend_grid=g)
                 fnm                         = '%i-%.2i.png' % (y,m+1)
                 fileName                    = os.path.join(outPath,outPathVer,varNameRead,fnm)
                 if not os.path.exists(os.path.join(outPath,outPathVer,varNameRead)):

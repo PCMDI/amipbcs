@@ -6,12 +6,13 @@ This code calls make_newVsOldDiffsMP.py
 Will require edits for paths and input temporal periods
 """
 
-import glob,os,shlex,subprocess,time,vcs
+import glob,os,shlex,subprocess,sys,time,vcs
+sys.path.append('/export/durack1/git/durolib/lib/')
 from durolib import mkDirNoOSErr
 from multiprocessing import Pool
 
 homeDir = '/work/durack1/Shared/150219_AMIPForcingData'
-dataVer = 'v1.1.1'
+dataVer = 'v1.1.2'
 homeDir = os.path.join(homeDir,'pngs','_'.join(['pngs',dataVer]))
 
 if not os.path.exists(homeDir):
@@ -25,7 +26,7 @@ for root, dirs, files in os.walk(homeDir, topdown=False):
 
 #%% Create loop
 cmds = []
-for i in sorted(range(1870,2013)): # Original data only extends to 2012
+for i in sorted(range(1870,2016)): # Original data only extends to 2012
     cmd = "python make_newVsOldDiffsMP.py %i" % i
     cmds.append(cmd)
     cmds.sort()

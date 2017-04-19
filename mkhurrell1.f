@@ -7,7 +7,7 @@ c (uvcdat)durack1@oceanonly:[150219_AMIPForcingData]:[203]> export LD_LIBRARY_PA
 c (uvcdat)durack1@oceanonly:[150219_AMIPForcingData]:[203]> echo $LD_LIBRARY_PATH
 c /export/durack1/anaconda2/envs/uvcdat/lib
 c (uvcdat)durack1@oceanonly:[150219_AMIPForcingData]:[205]> cd77 -ezget -lats -cdms -fcray-pointer mkhurrell1.f -o mkhurrell1
-c (uvcdat)durack1@oceanonly:[150219_AMIPForcingData]:[204]> rm -rf 360x180_v1.1.0/* or mkdir 360x180_v1.1.0
+c (uvcdat)durack1@oceanonly:[150219_AMIPForcingData]:[204]> rm -rf 360x180_v1.1.2/* or mkdir 360x180_v1.1.2
 
 c For debugging
 c [durack1@oceanonly 150219_AMIPForcingData]$ valgrind --log-file=mkhurrell1.valout2 --track-origins=yes mkhurrell1
@@ -425,7 +425,8 @@ c
 
 c *****************************************************************
 
-      parameter (nmon=149*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2014 - '147*12' requires changing in subroutines - 160414
+      parameter (nmon=149*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2017 (2018-1870 = 148) - requires changing in subroutines - 170412
+c      parameter (nmon=149*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2014 - '147*12' requires changing in subroutines - 160414
 c      parameter (nmon=147*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2014 - '147*12' requires changing in subroutines
 c      parameter (nmon=147*12, nlon=360, nlat=180, mlat=90, ! PJD Oceanonly 1870-2014
 c      parameter (nmon=4*12, nlon=12, nlat=6, mlat=4, !test
@@ -636,7 +637,8 @@ c      original grid (iregrid=0) or regrid (iregrid=1)?
 c       iregrid=1    ! AMIP
        iregrid=0    ! obs ! PJD Oceanonly 1870-2014
 
-          abbrev = '360x180_v1.1.1' ! PJD Oceanonly 1870-2014 - 161020
+          abbrev = '360x180_v1.1.2' ! PJD Oceanonly 1870-2017 - 170412
+c          abbrev = '360x180_v1.1.1' ! PJD Oceanonly 1870-2014 - 161020
 c          abbrev = '360x180_v1.1.0a' ! PJD Oceanonly 1870-2014 - 160906
 c          abbrev = '360x180_v1.1.0' ! PJD Oceanonly 1870-2014 - 160602
 c          abbrev = '360x180_v1.0.1' ! PJD Oceanonly 1870-2014 - 160414
@@ -668,7 +670,9 @@ c          outftype = 'ascii'
           outftype = 'coards'
 
           pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
-     & // '360x180_v1.1.1' ! PJD Oceanonly 161020
+     & // '360x180_v1.1.2' ! PJD Oceanonly 170412
+c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & // '360x180_v1.1.1' ! PJD Oceanonly 161020
 c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & // '360x180_v1.1.0a' ! PJD Oceanonly 160602
 c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -822,12 +826,14 @@ c      iyr1rd = 1979         !test
 
 c    last month and year for period in which observed monthly mean data
 c           will be read (must not follow monn, iyrn)
-      monnrd = 9 ! PJD Oceanonly 1870-2014 - 161020
+      monnrd = 3 ! PJD Oceanonly 1870-2014 - 170412
+c      monnrd = 9 ! PJD Oceanonly 1870-2014 - 161020
 c      monnrd = 8 ! PJD Oceanonly 1870-2014 - 160906
 c      monnrd = 4 ! PJD Oceanonly 1870-2014 - 160526
 c      monnrd = 3 ! PJD Oceanonly 1870-2014 - 160414
 c      monnrd = 5 ! PJD Oceanonly 1870-2014
-      iyrnrd = 2016 ! PJD Oceanonly 1870-2014 - 160414
+      iyrnrd = 2017 ! PJD Oceanonly 1870-2014 - 160414
+c      iyrnrd = 2016 ! PJD Oceanonly 1870-2014 - 160414
 c      iyrnrd = 2015 ! PJD Oceanonly 1870-2014
 c      monnrd = 6            !AMIP & bala
 c      iyrnrd = 2010          !AMIP & bala
@@ -883,7 +889,8 @@ c      mon1out = 1            !test
 c      iyr1out = 1979         !test
 
 c     last month and year written to output file
-      monnout = 6 ! PJD Oceanonly 1870-2014 - 161020
+      monnout = 12 ! PJD Oceanonly 1870-2014 - 170412
+c      monnout = 6 ! PJD Oceanonly 1870-2014 - 161020
 c      monnout = 5 ! PJD Oceanonly 1870-2014 - 160907
 c      monnout = 12 ! PJD Oceanonly 1870-2014 - 160414
 c      monnout = 3 ! PJD Oceanonly 1870-2014
@@ -920,8 +927,12 @@ c               file, should be December)
 
         inputsst(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_1-1-1/'
-     & //  'MODEL.SST.HAD187001-198110.OI198111-201609.nc' ! PJD Oceanonly 1870-2016 - v1.1.1 161020
+     & //  'SST_1-1-2/'
+     & //  'MODEL.SST.HAD187001-198110.OI198111-201703.nc' ! PJD Oceanonly 1870-2016 - v1.1.2 170412
+     
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_1-1-1/'
+c     & //  'MODEL.SST.HAD187001-198110.OI198111-201609.nc' ! PJD Oceanonly 1870-2016 - v1.1.1 161020
 
 c        inputsst(1) =
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -979,8 +990,12 @@ c               file, should be December)
 
         inputsic(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_1-1-1/'
-     & //  'MODEL.ICE.HAD187001-198110.OI198111-201609.nc' ! PJD Oceanonly 1870-2016 - v1.1.1 161020
+     & //  'SST_1-1-2/'
+     & //  'MODEL.ICE.HAD187001-198110.OI198111-201703.nc' ! PJD Oceanonly 1870-2016 - v1.1.2 170412
+
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_1-1-1/'
+c     & //  'MODEL.ICE.HAD187001-198110.OI198111-201609.nc' ! PJD Oceanonly 1870-2016 - v1.1.1 161020
 
 c        inputsic(1) =
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -3592,7 +3607,8 @@ c               calculate correlations
       implicit none
       integer nmont, nmon12
 
-      parameter (nmont=149*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 160414
+      parameter (nmont=149*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 170412
+c      parameter (nmont=149*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 160414
 c      parameter (nmont=147*12, nmon12=12) ! PJD Oceanonly 1870-2014
 
       integer nmon, icnt, jcnt, maxiter
@@ -4657,7 +4673,8 @@ c *********************************************************************
       INTEGER n,nmax
       REAL alon,alat,a(n),b(n),c(n),r(n)
       double precision u(n)
-      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 160414
+      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 170412
+c      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 160414
 c      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
       INTEGER j
       REAL bet, gam(nmax)
@@ -4668,7 +4685,7 @@ c      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
       endif
       if(b(1).eq.0.) then
           print*, 'longitude = ', alon, '  latitude = ', alat
-          pause 'tridag: rewrite equations'
+c          pause 'tridag: rewrite equations'
       endif
       bet=b(1)
       u(1)=r(1)/bet
@@ -4678,7 +4695,7 @@ c      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
           bet=b(j)-a(j)*gam(j)
           if(bet.eq.0.) then
             print*, 'longitude = ', alon, '  latitude = ', alat
-            pause 'tridag failed'
+c            pause 'tridag failed'
           endif
           u(j)=(r(j)-a(j)*u(j-1))/bet
 11      continue
@@ -4695,14 +4712,15 @@ c      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
       INTEGER n,nmax
       real alon,alat,alpha,beta,a(n),b(n),c(n),r(n)
       double precision x(n)
-      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 160414
+      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 170412
+c      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 160414
 c      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
 CU    USES tridag
       INTEGER i
       REAL fact,gamma,bb(nmax),u(nmax)
       double precision z(nmax)
-      if(n.le.2)pause 'n too small in cyclic'
-      if(n.gt.nmax)pause 'nmax too small in cyclic'
+c      if(n.le.2)pause 'n too small in cyclic'
+c      if(n.gt.nmax)pause 'nmax too small in cyclic'
       gamma=-b(1)
       bb(1)=b(1)-gamma
       bb(n)=b(n)-alpha*beta/gamma
