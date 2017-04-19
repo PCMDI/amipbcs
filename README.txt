@@ -1,4 +1,4 @@
-Tue 18 Apr 2017 05:23:53 PM PDT
+Tue 18 Apr 2017 05:35:07 PM PDT
 
 The following documents the steps to update the boundary conditions:
 
@@ -72,6 +72,8 @@ durack1@oceanonly:[SST_1-1-2]:[215]> source activate cdatcmornclnco
 15. Validate output movies
 
 16. Push data to crunchy for ESGF publication
+[durack1@oceanonly 150219_AMIPForcingData]$ chmod 755 -R CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/
+[durack1@oceanonly 150219_AMIPForcingData]$ chmod 644 CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/*/*/PCMDI-AMIP-1-1-2/*/gn/v20170418/*.nc
 [durack1@oceanonly 150219_AMIPForcingData]$ rsync -vrutan --exclude="PCMDI-AMIP-1-1-0a" CMIP6 crunchy:/work/durack1/Shared/160427_CMIP6_Forcing/
 
 17. Upload/publish data to ESGF
