@@ -35,6 +35,7 @@ PJD 20 Oct 2016     - Update to 1.1.1
 PJD 13 Apr 2017     - Update to 1.1.2 and generate sftof
 PJD 17 Apr 2017     - Corrected sftof mask to be correct indexes
 PJD 18 Apr 2017     - Updated CMOR to "2017.04.18.3.2.3" and corrected SImon table
+PJD 19 Apr 2017     - Updated tos units from K -> degC
                     - TODO:
 
 OIv2 info
@@ -303,7 +304,7 @@ for filePath in newList:
             var.name            = ''.join(['tos',BC])
             var.long_name       = ' '.join(['AMIP',longTxt,'sea surface temperature'])
             var.standard_name   = 'sea_surface_temperature'
-            var.units           = 'K'
+            var.units           = 'degC' ; #'K'
             realmTxt            = 'ocean'
         elif varName == 'sic':
             var.id              = ''.join(['siconc',BC])

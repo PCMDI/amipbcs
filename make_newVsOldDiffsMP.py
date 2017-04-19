@@ -25,6 +25,7 @@ PJD  7 Jun 2016     - Converted to parallel execution
 PJD  8 Jun 2016     - Updated calendar to be overwritten in input files (resolved CMOR/input data conflict)
 PJD 20 Oct 2016     - Update to 1.1.1
 PJD 14 Apr 2017     - Update to 1.1.2
+PJD 19 Apr 2017     - Updated to deal with K -> degC units change in tos
 
 @author: durack1
 """
@@ -179,9 +180,11 @@ for var in ['sic','tos']:
         if 'sic' in varNameRead:
             varNameNewRead = replace(varNameRead,'sic','siconc')
             inflationFactor = 1 #1e2
+            unitFactor = 0.
         else:
             varNameNewRead = varNameRead
             inflationFactor = 1
+            unitFactor = 273.16
         newList = eval(''.join([varName,BC,'List']))
         oldList = eval(''.join([varName,BC,'List2']))
         x = vcs.init()
@@ -200,8 +203,10 @@ for var in ['sic','tos']:
                 printStr                    = 'processing: %i-%.2i' % (y,m+1)
                 s1s                         = s1[m:m+1,]
                 s1s                         = s1s*inflationFactor ; # Correct siconc variables for unit difference
+                s1s                         = s1s+unitFactor ; # Correct new tos data for K - degC offset
                 s2s                         = s2[m:m+1,]
                 s2s                         = s2s*inflationFactor ; # Correct siconc variables for unit difference
+                #s2s                         = s2s+unitFactor ; # Correct new tos data for K - degC offset
                 # Test times
                 print 'new:',varNameNewRead.ljust(9),s1s.getTime().asComponentTime()
                 print 'old:',varNameNewRead.ljust(9),s2s.getTime().asComponentTime()

@@ -929,7 +929,7 @@ c               file, should be December)
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
      & //  'SST_1-1-2/'
      & //  'MODEL.SST.HAD187001-198110.OI198111-201703.nc' ! PJD Oceanonly 1870-2016 - v1.1.2 170412
-     
+
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & //  'SST_1-1-1/'
 c     & //  'MODEL.SST.HAD187001-198110.OI198111-201609.nc' ! PJD Oceanonly 1870-2016 - v1.1.1 161020
@@ -1368,7 +1368,8 @@ c         .001 for SST data in Cesius or kelvin.
 
 c       freezing point in output units
 c        ***GISST*** check whether data read are in C or K.
-        dcbias = 273.16      !AMIP
+        dcbias = 0.      !AMIP 170419 v1.1.2
+c        dcbias = 273.16      !AMIP
 c        dcbias = 0.0         !bala
 c        dcbias = 0.0         !GISST
 
@@ -1377,7 +1378,8 @@ c          Output will be scaled by this factor:
         fac = 1.0          !AMIP & GISST
 c        number added to data (after scaling by fac)
 c        to convert from Kelvin to Celsius, set offset = -273.16
-        offset = 273.16    ! hurrell to convert input from C to K
+        offset = 0.    ! 170419 v1.1.2
+c        offset = 273.16    ! hurrell to convert input from C to K
 c        offset = 0.0       !AMIP
 c        offset = -273.16   !bala
 c        offset = 0.0       !GISST
@@ -1395,7 +1397,8 @@ c        units2 = 'C**2'      !GISST & bala
 c       prescribed limits (in output units) used (if necessary) to crop
 c         data and accounted for in creating boundary condition data
 c
-          tmin = 271.36           !ERA40 & AMIP
+          tmin = -1.8           ! 1170419 v1.1.2
+c          tmin = 271.36           !ERA40 & AMIP
           tmax = 1000.0           !AMIP
 c          tmin = -1.8             !bala
 c          tmax = 1000.0           !bala
@@ -1414,7 +1417,8 @@ c          tmax-tmin-dt  (in output units)
         endif
 
         suffix = 'sst'
-        suff = 'SST (K)'    !AMIP
+        suff = 'SST (degC)'    ! 170419 v1.1.2
+c        suff = 'SST (K)'    !AMIP
 c        suff = 'SST (C)'    !bala
 c         suff = 'SST (C)'    !GISST  check units
 
@@ -1542,9 +1546,9 @@ c      dfltparm = '/usr/local/lib/lats/amip2.parms' ! linux
 c      dfltparm = '/work/durack1/Shared/150219_AMIPForcingData/src/lats/'
 c     & // 'amip2.parms' ! PJD Oceanonly 1870-2014
       parmtabl = '/work/durack1/Shared/150219_AMIPForcingData/'
-     & // 'ketgrib.parms' ! PJD Oceanonly 1870-2014
+     & // 'src/ketgrib.parms' ! PJD Oceanonly 1870-2014 170419 v1.1.2
       dfltparm = '/work/durack1/Shared/150219_AMIPForcingData/'
-     & // 'ketgrib.parms' ! PJD Oceanonly 1870-2014
+     & // 'src/ketgrib.parms' ! PJD Oceanonly 1870-2014 170419 v1.1.2
 
       open(9, file=outfile, status='new')
 
