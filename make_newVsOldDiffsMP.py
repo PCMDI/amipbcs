@@ -26,6 +26,7 @@ PJD  8 Jun 2016     - Updated calendar to be overwritten in input files (resolve
 PJD 20 Oct 2016     - Update to 1.1.1
 PJD 14 Apr 2017     - Update to 1.1.2
 PJD 19 Apr 2017     - Updated to deal with K -> degC units change in tos
+PJD 20 Apr 2017     - Corrected incorrect file open for s2 variable
 
 @author: durack1
 """
@@ -90,7 +91,6 @@ def initVCS(x,levs1,levs2,split):
     t3                  = Ez.get(legend="local")
 
     return iso1,iso2,title,t1,t2,t3
-
 
 #%% Create input file list
 newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/*/PCMDI-AMIP-1-1-2/*/gn/*/*.nc'))
@@ -184,7 +184,7 @@ for var in ['sic','tos']:
         else:
             varNameNewRead = varNameRead
             inflationFactor = 1
-            unitFactor = 273.16
+            unitFactor = 273.16 ; # Fudge for errored V1.1.2 and earlier
         newList = eval(''.join([varName,BC,'List']))
         oldList = eval(''.join([varName,BC,'List2']))
         x = vcs.init()
@@ -195,7 +195,7 @@ for var in ['sic','tos']:
         f1  = cdm.open(newList) ; # New files
         s1  = f1(varNameNewRead,time=(str(y1),str(y2)))
         f2  = cdm.open(oldList) ; # Downloadable files ~2012
-        s2  = f1(varNameNewRead,time=(str(y1),str(y2)))
+        s2  = f2(varNameNewRead,time=(str(y1),str(y2)))
         # Deal with older file formats
         for count,y in enumerate(range(y1,y2),start=y1-1870):
             for m in range(12):
