@@ -36,6 +36,13 @@ PJD 13 Apr 2017     - Update to 1.1.2 and generate sftof
 PJD 17 Apr 2017     - Corrected sftof mask to be correct indexes
 PJD 18 Apr 2017     - Updated CMOR to "2017.04.18.3.2.3" and corrected SImon table
 PJD 19 Apr 2017     - Updated tos units from K -> degC
+PJD  9 Oct 2017     - Update to 1.1.3
+PJD 23 Oct 2017     - Updated input4MIPs tables
+PJD 24 Oct 2017     - Further updates to input4MIPs tables
+PJD 25 Oct 2017     - Further updates to input4MIPs tables (region)
+PJD 25 Oct 2017     - Update to generate json publication files
+PJD 30 Oct 2017     - Added 'a' to sanPath for testing
+PJD 31 Oct 2017     - Removed 'a' for testing; json publication file tweaks
                     - TODO:
 
 OIv2 info
@@ -54,7 +61,7 @@ Saturday                 9th
 @author: durack1
 """
 
-import cmor,datetime,gc,glob,os,pytz,sys ; #pdb
+import cmor,datetime,gc,glob,json,os,pytz,sys ; #pdb
 sys.path.append('/export/durack1/git/durolib/lib/')
 import cdms2 as cdm
 import cdutil as cdu
@@ -75,22 +82,22 @@ cdm.setNetcdfDeflateFlag(1) ; # 1 = amipbc files sic 75.2MB, tos 239.2MB; amipob
 
 #%% Set version info
 activity_id         = 'input4MIPs'
-comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2016-06)' ; # WILL REQUIRE UPDATING
+comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2017-06)' ; # WILL REQUIRE UPDATING
 contact             = 'pcmdi-cmip@lists.llnl.gov'
-dataVer             = 'PCMDI-AMIP-1-1-2' ; # WILL REQUIRE UPDATING
-dataVerSht          = 'v1.1.2' ; # WILL REQUIRE UPDATING
+dataVer             = 'PCMDI-AMIP-1-1-3' ; # WILL REQUIRE UPDATING
+dataVerSht          = 'v1.1.3' ; # WILL REQUIRE UPDATING
 data_structure      = 'grid'
-further_info_url    = 'http://www-pcmdi.llnl.gov/projects/amip/AMIP2EXPDSN/BCS/amip2bcs.php' ; # WILL REQUIRE UPDATING - point to GMD paper when available
+further_info_url    = 'https://pcmdi.llnl.gov/mips/amip/' ; # WILL REQUIRE UPDATING - point to GMD paper when available
 institute_id        = 'PCMDI'
 institution         = 'Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA'
-last_year           = '2016' ; # WILL REQUIRE UPDATING
+last_year           = '2017' ; # WILL REQUIRE UPDATING
 license_txt         = 'AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution \"Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). The data producers and data providers make no warranty, either express or implied, including but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.'
 mip_specs           = 'AMIP CMIP5 CMIP6'
 project_id          = 'AMIP'
 ref_obs             = 'Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski (2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. doi: 10.1175/2008JCLI2292.1'
 ref_bcs             = 'Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf'
-source              = 'PCMDI-AMIP 1.1.2: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
-time_period         = '187001-201612' ; # WILL REQUIRE UPDATING
+source              = 'PCMDI-AMIP 1.1.3: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
+time_period         = '187001-201706' ; # WILL REQUIRE UPDATING
 
 #%% Set directories
 homePath    = '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -271,9 +278,9 @@ for filePath in newList:
         time.calendar           = 'gregorian'
         time.axis               = 'T'
         '''
-        end_year = str(int(last_year)+1) ; # Correct off by one, full year
-        #end_year = last_year ; # Same year
-        time = makeCalendar('1870',end_year,monthEnd=1,calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
+        #end_year = str(int(last_year)+1) ; # Correct off by one, full year
+        end_year = str(int(last_year)) ; # Half year/Same year
+        time = makeCalendar('1870',end_year,monthEnd=7,calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
         # Test new time axis
         #print time.asComponentTime()[0]
         #print time.asComponentTime()[-1]
@@ -291,12 +298,12 @@ for filePath in newList:
         if BC == 'bcs':
             var.cell_methods    = 'time: point'
             longTxt             = 'constructed mid-month'
-            dataUsageTips       = 'The mid-month data should be linearly interpolated in time and then clipped for use as boundary conditions to drive AMIP simulations as described at: http://www-pcmdi.llnl.gov/projects/amip/AMIP2EXPDSN/BCS/amip2bcs.php'
+            dataUsageTips       = 'The mid-month data should be linearly interpolated in time and then clipped for use as boundary conditions to drive AMIP simulations as described at: https://pcmdi.llnl.gov/mips/amip/'
             refTxt              = ref_bcs
         else:
             var.cell_methods    = 'time: mean'
             longTxt             = 'observed monthly mean'
-            dataUsageTips       = 'The observed monthly-mean data should *NOT* be used to drive AMIP simulations. For further information see: http://www-pcmdi.llnl.gov/projects/amip/AMIP2EXPDSN/BCS/amip2bcs.php'
+            dataUsageTips       = 'The observed monthly-mean data should *NOT* be used to drive AMIP simulations. For further information see: https://pcmdi.llnl.gov/mips/amip/'
             refTxt              = ref_obs
 
         if varName == 'sst':
@@ -384,7 +391,7 @@ for filePath in newList:
             else:
                 table   = 'input4MIPs_Omon.json'
             cmor.load_table(table)
-            axes    = [ {'table_entry': 'time2',
+            axes    = [ {'table_entry': 'time1',
                          'units': 'days since 1870-01-01'},
                         {'table_entry': 'latitude',
                          'units': 'degrees_north',
@@ -523,3 +530,81 @@ for filePath in newList:
         varComp     = np.ma.zeros([fileCount*12,180,360])
         timeComp    = np.zeros([fileCount*12])
         count       = 0
+
+#%% Generate json files for publication step
+# Get list of new files
+dataVersion = datetime.datetime.now().strftime('v%Y%m%d') #'v20171025'
+#dataVersion = 'v20171024'
+files = glob.glob(os.path.join(homePath,'CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/*/*',dataVer,'*/gn',dataVersion,'*.nc'))
+#150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-3/tos/gn/v20171024/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc
+
+for filePath in files:
+    print filePath
+    fH = cdm.open(filePath,'r')
+    conventions = fH.Conventions
+    contact = fH.contact
+    creationDate = fH.creation_date
+    datasetCategory = fH.dataset_category
+    datasetVersionNumber = fH.dataset_version_number
+    frequency = fH.frequency
+    furtherInfoUrl = fH.further_info_url
+    gridLabel = fH.grid_label
+    institution = fH.institution
+    institutionId = fH.institution_id
+    mipEra = fH.mip_era
+    nominalResolution = fH.nominal_resolution
+    realm = fH.realm
+    source = fH.source
+    sourceId = fH.source_id
+    targetMip = fH.target_mip
+    title = fH.title
+    trackingId = fH.tracking_id
+    variableId = fH.variable_id
+    outPath = filePath.replace(homePath,'')
+    fileName = filePath.split('/')[-1]
+    # Other vars
+    activityId = 'input4MIPs'
+
+    esgfPubDict = {}
+    key = 'input4MIPs-150219-AMIPForcingData'
+    esgfPubDict[key] = {}
+    esgfPubDict[key]['Conventions'] = ' '.join(conventions.split())
+    esgfPubDict[key]['activity_id'] = ' '.join(activityId.split())
+    esgfPubDict[key]['contact'] = ' '.join(contact.split())
+    esgfPubDict[key]['creation_date'] = ''.join(creationDate.split())
+    esgfPubDict[key]['dataset_category'] = ' '.join(datasetCategory.split())
+    esgfPubDict[key]['dataset_version_number'] = ' '.join(datasetVersionNumber.split())
+    esgfPubDict[key]['frequency'] = ' '.join(frequency.split())
+    esgfPubDict[key]['further_info_url'] = ' '.join(furtherInfoUrl.split())
+    esgfPubDict[key]['grid_label'] = ' '.join(gridLabel.split())
+    esgfPubDict[key]['institution'] = ' '.join(institution.split())
+    esgfPubDict[key]['institution_id'] = ' '.join(institutionId.split())
+    esgfPubDict[key]['mip_era'] = ' '.join(mipEra.split())
+    esgfPubDict[key]['nominal_resolution'] = ' '.join(nominalResolution.split())
+    esgfPubDict[key]['realm'] = ' '.join(realm.split())
+    esgfPubDict[key]['source'] = ' '.join(source.split())
+    esgfPubDict[key]['source_id'] = ' '.join(sourceId.split())
+    esgfPubDict[key]['target_mip'] = list([' '.join(targetMip.split())])
+    esgfPubDict[key]['title'] = ' '.join(title.split()) # Comes from file
+    esgfPubDict[key]['tracking_id_list'] = list([trackingId]) # Comes from file
+    esgfPubDict[key]['variable_id'] = ' '.join(variableId.split())
+    esgfPubDict[key]['file_list'] = list([outPath])
+    # Add in ESGF metadata entries - query metadata https://esgf-node.llnl.gov/search/input4mips/
+    #esgfPubDict[key]['product'] = 'derived' # Comes from file
+    esgfPubDict[key]['project'] = 'input4MIPs'
+    esgfPubDict[key]['retracted'] = 'false'
+    esgfPubDict[key]['version'] = dataVersion
+    local = pytz.timezone('America/Los_Angeles')
+    timeNow = datetime.datetime.now();
+    localTimeNow = timeNow.replace(tzinfo = local)
+    utcTimeNow = localTimeNow.astimezone(pytz.utc)
+    timeFormat = utcTimeNow.strftime('%Y-%m-%dT%H:%M:%SZ')
+    esgfPubDict[key]['timestamp'] = timeFormat
+    # Write to json file
+    outFile = os.path.join(homePath,mipEra,activityId,institutionId,''.join(['_'.join([institutionId,frequency,sourceId,variableId]),'.json']))
+    if os.path.exists(outFile):
+        print 'File existing, purging:',outFile
+        os.remove(outFile)
+    fH = open(outFile,'w')
+    json.dump(esgfPubDict,fH,ensure_ascii=True,sort_keys=True,indent=4,separators=(',',':'),encoding="utf-8")
+    fH.close()
