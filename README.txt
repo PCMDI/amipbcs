@@ -109,6 +109,7 @@ drive_input4MIPs_bcs.json  drive_input4MIPs_obs.json  input4MIPs-cmor-tables
 > rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/*.f .
 > rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/src . ; # Copy all files required by mkhurrell1.f
 > rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/*.py .
+> scp /work/durack1/Shared/150219_AMIPForcingData/make_newVsOldDiffs.py . ; # Force update of visualization file
 # Purge unused files
 > rm -f make_monthsMP.py make_newVsOldDiffsMP.py
 # Update CMOR info
