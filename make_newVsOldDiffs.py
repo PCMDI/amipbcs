@@ -25,13 +25,28 @@ PJD 27 Jun 2016     - Updated to run against vtk bug fixes (uvcdatNightly)
 PJD 28 Jun 2016     - Updated to write mp4's to png subdir, test with bg=False
 PJD 28 Jun 2016     - Corrected pngs path for mp4s
 PJD 30 Jun 2016     - Added donotstoredisplay argument
+PJD 22 Aug 2017     - Added code tweaks following VCS changes #235
+PJD 28 Aug 2017     - Further tweaks following info in https://github.com/UV-CDAT/vcs/pull/237#issuecomment-325354235
+PJD 30 Oct 2017     - Updated to bring changes across from make_newVsOldDiffsMP.py
+PJD 30 Oct 2017     - Corrected glob call to only return a single version
+PJD 31 Oct 2017     - Updated TOS plot increments 270 to 310 (K) to -2.5 to 37.5 (degC); Updated ver info
+PJD 31 Oct 2017     - split =1 needs to change to 0 to allow even colour splitting for unbalanced temp range (-2.5 to 35)
+PJD 31 Oct 2017     - Explicitly initialize canvas size vcs.init(bg=True,geometry=())
 
 @author: durack1
 """
-import cdat_info,EzTemplate,gc,glob,os,time,re,resource,vcs
+import cdat_info,EzTemplate,gc,glob,os,time,resource,sys,vcs
 import cdms2 as cdm
 import numpy as np
+sys.path.append('/export/durack1/git/durolib/lib/')
+from durolib import mkDirNoOSErr
 from string import replace
+
+#%% Turn on purging of VCS objects?
+delFudge = True
+outPathVer = 'pngs_v1.1.3'
+ver = 'v20171031' ; # Update for each run
+verOld = 'v20170419' ; # Update for each run
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -61,6 +76,7 @@ def initVCS(x,levs1,levs2,split):
     tmpl.blank()
     tmpl.scalefont(.9)
 
+    oldOrientation = tmpl.legend.textorientation
     tmpl.legend.textorientation = leg
     for a in ["data","legend","box1","xlabel1","xtic1","ylabel1","ytic1"]:
         setattr(getattr(tmpl,a),"priority",1)
@@ -82,11 +98,14 @@ def initVCS(x,levs1,levs2,split):
     t2                  = Ez.get(legend="local")
     t3                  = Ez.get(legend="local")
 
-    return iso1,iso2,title,t1,t2,t3
+    del(Ez) ; # Purge EzTemplate object
+    vcs.removeobject(vcs.elements['textorientation'][oldOrientation])
+
+    return iso1,iso2,title,t1,t2,t3,tmpl
 
 
 #%% Create input file list
-newList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-0/*/gs1x1/*/*.nc'))
+newList    = sorted(glob.glob(''.join(['/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/*/PCMDI-AMIP-1-1-3/*/gn/',ver,'/*.nc'])))
 for x,filePath in enumerate(newList):
     if 'siconc' in filePath.split('/')[13]:
         if 'bcs' in filePath.split('/')[13]:
@@ -100,40 +119,37 @@ for x,filePath in enumerate(newList):
             tosList = filePath
 del(filePath,newList,x); gc.collect()
 
-oldList    = sorted(glob.glob('/work/durack1/Shared/150219_AMIPForcingData/_obsolete/150616_AMIPweb/www-pcmdi.llnl.gov/360x180/*.nc'))
-sicList2,sicbcList2,tosList2,tosbcList2 = [[] for _ in range(4)]
-yrTest      = re.compile('[0-9]{4}.nc')
+oldList    = sorted(glob.glob(''.join(['/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/*/PCMDI-AMIP-1-1-2/*/gn/',verOld,'/*.nc'])))
 for x,filePath in enumerate(oldList):
-    if 'amip' in filePath.split('/')[-1].split('_')[0] and yrTest.search(filePath.split('/')[-1].split('_')[-1]):
-        if filePath.split('/')[-1].split('_')[1] == 'sic':
-            if 'amipobs' in filePath.split('/')[-1].split('_')[0]:
-                sicList2.append(filePath)
-            else:
-                sicbcList2.append(filePath)
-        if filePath.split('/')[-1].split('_')[1] == 'sst':
-            if 'amipobs' in filePath.split('/')[-1].split('_')[0]:
-                tosList2.append(filePath)
-            else:
-                tosbcList2.append(filePath)
-del(filePath,oldList,yrTest,x); gc.collect()
+    if 'siconc' in filePath.split('/')[13]:
+        if 'bcs' in filePath.split('/')[13]:
+            sicbcList2 = filePath
+        else:
+            sicList2 = filePath
+    if 'tos' in filePath.split('/')[13]:
+        if 'bcs' in filePath.split('/')[13]:
+            tosbcList2 = filePath
+        else:
+            tosList2 = filePath
+del(filePath,oldList,x); gc.collect()
 
 outPath = '/work/durack1/Shared/150219_AMIPForcingData'
 
-#%% Purge existing files
-for root, dirs, files in os.walk('./pngs', topdown=False):
+#%% Purge existing files - lock to version number
+for root, dirs, files in os.walk(os.path.join('./pngs',outPathVer), topdown=False):
     for name in files:
         #print os.path.join(root,name)
         os.remove(os.path.join(root, name))
 
 #%% Loop through vars and files
 counter = 1
-for var in ['sic','sst']:
-    if var == 'sst':
+for var in ['sic','tos']:
+    if var == 'tos':
         varName     = 'tos'
-        levs1       = list(np.arange(270,310,2.5)) ; # TOS
+        levs1       = list(np.arange(-2.5,37.5,2.5)) ; # TOS
         levs2       = list(np.arange(-.2,.21,.025))
         levs2[8]    = 0. ; # Fix middle point
-        split       = 1
+        split       = 0 ; # 0 for -2.5 to 35 scale
     else:
         varName     = var
         levs1       = list(np.arange(-5,115,10)) ; # SIC
@@ -151,9 +167,9 @@ for var in ['sic','sst']:
     # [1]  + Running                       spyder
     # [2]  - Running                       Xvfb :2 -screen 0 1600x1200x16
     bg = True ; # For 1 yr uses ~260MB
-    delFudge = True ; #Turn on purging of VCS objects?
+    #delFudge = False ; #Turn on purging of VCS objects?
     donotstoredisplay = True ; # Fix from fries2
-    y2 = 2013 ; #1871; #2013
+    y2 = 2017 ; #1871; #2013
     outFiles = []
 
     #%% Set obs vs bcs
@@ -167,13 +183,16 @@ for var in ['sic','sst']:
         # Fix new naming convention
         if 'sic' in varNameRead:
             varNameNewRead = replace(varNameRead,'sic','siconc')
-            inflationFactor = 1e2
+            inflationFactor = 1. #1e2
+            unitFactor = 0.
         else:
             varNameNewRead = varNameRead
-            inflationFactor = 1
+            inflationFactor = 1.
+            unitFactor = 273.16 ; # Fudge errored <1.1.2 and earlier
+            unitFactor = 1.
         newList = eval(''.join([varName,BC,'List']))
         oldList = eval(''.join([varName,BC,'List2']))
-        x = vcs.init()
+        x = vcs.init(bg=True,geometry=(1200,1560)) ; # Add bg and geometry
         basic_tt = vcs.elements["texttable"].keys()
         basic_to = vcs.elements["textorientation"].keys()
         basic_tc = vcs.elements["textcombined"].keys()
@@ -181,35 +200,37 @@ for var in ['sic','sst']:
         monthCount = 0
         f1  = cdm.open(newList) ; # New files
         s1  = f1(varNameNewRead,time=('1870',str(y2)))
+        f2  = cdm.open(oldList) ; # New files
+        s2  = f1(varNameNewRead,time=('1870',str(y2)))
         for count,y in enumerate(range(1870,y2)):
-            #f1  = cdm.open(newList[count]) ; # New files
-            f2  = cdm.open(oldList[count]) ; # Downloadable files ~2012
             for m in range(12):
                 startTime                   = time.time()
                 printStr                    = 'processing: %i-%.2i' % (y,m+1)
                 #s1                          = f1(varNameNewRead,slice(monthCount,monthCount+1))
                 #s1                          = s1*inflationFactor ; # Correct siconc variables for unit difference
-                s1s                         = s1[monthCount:monthCount+1,]
+                s1s                         = s1[m:m+1,]
                 s1s                         = s1s*inflationFactor ; # Correct siconc variables for unit difference
-                s2                          = f2(varNameRead,slice(m,m+1))
-                monthCount                  = monthCount+1
+                s2s                         = s2[m:m+1,]
+                s2s                         = s2s*inflationFactor ; # Correct siconc variables for unit difference
                 # Test times
                 #print 'new:',varNameNewRead.ljust(9),s1s.getTime().asComponentTime()
-                #print 'old:',varNameRead.ljust(9),s2.getTime().asComponentTime()
-                s2                          = f2(varNameRead,slice(m,m+1))
-                diff                        = s2-s1
-                iso1,iso2,title,t1,t2,t3    = initVCS(x,levs1,levs2,split)
+                #print 'old:',varNameRead.ljust(9),s2s.getTime().asComponentTime()
+                diff                        = s2s-s1s
+                iso1,iso2,title,t1,t2,t3,tmpl = initVCS(x,levs1,levs2,split)
                 title.string                = '%i-%.2i' % (y,m+1)
                 x.plot(title,bg=bg)
-                x.plot(s1,t1,iso1,bg=bg); #,ratio="autot"); #,vtk_backend_grid=g)
+                x.plot(s1s,t1,iso1,bg=bg); #,ratio="autot"); #,vtk_backend_grid=g)
                 x.plot(diff,t2,iso2,bg=bg); #,ratio="autot") ; #,vtk_backend_grid=g)
-                x.plot(s2,t3,iso1,bg=bg); #,ratio="autot") ; #,vtk_backend_grid=g)
+                x.plot(s2s,t3,iso1,bg=bg); #,ratio="autot") ; #,vtk_backend_grid=g)
                 fnm                         = '%i-%.2i.png' % (y,m+1)
-                fileName                    = os.path.join(outPath,'pngs',varNameRead,fnm)
+                fileName                    = os.path.join(outPath,'pngs',outPathVer,varNameRead,fnm)
+                # Create directory tree - version
+                if not os.path.exists(os.path.join(outPath,'pngs',outPathVer)):
+                    mkDirNoOSErr(os.path.join(outPath,'pngs',outPathVer))
                 outFiles.append(fileName)
-                # Create directory tree
-                if not os.path.exists(os.path.join(outPath,'pngs',varNameRead)):
-                    os.makedirs(os.path.join(outPath,'pngs',varNameRead))
+                # Create directory tree - variable
+                if not os.path.exists(os.path.join(outPath,'pngs',outPathVer,varNameRead)):
+                    mkDirNoOSErr(os.path.join(outPath,'pngs',outPathVer,varNameRead))
                 # Check file exists
                 if os.path.exists(fileName):
                     #print "** File exists.. removing **"
@@ -235,6 +256,13 @@ for var in ['sic','sst']:
                     for nm in vcs.elements["textcombined"].keys():
                         if not nm in basic_tc:
                             del(vcs.elements["textcombined"][nm])
+                #vcs.removeobject(iso1) ; # Error thrown here and below v2.12 triggered this
+                #vcs.removeobject(iso2)
+                #vcs.removeobject(title)
+                #vcs.removeobject(t1)
+                #vcs.removeobject(t2)
+                #vcs.removeobject(t3)
+                vcs.removeobject(tmpl)
                 endTime                 = time.time()
                 timeStr                 = 'Time: %06.3f secs;' % (endTime-startTime)
                 memStr                  = 'Max mem: %05.3f GB' % (np.float32(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/1.e6)
@@ -249,11 +277,11 @@ for var in ['sic','sst']:
                 print counterStr,printStr,varName.ljust(6),BC,timeStr,memStr,pyObj
                 #del() ; # Do a cleanup
                 counter                 = counter+1
-            #f1.close()
-            f2.close()
             gc.collect() ; # Attempt to force a memory flush
+        x.backend.renWin = None ; # @danlipsa fix UV-CDAT/vcs#237
         x.close()
         f1.close()
+        f2.close()
         outMP4File = os.path.join('pngs',''.join(['AMIPBCS_newVsOld_',varNameRead,'.mp4']))
         print 'Processing: ',outMP4File
         x = vcs.init()
