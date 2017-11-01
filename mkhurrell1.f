@@ -425,7 +425,8 @@ c
 
 c *****************************************************************
 
-      parameter (nmon=149*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2017 (2018-1870 = 148) - requires changing in subroutines - 170412
+      parameter (nmon=160*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2030 (2030-1870 = 160) - requires changing in subroutines - 171025
+c      parameter (nmon=149*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2017 (2018-1870 = 148) - requires changing in subroutines - 170412
 c      parameter (nmon=149*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2014 - '147*12' requires changing in subroutines - 160414
 c      parameter (nmon=147*12, nlon=360, nlat=180, mlat=180, ! PJD Oceanonly 1870-2014 - '147*12' requires changing in subroutines
 c      parameter (nmon=147*12, nlon=360, nlat=180, mlat=90, ! PJD Oceanonly 1870-2014
@@ -439,7 +440,7 @@ c      parameter (nmon=142*12, nlon=288, nlat=217,  mlat=31, !
 c      parameter (nmon=142*12, nlon=192, nlat=145,  mlat=29, !
      &       nzon=6, nzonp=nzon+1, n1=nzonp*21, n2=nzonp*41,
      &       nmon12=12, nlagm=13, nchunks=(nlat-1)/mlat+1,
-     &       niofiles=150)
+     &       niofiles=160) ! PJD Oceanonly 1870-2070 171025
 c *****************************************************************
 
       logical caseindp
@@ -637,7 +638,8 @@ c      original grid (iregrid=0) or regrid (iregrid=1)?
 c       iregrid=1    ! AMIP
        iregrid=0    ! obs ! PJD Oceanonly 1870-2014
 
-          abbrev = '360x180_v1.1.2' ! PJD Oceanonly 1870-2017 - 170412
+          abbrev = '360x180_v1.1.3' ! PJD Oceanonly 1870-2017 - 171009
+c          abbrev = '360x180_v1.1.2' ! PJD Oceanonly 1870-2017 - 170412
 c          abbrev = '360x180_v1.1.1' ! PJD Oceanonly 1870-2014 - 161020
 c          abbrev = '360x180_v1.1.0a' ! PJD Oceanonly 1870-2014 - 160906
 c          abbrev = '360x180_v1.1.0' ! PJD Oceanonly 1870-2014 - 160602
@@ -670,7 +672,9 @@ c          outftype = 'ascii'
           outftype = 'coards'
 
           pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
-     & // '360x180_v1.1.2' ! PJD Oceanonly 170412
+     & // '360x180_v1.1.3' ! PJD Oceanonly 171009
+c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & // '360x180_v1.1.2' ! PJD Oceanonly 170412
 c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & // '360x180_v1.1.1' ! PJD Oceanonly 161020
 c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -801,7 +805,8 @@ c    last month and year for entire period that will be treated (period
 c        of interest plus buffers at ends).  Note the entire period
 c        treated should be an integral number of years.
       monn = 12           !hurrell
-      iyrn = 2017 ! PJD Oceanonly 1870-2014 - at least 12 months beyond end 160414
+      iyrn = 2028 ! PJD Oceanonly 1870-2028 - at least 12 months beyond end 171025
+c      iyrn = 2017 ! PJD Oceanonly 1870-2014 - at least 12 months beyond end 160414
 c      iyrn = 2015 ! PJD Oceanonly 1870-2014
 c      iyrn = 2010         !hurrell
 c      monn = 12           !AMIP & bala
@@ -826,7 +831,8 @@ c      iyr1rd = 1979         !test
 
 c    last month and year for period in which observed monthly mean data
 c           will be read (must not follow monn, iyrn)
-      monnrd = 3 ! PJD Oceanonly 1870-2014 - 170412
+      monnrd = 9 ! PJD Oceanonly 1870-2014 - 171009
+c      monnrd = 3 ! PJD Oceanonly 1870-2014 - 170412
 c      monnrd = 9 ! PJD Oceanonly 1870-2014 - 161020
 c      monnrd = 8 ! PJD Oceanonly 1870-2014 - 160906
 c      monnrd = 4 ! PJD Oceanonly 1870-2014 - 160526
@@ -889,12 +895,14 @@ c      mon1out = 1            !test
 c      iyr1out = 1979         !test
 
 c     last month and year written to output file
-      monnout = 12 ! PJD Oceanonly 1870-2014 - 170412
+      monnout = 6 ! PJD Oceanonly 1870-2014 - 171009
+c      monnout = 12 ! PJD Oceanonly 1870-2014 - 170412
 c      monnout = 6 ! PJD Oceanonly 1870-2014 - 161020
 c      monnout = 5 ! PJD Oceanonly 1870-2014 - 160907
 c      monnout = 12 ! PJD Oceanonly 1870-2014 - 160414
 c      monnout = 3 ! PJD Oceanonly 1870-2014
-      iyrnout = 2016 ! PJD Oceanonly 1870-2014 - 160906
+      iyrnout = 2017 ! PJD Oceanonly 1870-2014 - 171009
+c      iyrnout = 2016 ! PJD Oceanonly 1870-2014 - 160906
 c      iyrnout = 2015 ! PJD Oceanonly 1870-2014
 c      monnout = 3            ! 1/18/07
 c      iyrnout = 2010          ! 1/18/07
@@ -927,8 +935,12 @@ c               file, should be December)
 
         inputsst(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_1-1-2/'
-     & //  'MODEL.SST.HAD187001-198110.OI198111-201703.nc' ! PJD Oceanonly 1870-2016 - v1.1.2 170412
+     & //  'SST_1-1-3/'
+     & //  'MODEL.SST.HAD187001-198110.OI198111-201709.nc' ! PJD Oceanonly 1870-2016 - v1.1.3 171009
+
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_1-1-2/'
+c     & //  'MODEL.SST.HAD187001-198110.OI198111-201703.nc' ! PJD Oceanonly 1870-2016 - v1.1.2 170412
 
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & //  'SST_1-1-1/'
@@ -990,8 +1002,13 @@ c               file, should be December)
 
         inputsic(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_1-1-2/'
-     & //  'MODEL.ICE.HAD187001-198110.OI198111-201703.nc' ! PJD Oceanonly 1870-2016 - v1.1.2 170412
+     & //  'SST_1-1-3/'
+     & //  'MODEL.ICE.HAD187001-198110.OI198111-201709.nc' ! PJD Oceanonly 1870-2016 - v1.1.3 171009
+c      - Unless counters (currently 149 need updating this is the last edit required)
+
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_1-1-2/'
+c     & //  'MODEL.ICE.HAD187001-198110.OI198111-201703.nc' ! PJD Oceanonly 1870-2016 - v1.1.2 170412
 
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & //  'SST_1-1-1/'
@@ -1397,7 +1414,7 @@ c        units2 = 'C**2'      !GISST & bala
 c       prescribed limits (in output units) used (if necessary) to crop
 c         data and accounted for in creating boundary condition data
 c
-          tmin = -1.8           ! 1170419 v1.1.2
+          tmin = -1.8           ! 170419 v1.1.2
 c          tmin = 271.36           !ERA40 & AMIP
           tmax = 1000.0           !AMIP
 c          tmin = -1.8             !bala
@@ -1964,7 +1981,7 @@ c        goto 2345
       else
 
         call getobs(iregrid, gtype, msklndi, sftfilei, sftnamei,
-     &        msklndo, sftfileo, sftnameo, inputfil, varin,
+     &        msklndo, sftfileo, sftnameo, inputfil(1), varin,
      &        nlon, nlat, mlat, j1, jn, iyr1in(1), mon1in, iyr1rd,
      &        mon1rd, iyrnrd, monnrd, nmon12, amissin, amissout, wtmin,
      &        sst(1,1,m1), sstwts(1,j1), wtfrac(1,j1), alons, alats(j1),
@@ -3611,7 +3628,8 @@ c               calculate correlations
       implicit none
       integer nmont, nmon12
 
-      parameter (nmont=149*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 170412
+      parameter (nmont=160*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 171025
+c      parameter (nmont=149*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 170412
 c      parameter (nmont=149*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 160414
 c      parameter (nmont=147*12, nmon12=12) ! PJD Oceanonly 1870-2014
 
@@ -4677,7 +4695,8 @@ c *********************************************************************
       INTEGER n,nmax
       REAL alon,alat,a(n),b(n),c(n),r(n)
       double precision u(n)
-      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 170412
+      PARAMETER (nmax=160*12) ! PJD Oceanonly 1870-2014 - 171025
+c      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 170412
 c      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 160414
 c      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
       INTEGER j
@@ -4716,7 +4735,8 @@ c            pause 'tridag failed'
       INTEGER n,nmax
       real alon,alat,alpha,beta,a(n),b(n),c(n),r(n)
       double precision x(n)
-      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 170412
+      PARAMETER (nmax=160*12) ! PJD Oceanonly 1870-2014 - 171025
+c      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 170412
 c      PARAMETER (nmax=149*12) ! PJD Oceanonly 1870-2014 - 160414
 c      PARAMETER (nmax=147*12) ! PJD Oceanonly 1870-2014
 CU    USES tridag
@@ -5688,32 +5708,6 @@ c         Write the regenerated monthly field to unit 12
       RETURN
       END
 
-      subroutine getobs1(iregrid, gtype, msklndi, sftfilei, sftnamei,
-     &        msklndo, sftfileo, sftnameo, inputfil, varin,
-     &        nlon, nlat, mlat, lat1, latn, iyr1in, mon1in, iyr1rd,
-     &        mon1rd, iyrnrd, monnrd, nmon12, amissin, amissout, wtmin,
-     &        sst, sstwts, wtfrac, alons, alats,
-     &        ntlat, rlat0, ntlon, rlon0)
-
-      implicit none
-
-      integer msklndi, msklndo, nlon, nlat, mlat, lat1, latn, iyr1in,
-     &         mon1in, iyr1rd, mon1rd, iyrnrd, monnrd, nmon12,
-     &         ntlat, ntlon, iregrid
-      real sst(nlon,mlat,*), alons(nlon), alats(*), rlat0, rlon0,
-     &      sstwts(nlon,*), wtfrac(nlon,*), amissin, amissout, wtmin
-      character*120 sftfilei, sftfileo, inputfil
-      character*16 sftnamei, sftnameo, varin, gtype
-
-      print*, 'Your version of the code cannot read files with'
-      print*, 'the EzGet software (i.e., files other than pp-format).'
-
-      call exit(1)
-
-      return
-      end
-
-
 
       subroutine getobs(iregrid, gtype, msklndi, sftfilei, sftnamei,
      &        msklndo, sftfileo, sftnameo, inputfil, varin,
@@ -6643,7 +6637,7 @@ c    completely blank.
       character*(*) a, b
       character*1 c, d
       integer i, j, k, m, n, j1, k1, ii
-      logical caseindp1 ! 150610 PJD added to suppress warnings
+c      logical caseindp1 ! 150610 PJD added to suppress warnings
 
 c     look for leading blanks and neglect
 
@@ -6724,6 +6718,3 @@ c   look for trailing blanks and neglect
       caseindp1 = .true.
       return
       end
-
-
-
