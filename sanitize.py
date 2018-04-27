@@ -43,6 +43,18 @@ PJD 25 Oct 2017     - Further updates to input4MIPs tables (region)
 PJD 25 Oct 2017     - Update to generate json publication files
 PJD 30 Oct 2017     - Added 'a' to sanPath for testing
 PJD 31 Oct 2017     - Removed 'a' for testing; json publication file tweaks
+PJD 16 Apr 2018     - Update to 1.1.4
+PJD 16 Apr 2018     - Updated masks file 170306 to 170425
+PJD 16 Apr 2018     - Updated dataset_version_number -> source_version
+PJD 17 Apr 2018     - Updated registered source_id, and drive_input4MIPs_obs2.json (migrate content into registration)
+PJD 19 Apr 2018     - Updated to drive_input4MIPs_obs.json and fixed globalAttWrite bug
+PJD 19 Apr 2018     - Updated input*.json files to point directly to css03
+PJD 20 Apr 2018     - Updated input*.json files "outpath" points to /p/user_pub/work/input4MIPs
+PJD 20 Apr 2018     - Updated pytz call; try CMOR331 env as realm issue in v332
+PJD 20 Apr 2018     - Turn off json descriptor creation
+PJD 26 Apr 2018     - Updated to use jsonWriteFile,washPerms
+PJD 27 Apr 2018     - Updated CMOR input to write to /p/user_pub/work - opened host dir to world readable (ames4)
+PJD 27 Apr 2018     - Updated input4MIPsFuncs.py library - utc/pytz update
                     - TODO:
 
 OIv2 info
@@ -61,13 +73,15 @@ Saturday                 9th
 @author: durack1
 """
 
-import cmor,datetime,gc,glob,json,os,pytz,sys ; #pdb
+import cmor,datetime,gc,glob,os,pytz,sys ; #json,pdb
 sys.path.append('/export/durack1/git/durolib/lib/')
 import cdms2 as cdm
 import cdutil as cdu
 import MV2 as mv
 import numpy as np
 from durolib import globalAttWrite,makeCalendar,mkDirNoOSErr
+sys.path.append('/work/durack1/Shared/160427_CMIP6_Forcing/')
+from input4MIPsFuncs import jsonWriteFile,washPerms
 
 #%% Kludge for json/encoder warning
 #import warnings
@@ -82,10 +96,10 @@ cdm.setNetcdfDeflateFlag(1) ; # 1 = amipbc files sic 75.2MB, tos 239.2MB; amipob
 
 #%% Set version info
 activity_id         = 'input4MIPs'
-comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2017-06)' ; # WILL REQUIRE UPDATING
+comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2017-12)' ; # WILL REQUIRE UPDATING
 contact             = 'pcmdi-cmip@lists.llnl.gov'
-dataVer             = 'PCMDI-AMIP-1-1-3' ; # WILL REQUIRE UPDATING
-dataVerSht          = 'v1.1.3' ; # WILL REQUIRE UPDATING
+dataVer             = 'PCMDI-AMIP-1-1-4' ; # WILL REQUIRE UPDATING
+dataVerSht          = 'v1.1.4' ; # WILL REQUIRE UPDATING
 data_structure      = 'grid'
 further_info_url    = 'https://pcmdi.llnl.gov/mips/amip/' ; # WILL REQUIRE UPDATING - point to GMD paper when available
 institute_id        = 'PCMDI'
@@ -96,11 +110,12 @@ mip_specs           = 'AMIP CMIP5 CMIP6'
 project_id          = 'AMIP'
 ref_obs             = 'Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski (2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. doi: 10.1175/2008JCLI2292.1'
 ref_bcs             = 'Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf'
-source              = 'PCMDI-AMIP 1.1.3: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
-time_period         = '187001-201706' ; # WILL REQUIRE UPDATING
+source              = 'PCMDI-AMIP 1.1.4: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
+time_period         = '187001-201712' ; # WILL REQUIRE UPDATING
 
 #%% Set directories
 homePath    = '/work/durack1/Shared/150219_AMIPForcingData/'
+dataPath    = '/p/user_pub/work/'
 sanPath     = os.path.join(homePath,'_'.join(['360x180',dataVerSht,'san']))
 
 #%% Get files
@@ -193,7 +208,7 @@ for filePath in newList:
             areacelloM2.id              = 'areacello'
             areacello                   = areacelloM2 ; del(areacelloM2)
             # sftlf
-            maskFile                    = '/work/durack1/Shared/obs_data/WOD13/170306_WOD13_masks_1deg.nc'
+            maskFile                    = '/work/durack1/Shared/obs_data/WOD13/170425_WOD13_masks_1deg.nc'
             fMask                       = cdm.open(maskFile)
             landSea1deg                 = fMask('landsea')
             # Fix longitude
@@ -236,12 +251,10 @@ for filePath in newList:
                 fO.further_info_url = further_info_url
                 fO.comment          = comment ; fO.sync()
                 fO.contact          = contact ; fO.sync() ; # Overwritten globalAttWrite
-                local               = pytz.timezone("America/Los_Angeles")
-                time_now            = datetime.datetime.now();
-                local_time_now      = time_now.replace(tzinfo = local)
-                utc_time_now        = local_time_now.astimezone(pytz.utc)
-                time_format         = utc_time_now.strftime("%Y-%m-%dT%H:%M:%SZ")
-                fO.creation_date    = time_format
+                utcNow              = datetime.datetime.utcnow();
+                utcNow              = utcNow.replace(tzinfo=pytz.utc)
+                timeFormat          = utcNow.strftime("%Y-%m-%dT%H:%M:%SZ")
+                fO.creation_date    = timeFormat
                 fO.data_structure   = data_structure
                 fO.institute_id     = institute_id ; fO.sync()
                 fO.institution      = institution ; fO.sync()
@@ -278,9 +291,12 @@ for filePath in newList:
         time.calendar           = 'gregorian'
         time.axis               = 'T'
         '''
-        #end_year = str(int(last_year)+1) ; # Correct off by one, full year
-        end_year = str(int(last_year)) ; # Half year/Same year
-        time = makeCalendar('1870',end_year,monthEnd=7,calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
+        end_year = str(int(last_year)+1) ; # Correct off by one, full year
+        #end_year = str(int(last_year)) ; # Half year/Same year
+        time = makeCalendar('1870',end_year,monthEnd=1,calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
+        #print 'first:',time.asComponentTime()[0]
+        #print 'last: ',time.asComponentTime()[-1]
+        #sys.exit()
         # Test new time axis
         #print time.asComponentTime()[0]
         #print time.asComponentTime()[-1]
@@ -340,12 +356,10 @@ for filePath in newList:
         fO.further_info_url = further_info_url
         fO.comment          = comment ; fO.sync()
         fO.contact          = contact ; fO.sync() ; # Overwritten globalAttWrite
-        local               = pytz.timezone("America/Los_Angeles")
-        time_now            = datetime.datetime.now();
-        local_time_now      = time_now.replace(tzinfo = local)
-        utc_time_now        = local_time_now.astimezone(pytz.utc)
-        time_format         = utc_time_now.strftime("%Y-%m-%dT%H:%M:%SZ")
-        fO.creation_date    = time_format
+        utcNow              = datetime.datetime.utcnow();
+        utcNow              = utcNow.replace(tzinfo=pytz.utc)
+        timeFormat          = utcNow.strftime("%Y-%m-%dT%H:%M:%SZ")
+        fO.creation_date    = timeFormat
         fO.data_structure   = data_structure
         fO.data_usage_tips  = dataUsageTips ; fO.sync()
         fO.frequency        = 'mon' ; fO.sync()
@@ -533,11 +547,11 @@ for filePath in newList:
 
 #%% Generate json files for publication step
 # Get list of new files
-dataVersion = datetime.datetime.now().strftime('v%Y%m%d') #'v20171025'
+dataVersion = datetime.datetime.now().strftime('v%Y%m%d')
 #dataVersion = 'v20171024'
-files = glob.glob(os.path.join(homePath,'CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/*/*',dataVer,'*/gn',dataVersion,'*.nc'))
-#150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-3/tos/gn/v20171024/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc
-
+files = glob.glob(os.path.join('/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI',dataVer,'*/*/*/gn',dataVersion,'*.nc'))
+# OLD: 150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-3/tos/gn/v20171024/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc
+# NEW: /p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/ocean/mon/tos/gn/v20171031/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc
 for filePath in files:
     print filePath
     fH = cdm.open(filePath,'r')
@@ -545,7 +559,7 @@ for filePath in files:
     contact = fH.contact
     creationDate = fH.creation_date
     datasetCategory = fH.dataset_category
-    datasetVersionNumber = fH.dataset_version_number
+    sourceVersion = fH.source_version
     frequency = fH.frequency
     furtherInfoUrl = fH.further_info_url
     gridLabel = fH.grid_label
@@ -557,54 +571,20 @@ for filePath in files:
     source = fH.source
     sourceId = fH.source_id
     targetMip = fH.target_mip
+    targetMipJson = [fH.target_mip]
     title = fH.title
-    trackingId = fH.tracking_id
+    trackingIdList = [fH.tracking_id]
     variableId = fH.variable_id
     outPath = filePath.replace(homePath,'')
     fileName = filePath.split('/')[-1]
     # Other vars
     activityId = 'input4MIPs'
-
-    esgfPubDict = {}
-    key = 'input4MIPs-150219-AMIPForcingData'
-    esgfPubDict[key] = {}
-    esgfPubDict[key]['Conventions'] = ' '.join(conventions.split())
-    esgfPubDict[key]['activity_id'] = ' '.join(activityId.split())
-    esgfPubDict[key]['contact'] = ' '.join(contact.split())
-    esgfPubDict[key]['creation_date'] = ''.join(creationDate.split())
-    esgfPubDict[key]['dataset_category'] = ' '.join(datasetCategory.split())
-    esgfPubDict[key]['dataset_version_number'] = ' '.join(datasetVersionNumber.split())
-    esgfPubDict[key]['frequency'] = ' '.join(frequency.split())
-    esgfPubDict[key]['further_info_url'] = ' '.join(furtherInfoUrl.split())
-    esgfPubDict[key]['grid_label'] = ' '.join(gridLabel.split())
-    esgfPubDict[key]['institution'] = ' '.join(institution.split())
-    esgfPubDict[key]['institution_id'] = ' '.join(institutionId.split())
-    esgfPubDict[key]['mip_era'] = ' '.join(mipEra.split())
-    esgfPubDict[key]['nominal_resolution'] = ' '.join(nominalResolution.split())
-    esgfPubDict[key]['realm'] = ' '.join(realm.split())
-    esgfPubDict[key]['source'] = ' '.join(source.split())
-    esgfPubDict[key]['source_id'] = ' '.join(sourceId.split())
-    esgfPubDict[key]['target_mip'] = list([' '.join(targetMip.split())])
-    esgfPubDict[key]['title'] = ' '.join(title.split()) # Comes from file
-    esgfPubDict[key]['tracking_id_list'] = list([trackingId]) # Comes from file
-    esgfPubDict[key]['variable_id'] = ' '.join(variableId.split())
-    esgfPubDict[key]['file_list'] = list([outPath])
-    # Add in ESGF metadata entries - query metadata https://esgf-node.llnl.gov/search/input4mips/
-    #esgfPubDict[key]['product'] = 'derived' # Comes from file
-    esgfPubDict[key]['project'] = 'input4MIPs'
-    esgfPubDict[key]['retracted'] = 'false'
-    esgfPubDict[key]['version'] = dataVersion
-    local = pytz.timezone('America/Los_Angeles')
-    timeNow = datetime.datetime.now();
-    localTimeNow = timeNow.replace(tzinfo = local)
-    utcTimeNow = localTimeNow.astimezone(pytz.utc)
-    timeFormat = utcTimeNow.strftime('%Y-%m-%dT%H:%M:%SZ')
-    esgfPubDict[key]['timestamp'] = timeFormat
-    # Write to json file
-    outFile = os.path.join(homePath,mipEra,activityId,institutionId,''.join(['_'.join([institutionId,frequency,sourceId,variableId]),'.json']))
-    if os.path.exists(outFile):
-        print 'File existing, purging:',outFile
-        os.remove(outFile)
-    fH = open(outFile,'w')
-    json.dump(esgfPubDict,fH,ensure_ascii=True,sort_keys=True,indent=4,separators=(',',':'),encoding="utf-8")
-    fH.close()
+    deprecated = False
+    destPath = '/p/user_pub/work/input4MIPs/CMIP6'
+    jsonId = 'PaulDurack'
+    jsonWriteFile(conventions,contact,creationDate,datasetCategory,sourceVersion,
+                  frequency,furtherInfoUrl,gridLabel,institution,institutionId,mipEra,
+                  nominalResolution,realm,source,sourceId,targetMip,targetMipJson,title,
+                  variableId,filePath,trackingIdList,deprecated,dataVersion,destPath,jsonId)
+# Clean up permissions
+washPerms(destPath,targetMip,institutionId,sourceId,realm,frequency,gridLabel,dataVersion)

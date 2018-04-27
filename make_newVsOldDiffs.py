@@ -32,6 +32,7 @@ PJD 30 Oct 2017     - Corrected glob call to only return a single version
 PJD 31 Oct 2017     - Updated TOS plot increments 270 to 310 (K) to -2.5 to 37.5 (degC); Updated ver info
 PJD 31 Oct 2017     - split =1 needs to change to 0 to allow even colour splitting for unbalanced temp range (-2.5 to 35)
 PJD 31 Oct 2017     - Explicitly initialize canvas size vcs.init(bg=True,geometry=())
+PJD 27 Apr 2018     - Updated for v1.1.4 data, using /p/user_pub/work/input4MIPs paths
 
 @author: durack1
 """
@@ -44,9 +45,9 @@ from string import replace
 
 #%% Turn on purging of VCS objects?
 delFudge = True
-outPathVer = 'pngs_v1.1.3'
-ver = 'v20171031' ; # Update for each run
-verOld = 'v20170419' ; # Update for each run
+outPathVer = 'pngs_v1.1.4'
+ver = 'v20180427' ; # Update for each run
+verOld = 'v20171031' ; # Update for each run
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -105,29 +106,30 @@ def initVCS(x,levs1,levs2,split):
 
 
 #%% Create input file list
-newList    = sorted(glob.glob(''.join(['/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/*/PCMDI-AMIP-1-1-3/*/gn/',ver,'/*.nc'])))
+newList    = sorted(glob.glob(''.join(['/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-4/*/mon/*/gn/',ver,'/*.nc'])))
+varIndex = 11
 for x,filePath in enumerate(newList):
-    if 'siconc' in filePath.split('/')[13]:
-        if 'bcs' in filePath.split('/')[13]:
+    if 'siconc' in filePath.split('/')[varIndex]:
+        if 'bcs' in filePath.split('/')[varIndex]:
             sicbcList = filePath
         else:
             sicList = filePath
-    if 'tos' in filePath.split('/')[13]:
-        if 'bcs' in filePath.split('/')[13]:
+    if 'tos' in filePath.split('/')[varIndex]:
+        if 'bcs' in filePath.split('/')[varIndex]:
             tosbcList = filePath
         else:
             tosList = filePath
 del(filePath,newList,x); gc.collect()
 
-oldList    = sorted(glob.glob(''.join(['/work/durack1/Shared/150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/*/PCMDI-AMIP-1-1-2/*/gn/',verOld,'/*.nc'])))
+oldList    = sorted(glob.glob(''.join(['/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/*/mon/*/gn/',verOld,'/*.nc'])))
 for x,filePath in enumerate(oldList):
-    if 'siconc' in filePath.split('/')[13]:
-        if 'bcs' in filePath.split('/')[13]:
+    if 'siconc' in filePath.split('/')[varIndex]:
+        if 'bcs' in filePath.split('/')[varIndex]:
             sicbcList2 = filePath
         else:
             sicList2 = filePath
-    if 'tos' in filePath.split('/')[13]:
-        if 'bcs' in filePath.split('/')[13]:
+    if 'tos' in filePath.split('/')[varIndex]:
+        if 'bcs' in filePath.split('/')[varIndex]:
             tosbcList2 = filePath
         else:
             tosList2 = filePath
