@@ -1,4 +1,4 @@
-Fri 27 Apr 2018 01:03:22 PM PDT
+Fri 27 Apr 2018 01:06:22 PM PDT
 
 The following documents the steps to update the boundary conditions:
 
@@ -123,6 +123,8 @@ drive_input4MIPs_bcs.json  drive_input4MIPs_obs.json  input4MIPs-cmor-tables
 # Update this file once everything is updated
 > rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/README.txt .
 # Update README.md
+# Add new dir to repo
+> git add SST_1-1-4
 # Commit version
 > git commit -am 'Updated for new release - 1.1.4; CMOR3.3.2'
 > git push
