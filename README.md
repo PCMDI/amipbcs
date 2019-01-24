@@ -6,7 +6,7 @@ Generated data can be obtained from the [PCMDI ESGF data portal](https://esgf-no
 The code depends upon the following packages:
 - [**CDAT 8.0+ with cd77**](https://github.com/CDAT/cdat) (Available through [conda](https://anaconda.org/CDAT/repo))
 - [**CMOR 3.4.0+**](https://github.com/PCMDI/cmor) (Available through [conda](https://anaconda.org/conda-forge/cmor/files))
-- [**gfortran 4.8.5+**](https://gcc.gnu.org/wiki/GFortran)
+- [**gfortran 7.3+**](https://gcc.gnu.org/wiki/GFortran)
 
 The optional libraries of CDAT 8.1+ are required (these are bundled with cd77):
 - [EzGet](https://github.com/UV-CDAT/EzGet)
