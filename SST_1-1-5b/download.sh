@@ -17,6 +17,9 @@
 # PJD 11 Apr 2017 	- Updated to use new conda environment cdatcmornclnco
 # PJD  9 Oct 2017 - Updated for V1.1.3 and using conda environment cdat212cmor327nclnco
 # PJD 16 Apr 2018 - Updated for V1.1.4 and using conda env cdat80cmor332nclnco
+# PJD 18 Oct 2018 - Updated for V1.1.5 and using conda env cdat80cmor333nclnco
+# PJD 18 Oct 2018 - Updated from 201803 to 201809
+# PJD 18 Jan 2019 - Updated to reflect latest conda envs, latest downloads and relevant nco indexing
 
 # USER WILL NEED TO SET:
 # ENVIRONMENT VARIABLES: NCARG_ROOT (and PATH to include ncl path)
@@ -26,12 +29,12 @@
 # Doc: http://doi.org/10.1175/2008JCLI2292.1 (Hurrell et al., 2008)
 
 ### USER TO SET ###
-setenv NCARG_ROOT /export/durack1/anaconda2/envs/cdat80cmor332nclnco
-setenv PATH /export/durack1/anaconda2/envs/cdat80cmor332nclnco/bin:${PATH} ; # Add wrapit77, ncl, nco to PATH
+setenv NCARG_ROOT /export/durack1/anaconda2/envs/cdmsNcd77Ncmor340nclncoflex
+setenv PATH /export/durack1/anaconda2/envs/cdmsNcd77Ncmor340nclncoflex/bin:${PATH} ; # Add wrapit77, ncl, nco to PATH
 
 ###### UPDATE : PATH REQUIRES UPDATING ##
-set oi2path=/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-4/ ; ## UPDATE : PATH REQUIRES UPDATING ##
-set oi2oldpath=/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-3/ ; ## UPDATE : PATH REQUIRES UPDATING ##
+set oi2path=/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-5b/ ; ## UPDATE : PATH REQUIRES UPDATING ##
+set oi2oldpath=/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-4/ ; ## UPDATE : PATH REQUIRES UPDATING ##
 ######
 
 set date=`date +%y%m%d`
@@ -75,16 +78,22 @@ cd ${oi2path}
 #     9,14 (October 2016 through March 2017) ; Note 0 indexing
 #     15,20 (April 2017 through September 2017)
 #     9,14 (Sept 2017 through March 2018)
+#     15,20 (April 2018 through September 2018)
+#     3,8 (April 2018 through September 2018) note 0 indexing ; Run 190118
 ###### UPDATE : YEARS REQUIRE UPDATING ##
-ncks -O -h -d time,9,14 MODEL.OI2.ice.mnly.201701-201803.unf.nc ICE.update.nc ; # Extract months ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
-ncks -O -h -d time,9,14 MODEL.OI2.sst.mnly.201701-201803.unf.nc SST.update.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
+ncks -O -h -d time,3,8 MODEL.OI2.ice.mnly.201801-201812.unf.nc ICE.update.nc ; # Extract months ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
+ncks -O -h -d time,3,8 MODEL.OI2.sst.mnly.201801-201812.unf.nc SST.update.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
 # Make sure updates went correctly ... only the 12 new months, Check 'date' variable
 ######
 # Check times of new updates
+echo '**********'
+echo 'Update file time extent'
 #ncdump -v date ICE.update.nc
 ncdump -v date SST.update.nc
 # Check times of older files
-ncdump -v date ${oi2oldpath}MODEL.SST.HAD187001-198110.OI198111-201709.nc
+echo '**********'
+echo 'Previous file time extent'
+ncdump -v date ${oi2oldpath}MODEL.SST.HAD187001-198110.OI198111-201803.nc
 
 
 ### Step 6 - Append new months onto existing data ###
@@ -98,16 +107,18 @@ ncdump -v date ${oi2oldpath}MODEL.SST.HAD187001-198110.OI198111-201709.nc
 
 ###### UPDATE : FILENAME/YEARS REQUIRE UPDATING ##
 # V1.1.2 - extend to 201703
-ncrcat ${oi2oldpath}MODEL.ICE.HAD187001-198110.OI198111-201709.nc ICE.update.nc MODEL.ICE.HAD187001-198110.OI198111-201803.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
-ncrcat ${oi2oldpath}MODEL.SST.HAD187001-198110.OI198111-201709.nc SST.update.nc MODEL.SST.HAD187001-198110.OI198111-201803.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
+ncrcat ${oi2oldpath}MODEL.ICE.HAD187001-198110.OI198111-201803.nc ICE.update.nc MODEL.ICE.HAD187001-198110.OI198111-201809.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
+ncrcat ${oi2oldpath}MODEL.SST.HAD187001-198110.OI198111-201803.nc SST.update.nc MODEL.SST.HAD187001-198110.OI198111-201809.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
 # Make sure updates went correctly
+echo '**********'
+echo 'Updated file time extent'
 #ncdump -v date MODEL.ICE.HAD187001-198110.OI198111-201609.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
-ncdump -v date MODEL.SST.HAD187001-198110.OI198111-201803.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
+ncdump -v date MODEL.SST.HAD187001-198110.OI198111-201809.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
 # Purge partial new files
 rm -f ICE.update.nc ; # These may not purge do to a file handle being unreleased by ncrcat
-rm -f MODEL.OI2.ice.mnly.201701-201803.unf.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
+rm -f MODEL.OI2.ice.mnly.201801-201812.unf.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
 rm -f SST.update.nc
-rm -f MODEL.OI2.sst.mnly.201701-201803.unf.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
+rm -f MODEL.OI2.sst.mnly.201801-201812.unf.nc ; ## UPDATE : YEARS IN FILENAMES REQUIRE UPDATING ##
 ######
 
 
@@ -125,7 +136,6 @@ if ( $1 != "" ) then
 	\rm -f ${1}.tar.bz2
 	\rm -f ${1}_log.txt
 endif
-
 
 : <<--
 comments

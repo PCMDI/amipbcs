@@ -33,6 +33,7 @@ PJD 31 Oct 2017     - Updated TOS plot increments 270 to 310 (K) to -2.5 to 37.5
 PJD 31 Oct 2017     - split =1 needs to change to 0 to allow even colour splitting for unbalanced temp range (-2.5 to 35)
 PJD 31 Oct 2017     - Explicitly initialize canvas size vcs.init(bg=True,geometry=())
 PJD 27 Apr 2018     - Updated for v1.1.4 data, using /p/user_pub/work/input4MIPs paths
+PJD 18 Jan 2019     - Updated for v1.1.5 data, using local paths
 
 @author: durack1
 """
@@ -45,9 +46,12 @@ from string import replace
 
 #%% Turn on purging of VCS objects?
 delFudge = True
-outPathVer = 'pngs_v1.1.4'
-ver = 'v20180427' ; # Update for each run
-verOld = 'v20171031' ; # Update for each run
+outPathVer = 'pngs_v1.1.5'
+outPath = '/work/durack1/Shared/150219_AMIPForcingData'
+ver = 'v20190118' ; # Update for each run
+verPath = os.path.join(outPath,'input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-5/')
+verOld = 'v20180427' ; # Update for each run
+verOldPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-4/'
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -106,8 +110,8 @@ def initVCS(x,levs1,levs2,split):
 
 
 #%% Create input file list
-newList    = sorted(glob.glob(''.join(['/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-4/*/mon/*/gn/',ver,'/*.nc'])))
-varIndex = 11
+newList    = sorted(glob.glob(''.join([verPath,'*/mon/*/gn/',ver,'/*.nc'])))
+varIndex = 12 ; #11
 for x,filePath in enumerate(newList):
     if 'siconc' in filePath.split('/')[varIndex]:
         if 'bcs' in filePath.split('/')[varIndex]:
@@ -121,7 +125,8 @@ for x,filePath in enumerate(newList):
             tosList = filePath
 del(filePath,newList,x); gc.collect()
 
-oldList    = sorted(glob.glob(''.join(['/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/*/mon/*/gn/',verOld,'/*.nc'])))
+oldList    = sorted(glob.glob(''.join([verOldPath,'*/mon/*/gn/',verOld,'/*.nc'])))
+varIndex = 11
 for x,filePath in enumerate(oldList):
     if 'siconc' in filePath.split('/')[varIndex]:
         if 'bcs' in filePath.split('/')[varIndex]:
@@ -134,8 +139,6 @@ for x,filePath in enumerate(oldList):
         else:
             tosList2 = filePath
 del(filePath,oldList,x); gc.collect()
-
-outPath = '/work/durack1/Shared/150219_AMIPForcingData'
 
 #%% Purge existing files - lock to version number
 for root, dirs, files in os.walk(os.path.join('./pngs',outPathVer), topdown=False):
@@ -168,10 +171,13 @@ for var in ['sic','tos']:
     # [durack1@oceanonly 150219_AMIPForcingData]$ jobs
     # [1]  + Running                       spyder
     # [2]  - Running                       Xvfb :2 -screen 0 1600x1200x16
+    # durack1@oceanonly:[150219_AMIPForcingData]:[13896]> source activate cdat80py2
+    # (cdat80py2) durack1@oceanonly:[150219_AMIPForcingData]:[13847]>
+    # (cdat80py2) durack1@oceanonly:[150219_AMIPForcingData]:[13847]> python make_newVsOldDiffs.py > 190118_1308_newVsOldDiffs.txt
     bg = True ; # For 1 yr uses ~260MB
     #delFudge = False ; #Turn on purging of VCS objects?
     donotstoredisplay = True ; # Fix from fries2
-    y2 = 2017 ; #1871; #2013
+    y2 = 2018 ; #2017 ; #1871; #2013
     outFiles = []
 
     #%% Set obs vs bcs

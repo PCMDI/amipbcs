@@ -638,7 +638,9 @@ c      original grid (iregrid=0) or regrid (iregrid=1)?
 c       iregrid=1    ! AMIP
        iregrid=0    ! obs ! PJD Oceanonly 1870-2014
 
-          abbrev = '360x180_v1.1.4' ! PJD Oceanonly 1870-201803 - 170416
+          abbrev = '360x180_v1.1.5b' ! PJD Oceanonly 1870-201809 - 190118 v1.1.5
+c          abbrev = '360x180_v1.1.5' ! PJD Oceanonly 1870-201809 - 190103
+c          abbrev = '360x180_v1.1.4' ! PJD Oceanonly 1870-201803 - 170416
 c          abbrev = '360x180_v1.1.3' ! PJD Oceanonly 1870-2017 - 171009
 c          abbrev = '360x180_v1.1.2' ! PJD Oceanonly 1870-2017 - 170412
 c          abbrev = '360x180_v1.1.1' ! PJD Oceanonly 1870-2014 - 161020
@@ -673,7 +675,9 @@ c          outftype = 'ascii'
           outftype = 'coards'
 
           pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
-     & // '360x180_v1.1.4' ! PJD Oceanonly 180416
+     & // '360x180_v1.1.5' ! PJD Oceanonly 190118 v1.1.5
+c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & // '360x180_v1.1.4' ! PJD Oceanonly 180416
 c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & // '360x180_v1.1.3' ! PJD Oceanonly 171009
 c          pathout = '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -834,7 +838,8 @@ c      iyr1rd = 1979         !test
 
 c    last month and year for period in which observed monthly mean data
 c           will be read (must not follow monn, iyrn)
-      monnrd = 3 ! PJD Oceanonly 1870-2014 - 180416
+      monnrd = 9 ! PJD Oceanonly 1870-2014 - 190119 v1.1.5
+c      monnrd = 3 ! PJD Oceanonly 1870-2014 - 180416
 c      monnrd = 9 ! PJD Oceanonly 1870-2014 - 171009
 c      monnrd = 3 ! PJD Oceanonly 1870-2014 - 170412
 c      monnrd = 9 ! PJD Oceanonly 1870-2014 - 161020
@@ -900,14 +905,16 @@ c      mon1out = 1            !test
 c      iyr1out = 1979         !test
 
 c     last month and year written to output file
-      monnout = 12 ! PJD Oceanonly 1870-2014 - 180416
+      monnout = 6 ! PJD Oceanonly 1870-2018 - 190119 v1.1.5
+c      monnout = 12 ! PJD Oceanonly 1870-2014 - 180416
 c      monnout = 6 ! PJD Oceanonly 1870-2014 - 171009
 c      monnout = 12 ! PJD Oceanonly 1870-2014 - 170412
 c      monnout = 6 ! PJD Oceanonly 1870-2014 - 161020
 c      monnout = 5 ! PJD Oceanonly 1870-2014 - 160907
 c      monnout = 12 ! PJD Oceanonly 1870-2014 - 160414
 c      monnout = 3 ! PJD Oceanonly 1870-2014
-      iyrnout = 2017 ! PJD Oceanonly 1870-2014 - 180416
+      iyrnout = 2018 ! PJD Oceanonly 1870-2014 - 190103
+c      iyrnout = 2017 ! PJD Oceanonly 1870-2014 - 180416
 c      iyrnout = 2017 ! PJD Oceanonly 1870-2014 - 171009
 c      iyrnout = 2016 ! PJD Oceanonly 1870-2014 - 160906
 c      iyrnout = 2015 ! PJD Oceanonly 1870-2014
@@ -942,8 +949,12 @@ c               file, should be December)
 
         inputsst(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_1-1-4/'
-     & //  'MODEL.SST.HAD187001-198110.OI198111-201803.nc' ! PJD Oceanonly 1870-2016 - v1.1.4 180416
+     & //  'SST_1-1-5b/'
+     & //  'MODEL.SST.HAD187001-198110.OI198111-201809.nc' ! PJD Oceanonly 1870-2018 - v1.1.5 190119
+
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_1-1-4/'
+c     & //  'MODEL.SST.HAD187001-198110.OI198111-201803.nc' ! PJD Oceanonly 1870-2016 - v1.1.4 180416
 
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
 c     & //  'SST_1-1-3/'
@@ -1013,8 +1024,13 @@ c               file, should be December)
 
         inputsic(1) =
      &     '/work/durack1/Shared/150219_AMIPForcingData/'
-     & //  'SST_1-1-4/'
-     & //  'MODEL.ICE.HAD187001-198110.OI198111-201803.nc' ! PJD Oceanonly 1870-2018 - v1.1.4 180416
+     & //  'SST_1-1-5b/'
+     & //  'MODEL.ICE.HAD187001-198110.OI198111-201809.nc' ! PJD Oceanonly 1870-2018 - v1.1.5 190119
+c      - Unless counters need updating >2030 (currently 160; need updating this is the last edit required)
+
+c     &     '/work/durack1/Shared/150219_AMIPForcingData/'
+c     & //  'SST_1-1-4/'
+c     & //  'MODEL.ICE.HAD187001-198110.OI198111-201803.nc' ! PJD Oceanonly 1870-2018 - v1.1.4 180416
 c      - Unless counters need updating >2030 (currently 160; need updating this is the last edit required)
 
 c     &     '/work/durack1/Shared/150219_AMIPForcingData/'

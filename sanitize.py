@@ -55,6 +55,14 @@ PJD 20 Apr 2018     - Turn off json descriptor creation
 PJD 26 Apr 2018     - Updated to use jsonWriteFile,washPerms
 PJD 27 Apr 2018     - Updated CMOR input to write to /p/user_pub/work - opened host dir to world readable (ames4)
 PJD 27 Apr 2018     - Updated input4MIPsFuncs.py library - utc/pytz update
+PJD  4 Jan 2019     - Updated to 1.1.5
+PJD 17 Jan 2019     - Added last_month (and if statement) variable to deal with half vs full years
+PJD 18 Jan 2019     - Added output file list for publication steps
+PJD 22 Jan 2019     - Finalized json and output file logging for ESGF publication
+PJD 22 Jan 2019     - Updated CMOR/drive_input4MIPs_bcs/obs.json for final production run
+PJD 23 Jan 2019     - Updated input4MIPsFuncs.py to deal with ESGF publication log files
+PJD 24 Jan 2019     - Updated to use revised input4MIPsFuncs.py (added dataVersion to json name)
+
                     - TODO:
 
 OIv2 info
@@ -81,7 +89,7 @@ import MV2 as mv
 import numpy as np
 from durolib import globalAttWrite,makeCalendar,mkDirNoOSErr
 sys.path.append('/work/durack1/Shared/160427_CMIP6_Forcing/')
-from input4MIPsFuncs import jsonWriteFile,washPerms
+from input4MIPsFuncs import createPubFiles,jsonWriteFile,washPerms
 
 #%% Kludge for json/encoder warning
 #import warnings
@@ -96,26 +104,26 @@ cdm.setNetcdfDeflateFlag(1) ; # 1 = amipbc files sic 75.2MB, tos 239.2MB; amipob
 
 #%% Set version info
 activity_id         = 'input4MIPs'
-comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 1981-10) & NCEP-0I2 (1981-11 to 2017-12)' ; # WILL REQUIRE UPDATING
+comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2018-06)' ; # WILL REQUIRE UPDATING
 contact             = 'pcmdi-cmip@lists.llnl.gov'
-dataVer             = 'PCMDI-AMIP-1-1-4' ; # WILL REQUIRE UPDATING
-dataVerSht          = 'v1.1.4' ; # WILL REQUIRE UPDATING
+dataVer             = 'PCMDI-AMIP-1-1-5' ; # WILL REQUIRE UPDATING
+dataVerSht          = 'v1.1.5' ; # WILL REQUIRE UPDATING
 data_structure      = 'grid'
 further_info_url    = 'https://pcmdi.llnl.gov/mips/amip/' ; # WILL REQUIRE UPDATING - point to GMD paper when available
 institute_id        = 'PCMDI'
 institution         = 'Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA'
-last_year           = '2017' ; # WILL REQUIRE UPDATING
+last_year           = '2018' ; # WILL REQUIRE UPDATING
+last_month          = 6 ; # WILL REQUIRE UPDATING
 license_txt         = 'AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution \"Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). The data producers and data providers make no warranty, either express or implied, including but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.'
 mip_specs           = 'AMIP CMIP5 CMIP6'
 project_id          = 'AMIP'
 ref_obs             = 'Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski (2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. doi: 10.1175/2008JCLI2292.1'
 ref_bcs             = 'Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf'
-source              = 'PCMDI-AMIP 1.1.4: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
-time_period         = '187001-201712' ; # WILL REQUIRE UPDATING
+source              = 'PCMDI-AMIP 1.1.5: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
+time_period         = '187001-201806' ; # WILL REQUIRE UPDATING
 
 #%% Set directories
 homePath    = '/work/durack1/Shared/150219_AMIPForcingData/'
-dataPath    = '/p/user_pub/work/'
 sanPath     = os.path.join(homePath,'_'.join(['360x180',dataVerSht,'san']))
 
 #%% Get files
@@ -129,6 +137,14 @@ for fileName in newList:
 fileCount   = fileCount - 1 ; # Deal with amipbc_sst_360x180_v1.1.0a.out
 varComp     = np.ma.zeros([fileCount*12,180,360])
 timeComp    = np.zeros([fileCount*12])
+# Fix for partial year
+if last_month == 6:
+    print 'varComp shape:',varComp.shape
+    print 'timeComp len:',len(timeComp)
+    varComp = varComp[1:-5,:,:]
+    timeComp = timeComp[1:-5]
+print 'varComp shape:',varComp.shape
+print 'timeComp len:',len(timeComp)
 
 #%% Get variable into memory
 count = 0
@@ -153,7 +169,10 @@ for filePath in newList:
         varPath = varName
     print filePath
     fH      = cdm.open(filePath)
-    var     = fH(varLoad)
+    if (last_month == 6 and last_year in filePath):
+        var     = fH(varLoad,time=slice(0,6))
+    else:
+        var     = fH(varLoad)
     varLen  = var.shape[0]
 
     #%% Cleanup coord atts
@@ -291,11 +310,15 @@ for filePath in newList:
         time.calendar           = 'gregorian'
         time.axis               = 'T'
         '''
-        end_year = str(int(last_year)+1) ; # Correct off by one, full year
-        #end_year = str(int(last_year)) ; # Half year/Same year
-        time = makeCalendar('1870',end_year,monthEnd=1,calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
-        #print 'first:',time.asComponentTime()[0]
-        #print 'last: ',time.asComponentTime()[-1]
+        if last_month == 6:
+            end_year = str(int(last_year)) ; # Half year/Same year
+            time = makeCalendar('1870',end_year,monthEnd=(last_month+1),calendarStep='months')
+        else:
+            end_year = str(int(last_year)+1) ; # Correct off by one, full year
+            time = makeCalendar('1870',end_year,monthEnd=(last_month+1),calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
+        print 'first:',time.asComponentTime()[0]
+        print 'last: ',time.asComponentTime()[-1]
+        print 'time len:',len(time)
         #sys.exit()
         # Test new time axis
         #print time.asComponentTime()[0]
@@ -544,18 +567,32 @@ for filePath in newList:
         varComp     = np.ma.zeros([fileCount*12,180,360])
         timeComp    = np.zeros([fileCount*12])
         count       = 0
+        # Fix for partial year
+        if last_month == 6:
+            print 'varComp shape:',varComp.shape
+            print 'timeComp len:',len(timeComp)
+            varComp = varComp[1:-5,:,:]
+            timeComp = timeComp[1:-5]
+        print 'varComp shape:',varComp.shape
+        print 'timeComp len:',len(timeComp)
 
 #%% Generate json files for publication step
+# Save json and file lists for publication
+jsonFilePaths,variableFilePaths = [ [] for _ in range(2) ]
+destPath = '/p/user_pub/work' ; # For CMOR this is set in the CMOR/drive_input4MIPs*.json files
+#destPath = '/work/durack1/Shared/150219_AMIPForcingData' ; # USE FOR TESTING
+
 # Get list of new files
 dataVersion = datetime.datetime.now().strftime('v%Y%m%d')
 #dataVersion = 'v20171024'
-files = glob.glob(os.path.join('/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI',dataVer,'*/*/*/gn',dataVersion,'*.nc'))
+files = glob.glob(os.path.join(destPath,'input4MIPs/CMIP6/CMIP/PCMDI',dataVer,'*/*/*/gn',dataVersion,'*.nc'))
 # OLD: 150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-3/tos/gn/v20171024/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc
 # NEW: /p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/ocean/mon/tos/gn/v20171031/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc
 for filePath in files:
     print filePath
     fH = cdm.open(filePath,'r')
     conventions = fH.Conventions
+    activityId = fH.activity_id
     contact = fH.contact
     creationDate = fH.creation_date
     datasetCategory = fH.dataset_category
@@ -580,11 +617,21 @@ for filePath in files:
     # Other vars
     activityId = 'input4MIPs'
     deprecated = False
-    destPath = '/p/user_pub/work/input4MIPs/CMIP6'
-    jsonId = 'PaulDurack'
-    jsonWriteFile(conventions,contact,creationDate,datasetCategory,sourceVersion,
+    jsonId = 'input4MIPs-CMIP-PaulDurack'
+    jsonWriteFile(conventions,activityId,contact,creationDate,datasetCategory,sourceVersion,
                   frequency,furtherInfoUrl,gridLabel,institution,institutionId,mipEra,
                   nominalResolution,realm,source,sourceId,targetMip,targetMipJson,title,
                   variableId,filePath,trackingIdList,deprecated,dataVersion,destPath,jsonId)
+
+    # Save json file list for publication
+    destFilePath = os.path.join(activityId,mipEra,targetMip,institutionId,sourceId,
+                                realm,frequency,variableId,gridLabel,dataVersion,
+                                fileName)
+    variableFilePaths.append(os.path.join(destPath,destFilePath.replace(fileName,'')))
+    jsonFilePath = os.path.join(destPath,activityId,mipEra,targetMip,institutionId,''.join(['_'.join([institutionId,frequency,sourceId,variableId,gridLabel,dataVersion]),'.json']))
+    jsonFilePaths.append(jsonFilePath)
+
 # Clean up permissions
-washPerms(destPath,targetMip,institutionId,sourceId,realm,frequency,gridLabel,dataVersion)
+washPerms(destPath,activityId,mipEra,targetMip,institutionId,sourceId,realm,frequency,gridLabel,dataVersion)
+# Create output files for publication
+createPubFiles(destPath,jsonId,jsonFilePaths,variableFilePaths)

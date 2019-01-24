@@ -8,8 +8,8 @@ set date=`date +%y%m%d` ; # Set date for dynamic run
 # ==============================NCL====================================
 
 ### setenv NCARG_ROOT /usr/local/bin
-setenv NCARG_ROOT /export/durack1/anaconda2/envs/cdat80cmor332nclnco
-setenv PATH /export/durack1/anaconda2/envs/cdat80cmor332nclnco/bin:${PATH} ; # Add wrapit77 to PATH
+setenv NCARG_ROOT /export/durack1/anaconda2/envs/cdmsNcd77Ncmor340nclncoflex
+setenv PATH /export/durack1/anaconda2/envs/cdmsNcd77Ncmor340nclncoflex/bin:${PATH} ; # Add wrapit77 to PATH
 
 cat >! main.ncl << "END_MAIN_NCL"
 ;; Not needed from 6.2 onwarded
@@ -83,9 +83,9 @@ begin                       ; MAIN NCL DRIVER
  ;diri   = "/work/durack1/Shared/150219_AMIPForcingData/SST_NEW/$date/"
 
  ;###### UPDATE : REQUIRES UPDATING ##
-  diri   = "/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-4/180416/" ; ## UPDATE : REQUIRES UPDATING ##
-  diro   = "/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-4/" ; ## UPDATE : REQUIRES UPDATING ##
-  dirm   = "/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-4/" ; ## UPDATE : REQUIRES UPDATING - Last edit required ##
+  diri   = "/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-5b/190118/" ; ## UPDATE : REQUIRES UPDATING ##
+  diro   = "/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-5b/" ; ## UPDATE : REQUIRES UPDATING ##
+  dirm   = "/work/durack1/Shared/150219_AMIPForcingData/SST_1-1-5b/" ; ## UPDATE : REQUIRES UPDATING - Last edit required ##
  ;######
 
   film   = "lstags.onedeg.dat"  ; sst mask [not used]

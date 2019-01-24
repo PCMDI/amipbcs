@@ -1,7 +1,7 @@
 {
     "institution_id":               "PCMDI",
-    "source_id":                    "PCMDI-AMIP-1-1-4",
-    "source":                       "PCMDI-AMIP 1.1.4: Merged SST based on UK MetOffice HadISST and NCEP OI2",
+    "source_id":                    "PCMDI-AMIP-1-1-5",
+    "source":                       "PCMDI-AMIP 1.1.5: Merged SST based on UK MetOffice HadISST and NCEP OI2",
     "contact ":                     "PCMDI (pcmdi-cmip@llnl.gov)",
     "further_info_url":             "https://pcmdi.llnl.gov/mips/amip",
 
@@ -13,6 +13,7 @@
     "region":                       "global_ocean",
 
     "outpath":                      "/p/user_pub/work",
+    "#outpath":                      "/work/durack1/Shared/150219_AMIPForcingData",
     "_history_template":            "%s; CMOR rewrote data to be consistent with <activity_id>, CMIP6, and <Conventions> standards",
     "output_path_template":         "<activity_id><mip_era><target_mip><institution_id><source_id><realm><frequency><variable_id><grid_label><version>",
     "output_file_template":         "<variable_id><activity_id><dataset_category><target_mip><source_id><grid_label>",
