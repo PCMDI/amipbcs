@@ -33,10 +33,14 @@ c ???  check following value
         print*, 'subroutine solvmid'
         stop
       endif
+c
 c    check for occurance where obs monthly means are consecutively
 c      at upper and lower limits. If so, smooth data, being careful
 c      to preserve annual mean.
+c    also initialize ss = obsmean
+c
       do 48 n=1,nmon
+        ss(n)=obsmean(n)
         add(n) = 0.0
    48 continue
       n2 = nmon
@@ -422,14 +426,6 @@ c                    more than absolutely necessary:
            else
              go to 150
            endif
-           if ((ss(kk) .gt. 700.0) .or. (ss(kk) .lt. -700.0)) then
-             print*, 'exceeds 700 at lat = ', alat,
-     &              ' alon = ', alon
-             print*, 'kk = ', kk, ' obs = ', obsmean(kk-1), obsmean(kk),
-     &               obsmean(kk+1)
-             print*, 'kk = ', kk, '  ss = ', ss(kk-1), ss(kk),
-     &              ss(kk+1)
-           endif
   300    continue
 c        fill in values where consecutive means are outside limits
          do 250 i=1,nmon
@@ -478,12 +474,12 @@ C     the following ensure that the diagonal elements of the Jacobian dominate
         aa = amin1(aa, bb)
         cc = amin1(cc, bb)
       endif
-C       if (bb .lt. bbmin) then
-C         bb = bbmin
-C         r = 0.2*bbmin
-C         aa = amax1(r, aa)
-C         cc = amax1(r, cc)
-C       endif
+      if (bb .lt. bbmin) then
+        bb = bbmin
+        r = 0.2*bbmin
+        aa = amax1(r, aa)
+        cc = amax1(r, cc)
+      endif
       return
       end
 
