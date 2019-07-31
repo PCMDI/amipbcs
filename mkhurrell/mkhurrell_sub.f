@@ -23,7 +23,7 @@ c
      &     bbmin, maxiter, a, c, obsmean, ss, icnt, niter, notconverg, 
      &     jj, resid, residmax, jumps, jcnt)
       implicit none
-      integer nmont, nmon12
+      integer nmon12
       parameter (nmon12=12)
 c      parameter (nmont=500*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 171025
 c      parameter (nmont=149*12, nmon12=12) ! PJD Oceanonly 1870-2014 - 170412
@@ -66,9 +66,10 @@ c
       resid = 0.
       residmax = 0.
 c
-      if (jcnt .lt. 0 then
+      if (jcnt .lt. 0) then
         jcnt = 0
-        write(9,'('   lat    lon   #jumps   #iter  failed    segs    resid  residmax')')
+        write(9,'("       lat    lon   #jumps   #iter  failed    ",
+     &    "segs    resid  residmax")')
       endif
 c
       do 48 n=1,nmon
@@ -235,18 +236,16 @@ c         latest approximation of means (given mid-month values)
      &                ss(n), ss(np), aa(n), bb(n), cc(n), avg(n))
            endif
            r(n) = obsmean(n) - avg(n)
-           sum = sum + r(n)**2
+           sum = sum + abs(r(n))
            residmax = amax1(residmax, abs(r(n)))
 110      continue
          resid = sum/nmon
-         resid = dsqrt(sum)
-c         resid = dsqrt(sum)/nmon
          if (residmax .gt. conv) then
-           if (nnn .gt. maxiter*0.5) then
+           if (nnn .gt. maxiter*0.95) then
              print*, 'iteration = ', nnn, ' residual = ', resid,
      &          ' maximum residual = ', residmax
            endif
-           if (nnn .gt. maxiter*0.9) then
+           if (nnn .gt. maxiter*0.99) then
 c             print*, ' '
 c             print*, 'latitude = ', alat, ' longitude = ', alon
              do 1234 n=1,nmon
@@ -364,21 +363,17 @@ c            latest approximation of means (given mid-month values)
      &                ss(n), ss(np), aa(k), bb(k), cc(k), avg(k))
                endif
                r(k) = obsmean(n) - avg(k)
-               sum = sum + r(k)**2
+               sum = sum + abs(r(k))
                residmax1 = amax1(residmax1, abs(r(k)))
 210          continue
-             resid = resid + sum
-             residmax = amax1(residmax, residmax1)
              resid1 = sum/(kk-2)
-             resid1 = dsqrt(resid)
-c             resid1 = dsqrt(sum)/(kk-2)
              if (residmax1 .gt. conv) then
 c               if (nnn .gt. maxiter*0.9) then
 c                  print*, 'iter = ', nnn, ' kk = ', kk, ' residual = ',
 c     &               resid1, ' maximum residual = ', residmax1
 c                  print*, ss(nm), ss(n), ss(np)
 c               endif
-               if (nnn .gt. maxiter*0.9) then
+               if (nnn .gt. maxiter*0.99) then
 c                 print*, ' '
 c                 print*, 'latitude = ', alat, ' longitude = ', alon
                  do 2234 k=1,kk
@@ -490,6 +485,8 @@ c           else
 c             go to 150
 c           endif
 c
+            resid = resid + sum
+            residmax = amax1(residmax, residmax1)
 c          finished loop over independent segments.
   300    continue
 c
@@ -508,19 +505,20 @@ c        fill in values where consecutive means are outside limits
              ss(i2) = tmax
            endif
   250    continue
-  c
+c
         resid = resid/nmon
-        resid = sqrt(resid)
-  c
-  c     end of if/else distinguishing between cyclic case and 
-  c         independent segments case.
+c
+c     end of if/else distinguishing between cyclic case and 
+c         independent segments case.
       endif
 c
       if (notconverg .gt. 0) then
-        write(9, '('***', f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 1pe10.2 )')  
+        write(9, '("***", f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 
+     &   1pe10.2 )')  
      &       alat, alon, icnt, niter, notconverg, jj, resid, residmax
       elseif (icnt .gt. 0) then
-        write(9, '('   ', f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 1pe10.2 )')  
+        write(9, '("   ", f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 
+     &   1pe10.2 )')  
      &       alat, alon, icnt, niter, notconverg, jj, resid, residmax
       endif
       if (icnt .gt. 0) then
@@ -770,7 +768,7 @@ c *********************************************************************
       end
       SUBROUTINE tridag(alon,alat,a,b,c,r,u,n)
       implicit none
-      INTEGER n,nmax
+      INTEGER n
       REAL alon,alat,a(n),b(n),c(n),r(n)
       double precision u(n)
 c      PARAMETER (nmax=500*12) ! PJD Oceanonly 1870-2014 - 171025
@@ -785,7 +783,7 @@ c           print*, 'in tridag'
 c           stop
 c      endif
       if(b(1).eq.0.) then
-          print*, 'longitude = ', alon, '  latitude = ', alat
+c          print*, 'longitude = ', alon, '  latitude = ', alat
 c          pause 'tridag: rewrite equations'
       endif
       bet=b(1)
@@ -795,7 +793,7 @@ c          pause 'tridag: rewrite equations'
           gam(j)=c(j-1)/bet
           bet=b(j)-a(j)*gam(j)
           if(bet.eq.0.) then
-            print*, 'longitude = ', alon, '  latitude = ', alat
+c            print*, 'longitude = ', alon, '  latitude = ', alat
 c            pause 'tridag failed'
           endif
           u(j)=(r(j)-a(j)*u(j-1))/bet
@@ -809,7 +807,7 @@ c            pause 'tridag failed'
 
       SUBROUTINE cyclic(alon,alat,a,b,c,alpha,beta,r,x,n)
       implicit none
-      INTEGER n,nmax
+      INTEGER n
       real alon,alat,alpha,beta,a(n),b(n),c(n),r(n)
       double precision x(n)
 c      PARAMETER (nmax=500*12) ! PJD Oceanonly 1870-2014 - 171025

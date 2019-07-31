@@ -147,7 +147,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 	# set default values for tmid
 	maxiter = 200
 	bbmin = 0.001
-	jcnt = numpy.array(-1)
+	jcnt = np.array(-1)
 	if ftype == 'sst':
 		conv = 0.001
 		tmax = 400.
@@ -179,6 +179,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 	tosimp = np.zeros(tosi.shape)
 
 	# loop over each grid cell and create midpoint values
+	sumnotconverg = 0.
+	allresidmax = 0.
 	for i in range(len(lat)):
 		for j in range(len(lon)):
 			obsmean = np.array(tosip[:, i, j])	# extract gridpoint time series
@@ -192,7 +194,14 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 				ss, icnt, niter, notconverg, jj, resid, residmax, jumps = mkhurrell.solvmid(alon,alat,conv,dt,tmin,tmax,bbmin,maxiter,aa,cc,obsmean,jcnt)
 			# subset time series and add to array
 			tosimp[:, i, j] = ss[12:-12]
-			print(alat, alon, icnt, niter, notconverg, jj, resid, residmax)
+			if notconverg > 0:
+				print(alat, alon, icnt, niter, notconverg, jj, resid, residmax)
+			sumnotconverg = sumnotconverg + notconverg
+			if residmax > allresidmax:
+				allresidmax = residmax
+	print()
+	print('sumnotconverg', sumnotconverg)
+	print('allresidmax', allresidmax)
 
 	# print diagnostics? 
 	# print('diagnostics: ')
