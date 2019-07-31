@@ -469,11 +469,11 @@ c *********************************************************************
       aa = amin1(aa, bb)
       cc = amin1(cc, bb)
 C     the following ensure that the diagonal elements of the Jacobian dominate
-      if (bb .lt. bbmin) then
-        bb=bbmin
-        aa = amin1(aa, bb)
-        cc = amin1(cc, bb)
-      endif
+C      if (bb .lt. bbmin) then
+C        bb=bbmin
+C        aa = amin1(aa, bb)
+C        cc = amin1(cc, bb)
+C      endif
       if (bb .lt. bbmin) then
         bb = bbmin
         r = 0.2*bbmin
