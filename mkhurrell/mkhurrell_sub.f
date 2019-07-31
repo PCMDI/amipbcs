@@ -21,7 +21,7 @@ c
 
       subroutine solvmid(alon, alat, nmon, conv, dt, tmin, tmax,
      &     bbmin, maxiter, a, c, obsmean, ss, icnt, niter, notconverg, 
-     &     jj, jumps, jcnt)
+     &     jj, resid, residmax, jumps, jcnt)
       implicit none
       integer nmont, nmon12
       parameter (nmon12=12)
