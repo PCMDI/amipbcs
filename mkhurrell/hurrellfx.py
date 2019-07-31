@@ -147,8 +147,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 	# set default values for tmid
 	maxiter = 200
 	bbmin = 0.001
-	icnt = 0
-	jcnt = 0
+	jcnt = numpy.array(-1)
 	if ftype == 'sst':
 		conv = 0.001
 		tmax = 400.
@@ -190,9 +189,10 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 				ss = obsmean
 			else:
 				# call solver
-				ss = mkhurrell.solvmid(alon,alat,conv,dt,tmin,tmax,bbmin,maxiter,aa,cc,obsmean,icnt,jcnt)
+				ss, icnt, niter, notconverg, jj, resid, residmax, jumps = mkhurrell.solvmid(alon,alat,conv,dt,tmin,tmax,bbmin,maxiter,aa,cc,obsmean,jcnt)
 			# subset time series and add to array
 			tosimp[:, i, j] = ss[12:-12]
+			print(alat, alon, icnt, niter, notconverg, jj, resid, residmax)
 
 	# print diagnostics? 
 	# print('diagnostics: ')
