@@ -137,6 +137,7 @@ c    check if all are le tmin or all are ge tmax
       if (obsmean(1) .le. (tmin+0.01*dt)) then
         do 80 i=2,nmon
           if (obsmean(i) .gt. (tmin+0.01*dt)) go to 99
+c      All values are at tmin.          
    80   continue
         do 85 i=1,nmon
           ss(i) = tmin
@@ -158,6 +159,10 @@ c        print*, 'latitude = ', alat, ' longitude = ', alon
         return
       endif
    99 jj = 0
+c     Find time intervals when there are two consecutive values 
+c            less than minimum followed by a value greater than maximum 
+c            OR intervals when there are two consecutive values 
+c            greater than maximum followed by a value less than maximum
       do 100 i=1,nmon
         i1 = i
         i2 = mod(i,nmon) + 1
@@ -168,7 +173,11 @@ c        print*, 'latitude = ', alat, ' longitude = ', alon
      &      ((obsmean(i1) .ge. tmax-0.01*dt) .and.
      &       (obsmean(i2) .ge. tmax-0.01*dt) .and.
      &       (obsmean(i3) .lt. tmax-0.01*dt))) then
+c         jj is counter for number of intervals satisfying criteria
           jj = jj + 1
+c         jbeg is is pointer set to time marking beginning of an interval
+c              that can be treated independent of some portion of the
+c              entire time-series.
           jbeg(jj) = i2
         endif
   100 continue
@@ -195,7 +204,9 @@ c         latest approximation of means (given mid-month values)
            sum = sum + r(n)**2
            residmax = amax1(residmax, abs(r(n)))
 110      continue
-         resid = dsqrt(sum)/nmon
+         resid = sum/nmon
+         resid = dsqrt(sum)
+c         resid = dsqrt(sum)/nmon
          if (residmax .gt. conv) then
            if (nnn .gt. maxiter*0.5) then
              print*, 'iteration = ', nnn, ' residual = ', resid,
@@ -283,14 +294,17 @@ c        treat independent segments
   150      jend = jend + 1
            i1 = mod((jend-1), nmon) + 1
            i2 = mod(jend, nmon) + 1
+c             find end of interval that is independent of part of the
+c                full time series.
            if (((obsmean(i1) .le. tmin+0.01*dt) .and.
      &          (obsmean(i2) .le. tmin+0.01*dt)) .or.
      &         ((obsmean(i1) .ge. tmax-0.01*dt) .and.
-     &          (obsmean(i2) .ge. tmax-0.01*dt))) then
+     &          (obsmean(i2) .ge. tmax-0.01*dt))) goto 204
+            goto 150
 c            calculate values for interval jbeg(j) to jend
 c
 c            latest approximation of means (given mid-month values)
-             nnn = 0
+  204        nnn = 0
   205        nnn = nnn + 1
              kk = jend - jbeg(j) + 1
              n = jbeg(j)
@@ -318,7 +332,9 @@ c            latest approximation of means (given mid-month values)
                sum = sum + r(k)**2
                residmax = amax1(residmax, abs(r(k)))
 210          continue
-             resid = dsqrt(sum)/(kk-2)
+             resid = sum/(kk-2)
+             resid = dsqrt(resid)
+c             resid = dsqrt(sum)/(kk-2)
              if (residmax .gt. conv) then
                if (nnn .gt. maxiter*0.9) then
                   print*, 'iter = ', nnn, ' kk = ', kk, ' residual = ',
@@ -351,6 +367,9 @@ c                solve for new estimate of mid-month values
   220            continue
 c               if ss exceeds tmax or tmin, then it should exceed it no
 c                    more than absolutely necessary:
+c
+c                treat first sample of segment:
+c
                  n  = mod((jbeg(j)-1), nmon) + 1
                  np  = mod(jbeg(j), nmon) + 1
                  if (obsmean(n) .ge. (tmax-0.01*dt)) then
@@ -360,6 +379,9 @@ c                    more than absolutely necessary:
                    ss(n) =
      &                amin1(tmin, (tmin + (tmin-ss(np))*c(n)/(2.-c(n))))
                  endif
+c
+c                treat last sample of segment:
+c                 
                  nm  = mod((jend+nmon-2), nmon) + 1
                  n  = mod((jend-1), nmon) + 1
                  if (obsmean(n) .ge. (tmax-0.01*dt)) then
@@ -369,6 +391,7 @@ c                    more than absolutely necessary:
                    ss(n) =
      &                amin1(tmin, (tmin + (tmin-ss(nm))*a(n)/(2.-a(n))))
                  endif
+c
                  do 230 k=2,kk-1
                    nm = mod((k+jbeg(j)+nmon-3), nmon) + 1
                    n  = mod((k+jbeg(j)-2), nmon) + 1
@@ -419,14 +442,20 @@ c                    more than absolutely necessary:
                      endif
                    endif
   230            continue
+c               need another iteration
                  go to 205
                endif
              endif
-             go to 300
-           else
-             go to 150
-           endif
+c              calculation has converged
+c
+c             go to 300
+c           else
+c             go to 150
+c           endif
+c
+c          finished loop over independent segments.
   300    continue
+c
 c        fill in values where consecutive means are outside limits
          do 250 i=1,nmon
            i1 = mod((i-2+nmon), nmon) + 1
@@ -442,8 +471,10 @@ c        fill in values where consecutive means are outside limits
              ss(i2) = tmax
            endif
   250    continue
+  c     end of if/else distinguishing between cyclic case and 
+  c         independent segments case.
       endif
-           return
+      return
       end
 
       subroutine numer(conv, tmin, tmax, bbmin, a, c, ssm, ss, ssp, aa,
