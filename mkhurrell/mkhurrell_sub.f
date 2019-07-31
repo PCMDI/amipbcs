@@ -16,10 +16,6 @@ c      obsmean may be modified by this subroutine (if the time series contains
 c              consecutive values that jump from near minimum to near maximum
 c              values allowed, or vice versa)
 c       
-
-        write(9,'('      lat    lon   #jumps   #iter  failed    segs    resid  residmax')'  
-        write(9, '(f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 1pe10.2 )') alat, alon, 
-     &       icnt, niter, notconverg, jj, resid, residmax
       
 
 
