@@ -15,15 +15,15 @@ import cdms2
 import numpy as np
 
 # set variables
-tos_file = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/ocean/mon/tos/gn/v20171031/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc'
-# tos_file = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/seaIce/mon/siconc/gn/v20171031/siconc_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc'
+# tos_file = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/ocean/mon/tos/gn/v20171031/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc'
+tos_file = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/seaIce/mon/siconc/gn/v20171031/siconc_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc'
 fnOut = 'test.nc'
 nyears = 5
 
 # load data
 f = cdms2.open(tos_file)
-# tos = f('siconc')
-tos = f('tos')
+tos = f('siconc')
+# tos = f('tos')
 f.close()
 
 # set target grid if desired
@@ -52,8 +52,8 @@ targetGrid = cdms2.createRectGrid(latAxis, lonAxis, order='yx', type='generic')
 # f.close()
 
 # create midpoint values
-tosp = hurrellfx.createMonthlyMidpoints(tos, 'sst', 'celcius', nyears)
-# tosp = hurrellfx.createMonthlyMidpoints(tos, 'ice', 'percent', nyears)
+# tosp = hurrellfx.createMonthlyMidpoints(tos, 'sst', 'celcius', nyears)
+tosp = hurrellfx.createMonthlyMidpoints(tos, 'ice', 'percent', nyears)
 
 # save output file
 f = cdms2.open(fnOut, 'w')

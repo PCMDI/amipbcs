@@ -376,14 +376,16 @@ c                  print*, 'iter = ', nnn, ' kk = ', kk, ' residual = ',
 c     &               resid1, ' maximum residual = ', residmax1
 c                  print*, ss(nm), ss(n), ss(np)
 c               endif
-               if ((nnn .gt. maxiter*0.99) .and. (residmax1 .gt. 5.)) then
+               if ((nnn .gt. maxiter*0.99) .and. (residmax1 .gt. 30.))
+     &           then
 c                 print*, ' '
 c                 print*, 'latitude = ', alat, ' longitude = ', alon
                  write(*,'(f8.1, i5, 2f8.1)') residmax1, nnn, alat, alon
                  do 2234 k=1,kk
                    n  = mod((k+jbeg(j)-2), nmon) + 1
-                   write(*,'(i5, 8(1pe10.2), i5, i5)') n, obsmean(n), avg(k), r(k),
-     &                  s(k), ss(n), aa(k), bb(k), cc(k), j, jj
+                   write(*,'(i5, 8(1pe10.2), i5, i5)') n, obsmean(n), 
+     &                  avg(k), r(k), s(k), ss(n), aa(k),
+     &                  bb(k), cc(k), j, jj
  2234            continue
                endif
                if (nnn .gt. maxiter) then
@@ -526,7 +528,7 @@ c
      &       alat, alon, icnt, niter, notconverg, jj, resid, residmax
       endif
       if (icnt .gt. 0) then
-        print*, 'icnt= ', icnt, '  jumps at times' , (jumps(n), n=1,icnt)
+        print*, 'icnt= ',icnt,'  jumps at times' ,(jumps(n), n=1,icnt)
       endif
 c
       return
