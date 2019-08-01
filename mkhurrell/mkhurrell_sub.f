@@ -62,6 +62,9 @@ c
       notconverg = 0
       do 40, n=1,nmon
         jumps(n) = 0
+        aa(n) = 1.e20
+        bb(n) = 1.e20
+        cc(n) = 1.e20
   40  continue
       resid = 0.
       residmax = 0.
@@ -249,7 +252,7 @@ c         latest approximation of means (given mid-month values)
 c             print*, ' '
 c             print*, 'latitude = ', alat, ' longitude = ', alon
              do 1234 n=1,nmon
-               write(*,'(8(1pe10.2))') obsmean(n), avg(n), r(n),
+               write(*,'(i5, 8(1pe10.2))') n, obsmean(n), avg(n), r(n),
      &              s(n), ss(n), aa(n), bb(n), cc(n)
  1234        continue
            endif
@@ -373,13 +376,14 @@ c                  print*, 'iter = ', nnn, ' kk = ', kk, ' residual = ',
 c     &               resid1, ' maximum residual = ', residmax1
 c                  print*, ss(nm), ss(n), ss(np)
 c               endif
-               if (nnn .gt. maxiter*0.99) then
+               if ((nnn .gt. maxiter*0.99) .and. (residmax1 .gt. 5.)) then
 c                 print*, ' '
 c                 print*, 'latitude = ', alat, ' longitude = ', alon
+                 write(*,'(f8.1, i5, 2f8.1)') residmax1, nnn, alat, alon
                  do 2234 k=1,kk
                    n  = mod((k+jbeg(j)-2), nmon) + 1
-                   write(*,'(8(1pe10.2))') obsmean(n), avg(k), r(k),
-     &                  s(k), ss(n), aa(k), bb(k), cc(k)
+                   write(*,'(i5, 8(1pe10.2), i5, i5)') n, obsmean(n), avg(k), r(k),
+     &                  s(k), ss(n), aa(k), bb(k), cc(k), j, jj
  2234            continue
                endif
                if (nnn .gt. maxiter) then
@@ -522,7 +526,7 @@ c
      &       alat, alon, icnt, niter, notconverg, jj, resid, residmax
       endif
       if (icnt .gt. 0) then
-        print*, 'jumps at times' , (jumps(n), n=1,icnt)
+        print*, 'icnt= ', icnt, '  jumps at times' , (jumps(n), n=1,icnt)
       endif
 c
       return
@@ -548,20 +552,24 @@ c *********************************************************************
      &      amean(tmin,tmax,a,c,ssm,sssm,ssp)) / (2.*conv)
       cc = (amean(tmin,tmax,a,c,ssm,ss,sspp) -
      &      amean(tmin,tmax,a,c,ssm,ss,sspm)) / (2.*conv)
-      aa = amin1(aa, bb)
-      cc = amin1(cc, bb)
+c      aa = amin1(aa, bb)
+c      cc = amin1(cc, bb)
 C     the following ensure that the diagonal elements of the Jacobian dominate
 C      if (bb .lt. bbmin) then
 C        bb=bbmin
 C        aa = amin1(aa, bb)
 C        cc = amin1(cc, bb)
 C      endif
-      if (bb .lt. bbmin) then
-        bb = bbmin
-        r = 0.2*bbmin
-        aa = amax1(r, aa)
-        cc = amax1(r, cc)
-      endif
+c      if (bb .lt. bbmin) then
+c        bb = bbmin
+c        r = 0.2*bbmin
+c        aa = amax1(r, aa)
+c        cc = amax1(r, cc)
+c      endif
+      if (bb .lt. bbmin) bb = bbmin
+      r = 2*bb
+      aa = amin1(aa, r)
+      cc = amin1(cc, r)
       return
       end
 
