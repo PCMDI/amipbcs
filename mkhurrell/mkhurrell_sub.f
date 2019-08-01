@@ -72,7 +72,7 @@ c
       if (jcnt .lt. 0) then
         jcnt = 0
         write(9,'("       lat    lon   #jumps   #iter  failed    ",
-     &    "segs    resid  residmax")')
+     &    "segs    resid  residmax     jump times")')
       endif
 c
       do 48 n=1,nmon
@@ -520,12 +520,14 @@ c         independent segments case.
 c
       if (notconverg .gt. 0) then
         write(9, '("***", f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 
-     &   1pe10.2 )')  
-     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax
+     &   1pe10.2, 3i6)')  
+     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
+     &         jumps(1), jumps(2), jumps(3)
       elseif (icnt .gt. 0) then
         write(9, '("   ", f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 
      &   1pe10.2 )')  
-     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax
+     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
+     &         jumps(1), jumps(2), jumps(3)
       endif
       if (icnt .gt. 0) then
         print*, 'icnt= ',icnt,'  jumps at times' ,(jumps(n), n=1,icnt)
@@ -554,24 +556,24 @@ c *********************************************************************
      &      amean(tmin,tmax,a,c,ssm,sssm,ssp)) / (2.*conv)
       cc = (amean(tmin,tmax,a,c,ssm,ss,sspp) -
      &      amean(tmin,tmax,a,c,ssm,ss,sspm)) / (2.*conv)
-c      aa = amin1(aa, bb)
-c      cc = amin1(cc, bb)
+      aa = amin1(aa, bb)
+      cc = amin1(cc, bb)
 C     the following ensure that the diagonal elements of the Jacobian dominate
 C      if (bb .lt. bbmin) then
 C        bb=bbmin
 C        aa = amin1(aa, bb)
 C        cc = amin1(cc, bb)
 C      endif
-c      if (bb .lt. bbmin) then
-c        bb = bbmin
-c        r = 0.2*bbmin
-c        aa = amax1(r, aa)
-c        cc = amax1(r, cc)
-c      endif
-      if (bb .lt. bbmin) bb = bbmin
-      r = 2*bb
-      aa = amin1(aa, r)
-      cc = amin1(cc, r)
+      if (bb .lt. bbmin) then
+        bb = bbmin
+        r = 0.2*bbmin
+        aa = amax1(r, aa)
+        cc = amax1(r, cc)
+      endif
+c      if (bb .lt. bbmin) bb = bbmin
+c      r = 2*bb
+c      aa = amin1(aa, r)
+c      cc = amin1(cc, r)
       return
       end
 
