@@ -70,11 +70,11 @@ def addClimo(tosi, nyears, ndays, ftype):
 	sclimo = np.mean(np.reshape(tosi[0:nyears*12, :, :],(nyears, 12, len(lat), len(lon))),axis=0)
 	eclimo = np.mean(np.reshape(tosi[-nyears*12:, :, :],(nyears, 12, len(lat), len(lon))),axis=0)
 	# get anomaly map of first/last month
-	smap = tosi[0, :, :] - sclimo[0, :, :]
-	emap = tosi[-1, :, :] - eclimo[-1, :, :]
+	smap = tosi[6:12, :, :] - sclimo[6:12, :, :]
+	emap = tosi[0:6, :, :] - eclimo[0:6, :, :]
 	# scale climatology by decorel vector 
-	sanom = np.tile(smap, (6, 1, 1)) * np.array(np.expand_dims(np.expand_dims(decorrel[::-1], 1), 2))
-	eanom = np.tile(emap, (6, 1, 1)) * np.array(np.expand_dims(np.expand_dims(decorrel, 1), 2))
+	sanom = smap * np.array(np.expand_dims(np.expand_dims(decorrel[::-1], 1), 2))
+	eanom = emap * np.array(np.expand_dims(np.expand_dims(decorrel, 1), 2))
 	# add adjustment to climatology
 	sclimo[6:, :, :] = sclimo[6:, :, :] + sanom
 	eclimo[:6, :, :] = eclimo[:6, :, :] + eanom
@@ -166,8 +166,10 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 			tmax = 100.
 		dt = (tmax - tmin) / 100.
 
-	tosi[tosi > tmax] = tmax
-	tosi[tosi < tmin] = tmin
+	maxFlag = np.max(np.max(np.max(tosi))) > tmax
+	minFlag = np.min(np.min(np.min(tosi))) > tmin
+	if (minFlag | maxFlag):
+		raise ValueError('Underlying data exceeds limits for ' + ftype + ' data')
 
 	# construct jacobian for solver	
 	ndays = getNumDays(time)

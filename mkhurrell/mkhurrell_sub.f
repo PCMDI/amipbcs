@@ -376,7 +376,7 @@ c                  print*, 'iter = ', nnn, ' kk = ', kk, ' residual = ',
 c     &               resid1, ' maximum residual = ', residmax1
 c                  print*, ss(nm), ss(n), ss(np)
 c               endif
-               if ((nnn .gt. maxiter*0.99) .and. (residmax1 .gt. 30.))
+               if (nnn .gt. maxiter*0.99)
      &           then
 c                 print*, ' '
 c                 print*, 'latitude = ', alat, ' longitude = ', alon
@@ -519,13 +519,13 @@ c         independent segments case.
       endif
 c
       if (notconverg .gt. 0) then
-        write(9, '("***", f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 
+        write(9, '("***", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2, 
      &   1pe10.2, 3i6)')  
      &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
      &         jumps(1), jumps(2), jumps(3)
       elseif (icnt .gt. 0) then
-        write(9, '("   ", f7.1, f7.1, i8, i8, i8, i8, 1pe10.2, 
-     &   1pe10.2 )')  
+        write(9, '("   ", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2, 
+     &   1pe10.2, 3i5)')  
      &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
      &         jumps(1), jumps(2), jumps(3)
       endif
@@ -564,16 +564,14 @@ C        bb=bbmin
 C        aa = amin1(aa, bb)
 C        cc = amin1(cc, bb)
 C      endif
-      if (bb .lt. bbmin) then
-        bb = bbmin
-        r = 0.2*bbmin
-        aa = amax1(r, aa)
-        cc = amax1(r, cc)
-      endif
-c      if (bb .lt. bbmin) bb = bbmin
-c      r = 2*bb
-c      aa = amin1(aa, r)
-c      cc = amin1(cc, r)
+C      The following was a part of the original code. Removed Aug 1, 2019.
+C      It appeared to take longer to iterate. 
+C      if (bb .lt. bbmin) then
+C        bb = bbmin
+C        r = 0.2*bbmin
+C        aa = amax1(r, aa)
+C        cc = amax1(r, cc)
+C      endif
       return
       end
 
