@@ -727,9 +727,9 @@ c
      &         jumps(1), jumps(2), jumps(3)
       endif
 c
-      if (icnt .gt. 0) then
-        print*, 'icnt= ',icnt,'  jumps at times' ,(jumps(n), n=1,icnt)
-      endif
+c      if (icnt .gt. 0) then
+c        print*, 'icnt= ',icnt,'  jumps at times' ,(jumps(n), n=1,icnt)
+c      endif
 c
       return
       end
