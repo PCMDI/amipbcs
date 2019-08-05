@@ -167,7 +167,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 		dt = (tmax - tmin) / 100.
 
 	maxFlag = np.max(np.max(np.max(tosi))) > tmax
-	minFlag = np.min(np.min(np.min(tosi))) > tmin
+	minFlag = np.min(np.min(np.min(tosi))) < tmin
 	if (minFlag | maxFlag):
 		raise ValueError('Underlying data exceeds limits for ' + ftype + ' data')
 
@@ -183,6 +183,11 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 	# loop over each grid cell and create midpoint values
 	sumnotconverg = 0.
 	allresidmax = 0.
+	icnttot = 0
+	nitertot = 0
+	minall = 0
+	maxall = 0
+	jjall = 0
 	for i in range(len(lat)):
 		for j in range(len(lon)):
 			obsmean = np.array(tosip[:, i, j])	# extract gridpoint time series
@@ -201,13 +206,33 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 			sumnotconverg = sumnotconverg + notconverg
 			if residmax > allresidmax:
 				allresidmax = residmax
-	print()
-	print('sumnotconverg', sumnotconverg)
-	print('allresidmax', allresidmax)
 
-	# print diagnostics? 
-	# print('diagnostics: ')
-	# print(icnt, jcnt)
+			icnttot = icnttot + icnt
+			nitertot = nitertot + 1
+			if jj == -2:
+				minall = minall + 1
+			elif jj == -1:
+				maxall = maxall + 1
+			else:
+				jjall = jjall + jj
+
+	# Print some diagnostics
+	ncells = len(lat) * len(lon)
+	nontriv = ncells - minall - maxall
+	print()
+	print()
+	print("number of grid cells: ", ncells)
+	print("number of cells with non-trivial solutions: ", ncells - minall - maxall)
+	print("number of cells with values all = tmax: ", maxall)
+	print("number of cells with values all = tmin: ", minall)
+	print("number of jumps from tmin to tmax or from tmax to tmin: ", icnttot)
+	print("number of cells where observations were smoothed: ", jcnt)
+	print("mean number of iterations required (non-trivial cells): ", float(nitertot)/float(nontriv))
+	print("total number of independent samples: ", jjall)
+	print("number of cells where calculation failed to converge: ", sumnotconverg)
+	print("maximum residual across all cells and months: ", allresidmax)
+	print()
+	print()
 
 	# create cdms transient variable
 	tosimp = cdms2.createVariable(tosimp)
