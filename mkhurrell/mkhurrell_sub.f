@@ -456,7 +456,7 @@ c             REPLACE START HERE
                  if ((dxm .gt. 0.5) .and. (dxp .gt. 0.5)) then
                    s1 = tmin + (tmin-ss(nm))*a(n)/(2.-a(n))
                    s2 = tmin + (tmin-ss(np))*c(n)/(2.-c(n))
-                   ss(n) = amin1(s1, s2)
+                   ss(n) = amax1(s1, s2)
                  elseif ((dxm .eq. 0.0) .and. (dxp .eq. 0.0)) then
                    ss(n) = tmin
                  elseif ((dxp .eq. 0.0) .and. (dxm .gt. 0.5)) then
