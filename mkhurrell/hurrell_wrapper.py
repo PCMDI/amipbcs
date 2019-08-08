@@ -13,6 +13,7 @@ PJD 15 Jul 2019     - Added PCMDI-AMIP-1-2-0 as additional input
 PJD 15 Jul 2019     - Added siconc in addition to tos
 PJD  8 Aug 2019     - Update for latest hurrellfx.py
 PJD  8 Aug 2019     - Further updates to deal with merge conflicts
+PJD  8 Aug 2019     - Update netcdfDeflateLevel to speed up execution
 
 @author: pochedls and durack1
 """
@@ -27,7 +28,7 @@ import os
 cdm.setCompressionWarnings(0) ; # Suppress warnings
 cdm.setNetcdfShuffleFlag(0)
 cdm.setNetcdfDeflateFlag(1)
-cdm.setNetcdfDeflateLevelFlag(9)
+cdm.setNetcdfDeflateLevelFlag(3)
 # Hi compression: XXMb file ; # Single tosbcs variable
 # No compression: 314.8Mb
 
