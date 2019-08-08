@@ -128,7 +128,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
           AMIP II simulations. PCMDI Report No. 60 and UCRL-MI-125597,
           Lawrence Livermore National Laboratory, Livermore, CA, 25 pp.
 
-    PJD 16 Jul 2019 - Update units assignment outside of if 'grid' block
+    PJD 16 Jul 2019     - Update units assignment outside of if 'grid' block
+    PJD 8 Aug 2019      - Update for merged conflicts
 
 	'''
 	# regrid data if needed
