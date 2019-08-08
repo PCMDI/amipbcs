@@ -12,6 +12,7 @@ PJD 15 Jul 2019     - Added output file purge if exists
 PJD 15 Jul 2019     - Added PCMDI-AMIP-1-2-0 as additional input
 PJD 15 Jul 2019     - Added siconc in addition to tos
 PJD  8 Aug 2019     - Update for latest hurrellfx.py
+PJD  8 Aug 2019     - Further updates to deal with merge conflicts
 
 @author: pochedls and durack1
 """
@@ -75,25 +76,27 @@ f.close()
 print('sftof read..')
 
 # create tos midpoint values
-print('Entering function..')
+print('Entering tos function..')
 tosBcs = hurrellfx.createMonthlyMidpoints(tos, 'sst', 'celcius', nyears, 'tosbcs') #, grid=targetGrid, mask=sftof)
-print('Exiting function..')
+print('Exiting tos function..')
 # save output file
 if os.path.exists(tosOut):
     print("".join(['** File exists.. removing: ',tosOut,' **']))
     os.remove(tosOut)
 f = cdm.open(tosOut, 'w')
+print("".join(['** Writing data: ',tosOut,' **']))
 f.write(tosBcs)
 f.close()
 
 # create siconc midpoint values
-print('Entering function..')
-sicBcs = hurrellfx.createMonthlyMidpoints(sic, 'ice', '%', nyears, 'siconcbcs') #, grid=targetGrid, mask=sftof)
-print('Exiting function..')
+print('Entering siconc function..')
+sicBcs = hurrellfx.createMonthlyMidpoints(sic, 'ice', '%', nyears, 'siconcbcs') # ', grid=targetGrid, mask=sftof)
+print('Exiting siconc function..')
 # save output file
 if os.path.exists(sicOut):
     print("".join(['** File exists.. removing: ',sicOut,' **']))
     os.remove(sicOut)
 f = cdm.open(sicOut, 'w')
+print("".join(['** Writing data: ',sicOut,' **']))
 f.write(sicBcs)
 f.close()

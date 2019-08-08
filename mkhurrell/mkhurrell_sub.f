@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 c    This code was written by Karl Taylor with light modifications made by
 c    Stephen Po-Chedley to make it compatible with f2py
 c                (notably, add intent to some solvmid subroutine arguments)
@@ -146,6 +147,12 @@ c
 c     
 c *********************************************************************
 c
+=======
+c    This code was written by Karl Taylor
+c    lightly edited by Stephen Po-Chedley (increase nmont, add intent to ss, jcnt/icnt)
+c    I'm hoping he'll help me add some documentation here. 
+
+>>>>>>> Stashed changes
       subroutine solvmid(alon, alat, nmon, conv, dt, tmin, tmax,
      &     bbmin, maxiter, a, c, obsmean, ss, icnt, niter, notconverg, 
      &     jj, resid, residmax, jumps, jcnt)
@@ -207,8 +214,13 @@ c                *****  Python code should set jcnt to a negative integer before
 c                *****  first calling solvmid 
 c
       implicit none
+<<<<<<< Updated upstream
       integer nmon12
       parameter (nmon12=12)
+=======
+      integer nmont, nmon12
+      parameter (nmont=500*12, nmon12=12)
+>>>>>>> Stashed changes
       integer nmon, maxiter
       integer, intent(inout) :: jcnt
       integer, intent(out) :: icnt, niter, notconverg, jj
@@ -1035,6 +1047,10 @@ c
       INTEGER n
       REAL alon,alat,a(n),b(n),c(n),r(n)
       double precision u(n)
+<<<<<<< Updated upstream
+=======
+      PARAMETER (nmax=500*12)
+>>>>>>> Stashed changes
       INTEGER j
       REAL bet, gam(n)
 c
@@ -1081,6 +1097,10 @@ c
       INTEGER n
       real alon,alat,alpha,beta,a(n),b(n),c(n),r(n)
       double precision x(n)
+<<<<<<< Updated upstream
+=======
+      PARAMETER (nmax=500*12)
+>>>>>>> Stashed changes
 CU    USES tridag
       INTEGER i
       REAL fact,gamma,bb(n),u(n)
