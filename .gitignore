@@ -18,6 +18,9 @@ SST_1-1-1/*.nc
 # Executables
 mkhurrell1
 
+# Shared libraries
+*.so
+
 # Netcdf files
 *.nc
 
