@@ -6,7 +6,7 @@
 Stephen Po-Chedley 15 November 2018
 
 Routines used to calculate the monthly midpoint values for
-AMIP boundary conditions. 
+AMIP boundary conditions.
 
 @author: pochedls
 """
@@ -20,27 +20,27 @@ def getNumDays(time):
 	'''
 		ndays = getNumDays(time)
 
-		Function calculated a time series of the number of days in 
-		each month based off a cdms2 time vector. 
-	'''		
+		Function calculated a time series of the number of days in
+		each month based off a cdms2 time vector.
+	'''
 	ndays = np.zeros(len(time), dtype=int)
 	timeComponent = time.asComponentTime()
 	for i in range(len(time)):
 		y = timeComponent[i].year
-		m = timeComponent[i].month 
+		m = timeComponent[i].month
 		fdays = monthrange(y, m)[1]
-		ndays[i] = fdays	
+		ndays[i] = fdays
 	return ndays
 
 def getJacobian(ndays):
 	'''
 		aa, cc = getJacobian(ndays)
 
-		Function calculated the off-diagonals for the jacobian 
+		Function calculated the off-diagonals for the jacobian
 		used by 'solvmid' using a time series of the number
-		of days in each month (ndays). 
-	'''	
-	N = len(ndays)
+		of days in each month (ndays).
+	'''
+	#N = len(ndays)
 	ndays = np.insert(ndays,0,31)
 	ndays = np.append(ndays,31)
 	aa = 2 * ndays[1:-1] / (ndays[1:-1] + ndays[0:-2])
@@ -51,11 +51,11 @@ def addClimo(tosi, nyears, ndays, ftype):
 	'''
 		tosi, ndaysp = addClimo(tosi, nyears, ndays, ftype)
 
-		Function adds a one-year climatology (calculated from the first 
-		nyears of the start and end of the time series) to the start and end 
-		of the sst/sic time series (tosi). The function will update the 
+		Function adds a one-year climatology (calculated from the first
+		nyears of the start and end of the time series) to the start and end
+		of the sst/sic time series (tosi). The function will update the
 		ndays vector. The climatology decays into the 'real' data using a
-		correlation vector set by the data type (ftype = 'ice' or 'sst'). 
+		correlation vector set by the data type (ftype = 'ice' or 'sst').
 	'''
 	if ftype == 'sst':
 		decorrel = [0.68, 0.46, 0.33, 0.26, 0.20, 0.17]
@@ -72,7 +72,7 @@ def addClimo(tosi, nyears, ndays, ftype):
 	# get anomaly map of first/last month
 	smap = tosi[6:12, :, :] - sclimo[6:12, :, :]
 	emap = tosi[0:6, :, :] - eclimo[0:6, :, :]
-	# scale climatology by decorel vector 
+	# scale climatology by decorel vector
 	sanom = smap * np.array(np.expand_dims(np.expand_dims(decorrel[::-1], 1), 2))
 	eanom = emap * np.array(np.expand_dims(np.expand_dims(decorrel, 1), 2))
 	# add adjustment to climatology
@@ -91,34 +91,35 @@ def addClimo(tosi, nyears, ndays, ftype):
 
 	return tosi, ndaysp
 
-def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
-	''' tosimp = createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs)
-	
+def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
+	''' tosimp = createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs)
+
 	Function creates a time series of monthly midpoint values for gridded
 	monthly mean time series. The routine will automatically pad the time
-	series with one year of climatology. The climatology is computed from 
+	series with one year of climatology. The climatology is computed from
 	the first nyears and last nyears of data. Makes use of Taylor et al.
 	(2000) algorithm with parameters set by the type of data (ftype) and
-	the units (units). The function will also accept a mask, which will 
-	determine land points (that are skipped) and a target grid to regrid 
-	sst or sea ice observations. 
+	the units (units). The function will also accept a mask, which will
+	determine land points (that are skipped) and a target grid to regrid
+	sst or sea ice observations.
 
-	Input arguments: 
-		tosi[time, lat, lon] - cdms transient variable of sst or sic time series 
+	Input arguments:
+		tosi[time, lat, lon] - cdms transient variable of sst or sic time series
 		ftype - flag to declare type of data ('sst' or 'ice')
 		units - units (either 'C'/'Celcius' or 'K'/'Kelvin' for SST
 				and '1'/'fraction' for sea ice)
 		nyears - integer number of years at the start/end of the timeseries
 				 with which to take a climatology (for boundary conditions)
-	Optional arguments: 
+		varOut - string with output filename
+	Optional arguments:
 		mask[lat, lon] - mask such that values less than one will be skipped
 						 (must have shape of the target grid)
 		grid - cdms2 grid object used to regrid observations if desired
 
-	Output: 
+	Output:
 		tosimp - cdms2 transient variable with monthly midpoint values
 
-	Key Reference: 
+	Key Reference:
 
     Taylor, K.E., D. Williamson, and F. Zwiers (2000): The sea surface
           temperature and sea-ice concentration boundary conditions for
@@ -130,7 +131,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 	if 'grid' in kargs:
 		targetGrid = kargs['grid']
 		diag = {}
-		tosi = tosi.regrid(targetGrid, regridTool='esmf', regridMethod = 'linear', missing=np.nan, coordSys='deg', diag = diag, periodicity = 1) 
+		tosi = tosi.regrid(targetGrid, regridTool='esmf', regridMethod = 'linear', missing=np.nan, coordSys='deg', diag = diag, periodicity = 1)
 		tosi.units = units
 
 	# get axis information
@@ -155,7 +156,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 		if ((units.lower() == 'celcius') | (units.lower() == 'c')  | (units.lower() == 'degc')):
 			tmin = -1.8
 		elif ((units.lower() == 'kelvin') | (units.lower() == 'k')):
-			tmin = 271.35		
+			tmin = 271.35
 	elif ftype == 'ice':
 		tmin = 0.
 		if ((units.lower() == 'fraction') | (units.lower() == '1')):
@@ -171,11 +172,11 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 	if (minFlag | maxFlag):
 		raise ValueError('Underlying data exceeds limits for ' + ftype + ' data')
 
-	# construct jacobian for solver	
+	# construct jacobian for solver
 	ndays = getNumDays(time)
 	tosip, ndaysp = addClimo(tosi, nyears, ndays, ftype)
-	aa, cc = getJacobian(ndaysp)		
-	nmon = len(tosip)
+	aa, cc = getJacobian(ndaysp)
+	#nmon = len(tosip)
 
 	# pre-allocate output matrix
 	tosimp = np.zeros(tosi.shape)
@@ -198,7 +199,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 				ss = obsmean
 			else:
 				# call solver
-				ss, icnt, niter, notconverg, jj, resid, residmax, jumps = mkhurrell.solvmid(alon,alat,conv,dt,tmin,tmax,bbmin,maxiter,aa,cc,obsmean,jcnt)
+				ss,icnt,niter,notconverg,jj,resid,residmax,jumps = mkhurrell.solvmid(alon,alat,conv,dt,tmin,tmax,bbmin,maxiter,aa,cc,obsmean,jcnt)
 			# subset time series and add to array
 			tosimp[:, i, j] = ss[12:-12]
 			if notconverg > 0:
@@ -236,9 +237,13 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 
 	# create cdms transient variable
 	tosimp = cdms2.createVariable(tosimp)
-	tosimp.id = 'tosbcs'
-	tosimp.standard_name = 'sea_surface_temperature';
-	tosimp.long_name = 'Constructed mid-month Sea Surface Temperature';	
+	tosimp.id = varOut
+	if varOut == 'sst':
+		tosimp.standard_name = 'sea_surface_temperature';
+		tosimp.long_name = 'Constructed mid-month Sea Surface Temperature';
+	elif varOut == 'ice':
+		tosimp.standard_name = 'sea_ice_concentration';
+		tosimp.long_name = 'Constructed mid-month Sea-ice concentration';
 	tosimp.units = units
 	tosimp.setAxis(0, time)
 	tosimp.setAxis(1, lat)
@@ -248,27 +253,27 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, **kargs):
 
 def fillVoid(data):
 	''' fill(data)
-		assumes data is of the form [time, lat, lon] and infills zonally and then 
+		assumes data is of the form [time, lat, lon] and infills zonally and then
 		meridionally (setting grid cells with no data equal to adjacent grid
-		cells with data). 
+		cells with data).
 
 		This is not meant to be completely physical, but at least some GCMs
-		crash if there is no valid data in a given grid. 
+		crash if there is no valid data in a given grid.
 	'''
-	# from: 
+	# from:
 	# https://stackoverflow.com/questions/5551286/filling-gaps-in-a-numpy-array
 
 	lat = data.getLatitude()
 	lon = data.getLongitude()
 	time = data.getTime()
-	varId = data.id 
+	varId = data.id
 	missing = data.missing
 	data = np.array(data)
 	data[data==missing] = np.nan
 
 	shape = data.shape
 	dim = len(shape)
-	flagAll = np.zeros(shape, dtype=bool) 
+	flagAll = np.zeros(shape, dtype=bool)
 	flagAll[:,:,:] = True
 	flagAll[np.isnan(data)] = False
 
@@ -282,7 +287,7 @@ def fillVoid(data):
 		iterCount = 0
 		while np.any(~flag): # as long as there are any False's in flag
 			nflags = np.sum(flag)
-			
+
 			# if working zonally doesn't reduce the number of Falses, infill meridionally
 			if nlflags == nflags:
 				dim = 0
