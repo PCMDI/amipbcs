@@ -2,17 +2,20 @@
 # -*- coding: utf-8 -*-
 
 """
-
 Stephen Po-Chedley 15 November 2018
 
 Routines used to calculate the monthly midpoint values for
 AMIP boundary conditions.
 
-@author: pochedls
+PJD 15 Jul 2019     - Updated createMonthlyMidpoints with varOut argument
+PJD 16 Jul 2019     - Updated units assignment outside of grid if block (createMonthlyMidpoints)
+PJD  8 Aug 2019     - Further updates to deal with merge conflicts
+
+@author: pochedls and durack1
 """
 
 import cdms2
-import mkhurrell
+import mkhurrell ; #mkhurrell.cpython-37m-x86_64-linux-gnu ; # This occurred the first time it was compiled
 import numpy as np
 from calendar import monthrange
 
@@ -40,7 +43,6 @@ def getJacobian(ndays):
 		used by 'solvmid' using a time series of the number
 		of days in each month (ndays).
 	'''
-	#N = len(ndays)
 	ndays = np.insert(ndays,0,31)
 	ndays = np.append(ndays,31)
 	aa = 2 * ndays[1:-1] / (ndays[1:-1] + ndays[0:-2])
@@ -126,18 +128,21 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
           AMIP II simulations. PCMDI Report No. 60 and UCRL-MI-125597,
           Lawrence Livermore National Laboratory, Livermore, CA, 25 pp.
 
+    PJD 16 Jul 2019     - Update units assignment outside of if 'grid' block
+    PJD 8 Aug 2019      - Update for merged conflicts
+
 	'''
 	# regrid data if needed
 	if 'grid' in kargs:
 		targetGrid = kargs['grid']
 		diag = {}
 		tosi = tosi.regrid(targetGrid, regridTool='esmf', regridMethod = 'linear', missing=np.nan, coordSys='deg', diag = diag, periodicity = 1)
-		tosi.units = units
 
 	# get axis information
 	lat = tosi.getLatitude()
 	lon = tosi.getLongitude()
 	time = tosi.getTime()
+	units = tosi.units
 
 	# deal with optional arguments
 	if 'mask' in kargs:
@@ -176,7 +181,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 	ndays = getNumDays(time)
 	tosip, ndaysp = addClimo(tosi, nyears, ndays, ftype)
 	aa, cc = getJacobian(ndaysp)
-	#nmon = len(tosip)
 
 	# pre-allocate output matrix
 	tosimp = np.zeros(tosi.shape)
@@ -207,7 +211,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 			sumnotconverg = sumnotconverg + notconverg
 			if residmax > allresidmax:
 				allresidmax = residmax
-
 			icnttot = icnttot + icnt
 			nitertot = nitertot + 1
 			if jj == -2:
@@ -321,8 +324,3 @@ def fillVoid(data):
 	data.setAxis(2, lon)
 
 	return data
-
-
-
-
-
