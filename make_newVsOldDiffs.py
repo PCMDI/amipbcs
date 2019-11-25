@@ -34,24 +34,30 @@ PJD 31 Oct 2017     - split =1 needs to change to 0 to allow even colour splitti
 PJD 31 Oct 2017     - Explicitly initialize canvas size vcs.init(bg=True,geometry=())
 PJD 27 Apr 2018     - Updated for v1.1.4 data, using /p/user_pub/work/input4MIPs paths
 PJD 18 Jan 2019     - Updated for v1.1.5 data, using local paths
+PJD 21 Nov 2019     - Updated for v1.1.6 data, using local paths
+PJD 21 Nov 2019     - Updated prints for py3
+PJD 21 Nov 2019     - Updated durolib path
+PJD 21 Nov 2019     - Updated from string import replace with object handle
+PJD 21 Nov 2019     - Updated durolib mkDirNoOSErr to os.makedirs
+PJD 21 Nov 2019     - Added os.chmod to supplement os.makedirs calls
+PJD 21 Nov 2019     - Added back in vcs.removeobject calls
 
 @author: durack1
 """
-import cdat_info,EzTemplate,gc,glob,os,time,resource,sys,vcs
+import cdat_info,EzTemplate,gc,glob,os,time,resource,vcs #,sys,pdb
 import cdms2 as cdm
 import numpy as np
-sys.path.append('/export/durack1/git/durolib/lib/')
-from durolib import mkDirNoOSErr
-from string import replace
+#sys.path.append('/export/durack1/git/durolib/durolib/')
+#from durolib import mkDirNoOSErr
 
 #%% Turn on purging of VCS objects?
 delFudge = True
-outPathVer = 'pngs_v1.1.5'
+outPathVer = 'pngs_v1.1.6'
 outPath = '/work/durack1/Shared/150219_AMIPForcingData'
-ver = 'v20190118' ; # Update for each run
-verPath = os.path.join(outPath,'input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-5/')
-verOld = 'v20180427' ; # Update for each run
-verOldPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-4/'
+ver = 'v20191120' ; # Update for each run
+verPath = os.path.join(outPath,'input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-6/')
+verOld = 'v20190124' ; # Update for each run
+verOldPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-5/'
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -138,6 +144,7 @@ for x,filePath in enumerate(oldList):
             tosbcList2 = filePath
         else:
             tosList2 = filePath
+#pdb.set_trace()
 del(filePath,oldList,x); gc.collect()
 
 #%% Purge existing files - lock to version number
@@ -190,7 +197,7 @@ for var in ['sic','tos']:
             varNameRead = varName
         # Fix new naming convention
         if 'sic' in varNameRead:
-            varNameNewRead = replace(varNameRead,'sic','siconc')
+            varNameNewRead = varNameRead.replace('sic','siconc')
             inflationFactor = 1. #1e2
             unitFactor = 0.
         else:
@@ -234,11 +241,17 @@ for var in ['sic','tos']:
                 fileName                    = os.path.join(outPath,'pngs',outPathVer,varNameRead,fnm)
                 # Create directory tree - version
                 if not os.path.exists(os.path.join(outPath,'pngs',outPathVer)):
-                    mkDirNoOSErr(os.path.join(outPath,'pngs',outPathVer))
+                    #mkDirNoOSErr(os.path.join(outPath,'pngs',outPathVer))
+                    os.makedirs(os.path.join(outPath,'pngs',outPathVer),mode=755)
+                    os.chmod(os.path.join(outPath,'pngs',outPathVer),mode=755)
                 outFiles.append(fileName)
                 # Create directory tree - variable
                 if not os.path.exists(os.path.join(outPath,'pngs',outPathVer,varNameRead)):
-                    mkDirNoOSErr(os.path.join(outPath,'pngs',outPathVer,varNameRead))
+                    #mkDirNoOSErr(os.path.join(outPath,'pngs',outPathVer,varNameRead))
+                    print('newDir:',os.path.join(outPath,'pngs',outPathVer,varNameRead))
+                    #pdb.set_trace()
+                    os.makedirs(os.path.join(outPath,'pngs',outPathVer,varNameRead),mode=755)
+                    os.chmod(os.path.join(outPath,'pngs',outPathVer,varNameRead),mode=755)
                 # Check file exists
                 if os.path.exists(fileName):
                     #print "** File exists.. removing **"
@@ -264,26 +277,29 @@ for var in ['sic','tos']:
                     for nm in vcs.elements["textcombined"].keys():
                         if not nm in basic_tc:
                             del(vcs.elements["textcombined"][nm])
+                    #del(nm) ; # Add to purge
+                    #del(iso1,iso2,title,t1,t2,t3,tmpl) ; # Added to purge post file write
+                # Added back in for testing
                 #vcs.removeobject(iso1) ; # Error thrown here and below v2.12 triggered this
-                #vcs.removeobject(iso2)
+                #vcs.removeobject(iso2) ; # Turned off both iso
                 #vcs.removeobject(title)
                 #vcs.removeobject(t1)
                 #vcs.removeobject(t2)
                 #vcs.removeobject(t3)
-                vcs.removeobject(tmpl)
+                #vcs.removeobject(tmpl)
                 endTime                 = time.time()
                 timeStr                 = 'Time: %06.3f secs;' % (endTime-startTime)
                 memStr                  = 'Max mem: %05.3f GB' % (np.float32(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/1.e6)
                 counterStr              = '%05d' % counter
                 pyObj                   = 'PyObj#: %07d;' % (len(gc.get_objects()))
                 if counter == 1:
-                    print 'UV-CDAT version:'.ljust(21),cdat_info.get_version()
-                    print 'UV-CDAT prefix:'.ljust(21),cdat_info.get_prefix()
-                    print 'delFudge:'.ljust(21),delFudge
-                    print 'Background graphics:'.ljust(21),bg
-                    print 'donotstoredisplay:'.ljust(21),donotstoredisplay
-                print counterStr,printStr,varName.ljust(6),BC,timeStr,memStr,pyObj
-                #del() ; # Do a cleanup
+                    print('UV-CDAT version:'.ljust(21),cdat_info.get_version())
+                    print('UV-CDAT prefix:'.ljust(21),cdat_info.get_prefix())
+                    print('delFudge:'.ljust(21),delFudge)
+                    print('Background graphics:'.ljust(21),bg)
+                    print('donotstoredisplay:'.ljust(21),donotstoredisplay)
+                print(counterStr,printStr,varName.ljust(6),BC,timeStr,memStr,pyObj)
+                del(endTime,timeStr,memStr,counterStr,pyObj) ; # Do a cleanup
                 counter                 = counter+1
             gc.collect() ; # Attempt to force a memory flush
         x.backend.renWin = None ; # @danlipsa fix UV-CDAT/vcs#237
@@ -291,7 +307,7 @@ for var in ['sic','tos']:
         f1.close()
         f2.close()
         outMP4File = os.path.join('pngs',''.join(['AMIPBCS_newVsOld_',varNameRead,'.mp4']))
-        print 'Processing: ',outMP4File
+        print('Processing: ',outMP4File)
         x = vcs.init()
         x.ffmpeg(os.path.join(outPath,outMP4File),outFiles,rate=5,bitrate=2048); #,options=u'-r 2') ; # Rate is frame per second - 1/2s per month
         #x.animation.create()

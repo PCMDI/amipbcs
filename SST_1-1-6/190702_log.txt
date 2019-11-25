@@ -1,0 +1,23 @@
+2019-07-02 14:31:30 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/ [34787] -> ".listing" [1]
+2019-07-02 14:31:30 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201901.gz [197266] -> "oiv2mon.201901.gz" [1]
+2019-07-02 14:31:31 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201902.gz [194872] -> "oiv2mon.201902.gz" [1]
+2019-07-02 14:31:32 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201903.gz [195429] -> "oiv2mon.201903.gz" [1]
+2019-07-02 14:31:32 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201904.gz [196418] -> "oiv2mon.201904.gz" [1]
+2019-07-02 14:31:33 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201905.gz [197338] -> "oiv2mon.201905.gz" [1]
+FINISHED --2019-07-02 14:31:33--
+Downloaded: 5 files, 958K in 0s (1827857 GB/s)
+2019-07-02 14:31:34 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/ [34787] -> ".listing" [1]
+2019-07-02 14:31:35 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201801.gz [197480] -> "oiv2mon.201801.gz" [1]
+2019-07-02 14:31:36 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201802.gz [182429] -> "oiv2mon.201802.gz" [1]
+2019-07-02 14:31:37 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201803.gz [197062] -> "oiv2mon.201803.gz" [1]
+2019-07-02 14:31:38 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201804.gz [196674] -> "oiv2mon.201804.gz" [1]
+2019-07-02 14:31:39 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201805.gz [198604] -> "oiv2mon.201805.gz" [1]
+2019-07-02 14:31:40 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201806.gz [198245] -> "oiv2mon.201806.gz" [1]
+2019-07-02 14:31:41 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201807.gz [196809] -> "oiv2mon.201807.gz" [1]
+2019-07-02 14:31:42 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201808.gz [196791] -> "oiv2mon.201808.gz" [1]
+2019-07-02 14:31:43 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201809.gz [196503] -> "oiv2mon.201809.gz" [1]
+2019-07-02 14:31:44 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201810.gz [198035] -> "oiv2mon.201810.gz" [1]
+2019-07-02 14:31:46 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201811.gz [199391] -> "oiv2mon.201811.gz" [1]
+2019-07-02 14:31:46 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201812.gz [199317] -> "oiv2mon.201812.gz" [1]
+FINISHED --2019-07-02 14:31:46--
+Downloaded: 12 files, 2.2M in 0s (4390888 GB/s)

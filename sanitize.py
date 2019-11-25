@@ -62,8 +62,18 @@ PJD 22 Jan 2019     - Finalized json and output file logging for ESGF publicatio
 PJD 22 Jan 2019     - Updated CMOR/drive_input4MIPs_bcs/obs.json for final production run
 PJD 23 Jan 2019     - Updated input4MIPsFuncs.py to deal with ESGF publication log files
 PJD 24 Jan 2019     - Updated to use revised input4MIPsFuncs.py (added dataVersion to json name)
-
+PJD  2 Jul 2019     - Updated to 1.2.0
+PJD  2 Jul 2019     - Updated durolib path
+PJD 10 Jul 2019     - Updated input4MIPsFuncs path
+PJD 10 Jul 2019     - Added source_version to CMOR/drive_input4MIPs_bcs/*.json files (removed this and target_mip)
+PJD 15 Jul 2019     - Update jsonId to deal with revised input4MIPsFuncs update
+PJD 20 Nov 2019     - Update to write out 2018 data to v1.1.6
+PJD 20 Nov 2019     - Updated prints for py3
+PJD 20 Nov 2019     - /p/user_pub/work needed perm updates to allow DRS writing (drwxrwxr-x - climatew)
                     - TODO:
+                    - Always check for group membership to climatew before running this, otherwise problems occur
+
+
 
 OIv2 info
 ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/OIv2_monthly.info.asc
@@ -81,15 +91,16 @@ Saturday                 9th
 @author: durack1
 """
 
-import cmor,datetime,gc,glob,os,pytz,sys ; #json,pdb
-sys.path.append('/export/durack1/git/durolib/lib/')
+import cmor,datetime,gc,glob,os,pytz,sys,pdb ; #json,pdb
+sys.path.append('/export/durack1/git/durolib/durolib/')
 import cdms2 as cdm
 import cdutil as cdu
 import MV2 as mv
 import numpy as np
-from durolib import globalAttWrite,makeCalendar,mkDirNoOSErr
-sys.path.append('/work/durack1/Shared/160427_CMIP6_Forcing/')
+sys.path.append('/export/durack1/git/input4MIPs-cmor-tables/src/')
 from input4MIPsFuncs import createPubFiles,jsonWriteFile,washPerms
+os.sys.path.insert(0,'/export/durack1/git/durolib/durolib')
+from durolib import globalAttWrite,makeCalendar,mkDirNoOSErr
 
 #%% Kludge for json/encoder warning
 #import warnings
@@ -104,23 +115,25 @@ cdm.setNetcdfDeflateFlag(1) ; # 1 = amipbc files sic 75.2MB, tos 239.2MB; amipob
 
 #%% Set version info
 activity_id         = 'input4MIPs'
-comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2018-06)' ; # WILL REQUIRE UPDATING
+comment             = 'Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2018-12)' ; # WILL REQUIRE UPDATING
 contact             = 'pcmdi-cmip@lists.llnl.gov'
-dataVer             = 'PCMDI-AMIP-1-1-5' ; # WILL REQUIRE UPDATING
-dataVerSht          = 'v1.1.5' ; # WILL REQUIRE UPDATING
+dataVer             = 'PCMDI-AMIP-1-1-6' ; # WILL REQUIRE UPDATING
+dataVerSht          = 'v1.1.6' ; # WILL REQUIRE UPDATING
 data_structure      = 'grid'
 further_info_url    = 'https://pcmdi.llnl.gov/mips/amip/' ; # WILL REQUIRE UPDATING - point to GMD paper when available
 institute_id        = 'PCMDI'
 institution         = 'Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA'
 last_year           = '2018' ; # WILL REQUIRE UPDATING
-last_month          = 6 ; # WILL REQUIRE UPDATING
+last_month          = 12 ; # WILL REQUIRE UPDATING
 license_txt         = 'AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution \"Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). The data producers and data providers make no warranty, either express or implied, including but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.'
 mip_specs           = 'AMIP CMIP5 CMIP6'
 project_id          = 'AMIP'
 ref_obs             = 'Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski (2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. doi: 10.1175/2008JCLI2292.1'
 ref_bcs             = 'Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf'
-source              = 'PCMDI-AMIP 1.1.5: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
-time_period         = '187001-201806' ; # WILL REQUIRE UPDATING
+source              = 'PCMDI-AMIP 1.2.0: Merged SST based on UK MetOffice HadISST and NCEP OI2' ; # WILL REQUIRE UPDATING
+time_period         = '187001-201812' ; # WILL REQUIRE UPDATING
+destPath            = '/p/user_pub/work' ; # For CMOR this is set in the CMOR/drive_input4MIPs*.json files
+###destPath            = '/work/durack1/Shared/150219_AMIPForcingData' ; # USE FOR TESTING
 
 #%% Set directories
 homePath    = '/work/durack1/Shared/150219_AMIPForcingData/'
@@ -135,16 +148,17 @@ for fileName in newList:
     if 'amipbc_sst' in fileName:
         fileCount = fileCount + 1
 fileCount   = fileCount - 1 ; # Deal with amipbc_sst_360x180_v1.1.0a.out
+#pdb.set_trace()
 varComp     = np.ma.zeros([fileCount*12,180,360])
 timeComp    = np.zeros([fileCount*12])
 # Fix for partial year
 if last_month == 6:
-    print 'varComp shape:',varComp.shape
-    print 'timeComp len:',len(timeComp)
+    print('varComp shape:',varComp.shape)
+    print('timeComp len:',len(timeComp))
     varComp = varComp[1:-5,:,:]
     timeComp = timeComp[1:-5]
-print 'varComp shape:',varComp.shape
-print 'timeComp len:',len(timeComp)
+print('varComp shape:',varComp.shape)
+print('timeComp len:',len(timeComp))
 
 #%% Get variable into memory
 count = 0
@@ -153,7 +167,7 @@ for filePath in newList:
     varName     = filePath.split('/')[-1].split('_')[1]
     climCheck   = filePath.split('/')[-1].split('_')[-1]
     if obsVsBC == 'bcinfo' or obsVsBC == 'spinup' or obsVsBC == '.out' or climCheck == 'clim.nc':
-        print 'Invalid file, skipping..'
+        print('Invalid file, skipping..')
         continue
     if 'bc' in obsVsBC:
         BC = 'bcs'
@@ -167,7 +181,7 @@ for filePath in newList:
     else:
         varLoad = ''.join([varName,BC])
         varPath = varName
-    print filePath
+    print('filePath:',filePath)
     fH      = cdm.open(filePath)
     if (last_month == 6 and last_year in filePath):
         var     = fH(varLoad,time=slice(0,6))
@@ -255,7 +269,7 @@ for filePath in newList:
                 outFileA = outFileA.replace('_'.join(['',last_year]),'')
                 #outFileA = outFileA.replace('sst',output)
                 outFileA = outFileA.replace('sic',output)
-                print 'Processing: ',outFileA
+                print('Processing: ',outFileA)
                 if not os.path.exists(sanPath):
                     mkDirNoOSErr(sanPath)
                 if os.path.exists(outFileA):
@@ -310,15 +324,21 @@ for filePath in newList:
         time.calendar           = 'gregorian'
         time.axis               = 'T'
         '''
+        #pdb.set_trace()
         if last_month == 6:
             end_year = str(int(last_year)) ; # Half year/Same year
             time = makeCalendar('1870',end_year,monthEnd=(last_month+1),calendarStep='months')
-        else:
+        else: # Case of full year; last_month = 12
             end_year = str(int(last_year)+1) ; # Correct off by one, full year
-            time = makeCalendar('1870',end_year,monthEnd=(last_month+1),calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
-        print 'first:',time.asComponentTime()[0]
-        print 'last: ',time.asComponentTime()[-1]
-        print 'time len:',len(time)
+            if last_month == 12:
+                time = makeCalendar('1870',end_year,monthEnd=1,calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
+            else:
+                print('Some calendar error, passing to pdb')
+                pdb.set_trace()
+                time = makeCalendar('1870',end_year,monthEnd=(last_month+1),calendarStep='months') ; # Dec (1) 2017 completion; June (6) 2016 completion
+        print('first:',time.asComponentTime()[0])
+        print('last: ',time.asComponentTime()[-1])
+        print('time len:',len(time))
         #sys.exit()
         # Test new time axis
         #print time.asComponentTime()[0]
@@ -365,7 +385,7 @@ for filePath in newList:
         outFile = outFile.replace(last_year,time_period)
         outFile = outFile.replace('sst','tos')
         outFile = outFile.replace('sic','siconc')
-        print 'Processing: ',outFile
+        print('Processing: ',outFile)
         if not os.path.exists(sanPath):
             mkDirNoOSErr(sanPath)
         if os.path.exists(outFile):
@@ -404,7 +424,7 @@ for filePath in newList:
         fO.close()
 
         #%% CMORise
-        print 'CMOR start'
+        print('CMOR start')
         '''
         Compression: deflate=1,deflate_level=x,shuffle=1 (cdms2DefaultDeflate/CMOR3NoDeflate)
         areacello   1: 55.6KB, 3: xx.xKB, 9: xx.xKB ( 36.1KB/303.7KB)
@@ -569,18 +589,16 @@ for filePath in newList:
         count       = 0
         # Fix for partial year
         if last_month == 6:
-            print 'varComp shape:',varComp.shape
-            print 'timeComp len:',len(timeComp)
+            print('varComp shape:',varComp.shape)
+            print('timeComp len:',len(timeComp))
             varComp = varComp[1:-5,:,:]
             timeComp = timeComp[1:-5]
-        print 'varComp shape:',varComp.shape
-        print 'timeComp len:',len(timeComp)
+        print('varComp shape:',varComp.shape)
+        print('timeComp len:',len(timeComp))
 
 #%% Generate json files for publication step
 # Save json and file lists for publication
 jsonFilePaths,variableFilePaths = [ [] for _ in range(2) ]
-destPath = '/p/user_pub/work' ; # For CMOR this is set in the CMOR/drive_input4MIPs*.json files
-#destPath = '/work/durack1/Shared/150219_AMIPForcingData' ; # USE FOR TESTING
 
 # Get list of new files
 dataVersion = datetime.datetime.now().strftime('v%Y%m%d')
@@ -589,7 +607,7 @@ files = glob.glob(os.path.join(destPath,'input4MIPs/CMIP6/CMIP/PCMDI',dataVer,'*
 # OLD: 150219_AMIPForcingData/CMIP6/input4MIPs/PCMDI/SSTsAndSeaIce/CMIP/mon/ocean/PCMDI-AMIP-1-1-3/tos/gn/v20171024/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc
 # NEW: /p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-3/ocean/mon/tos/gn/v20171031/tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-3_gn_187001-201706.nc
 for filePath in files:
-    print filePath
+    print('filePath:',filePath)
     fH = cdm.open(filePath,'r')
     conventions = fH.Conventions
     activityId = fH.activity_id
@@ -617,7 +635,7 @@ for filePath in files:
     # Other vars
     activityId = 'input4MIPs'
     deprecated = False
-    jsonId = 'input4MIPs-CMIP-PaulDurack'
+    jsonId = 'CMIP-PaulDurack'
     jsonWriteFile(conventions,activityId,contact,creationDate,datasetCategory,sourceVersion,
                   frequency,furtherInfoUrl,gridLabel,institution,institutionId,mipEra,
                   nominalResolution,realm,source,sourceId,targetMip,targetMipJson,title,

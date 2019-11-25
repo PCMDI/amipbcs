@@ -21,12 +21,12 @@ Installing flex solves issues
 ***
 This solves issues with wrapit77
 
-Hit issues with wrapit77 - 
+Hit issues with wrapit77 -
 
-WRAPIT Version: 120209                                                  
-OPERATING SYSTEM: Linux                                                 
-nbits = 64                                                              
-FORTRAN COMPILER (f90c): gfortran                                       
+WRAPIT Version: 120209
+OPERATING SYSTEM: Linux
+nbits = 64
+FORTRAN COMPILER (f90c): gfortran
 FORTRAN COMPILER OPTIONS (fopts):  -m64 -fPIC -v -c -fno-second-underscore
 /export/durack1/anaconda2/envs/cdat80cmor333nclnco/bin/wrapit77: error while loading shared libraries: libfl.so.2: cannot open shared object file: No such file or directory
 FATAL ERROR: wrapit77 failed
@@ -104,7 +104,7 @@ drwxr-xr-x 30 durack1 climate 4.0K Jan 18  2019 ..
 
 9. Run
 # Create/prepare output directory
-(cdmsNcd77Ncmor340nclncoflex) durack1@oceanonly:[150219_AMIPForcingData]:[9643]> mkdir 360x180_v1.1.5  
+(cdmsNcd77Ncmor340nclncoflex) durack1@oceanonly:[150219_AMIPForcingData]:[9643]> mkdir 360x180_v1.1.5
 (cdmsNcd77Ncmor340nclncoflex) durack1@oceanonly:[150219_AMIPForcingData]:[9639]> mkhurrell1
 *****
 # If errors are hit, add LD_LIBRARY_PATH to env
@@ -171,7 +171,7 @@ lrwxrwxrwx  1 durack1 climate   42 Jun  2  2016 input4MIPs-cmor-tables -> /expor
 > Will need to involve Sasha/Jiwoo for this step
 
 
-14. Update github repo
+14a. Update github repo
 > cd /export/durack1/git/amipbcs
 # Update all source files
 > rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/*.f .
@@ -195,4 +195,33 @@ lrwxrwxrwx  1 durack1 climate   42 Jun  2  2016 input4MIPs-cmor-tables -> /expor
 > git add SST_1-1-5b
 # Commit version
 > git commit -am 'Updated for new release - 1.1.5; CMOR3.4.0'
+> git push
+
+14b. Update github repo for 1.1.6 release (symlink to v1.2.0)
+> cd /export/durack1/git/amipbcs
+[durack1@detect amipbcs]$ pwd
+/export/durack1/git/amipbcs
+# Update all source files
+# Due to recent clone rsync doesn't work (timestamp conflicts) so use cp
+> cp /work/durack1/Shared/150219_AMIPForcingData/*.f .
+> cp -R /work/durack1/Shared/150219_AMIPForcingData/src .
+> cp /work/durack1/Shared/150219_AMIPForcingData/*.py .
+> chmod 755 *.py *.f
+> chmod 644 *.txt *.md
+# Update CMOR info
+> cp -R /work/durack1/Shared/150219_AMIPForcingData/CMOR .
+> chmod 644 CMOR/*.json
+# Update data contributed (*.nc files are not hosted in git - .gitignore)
+> #rm -rf SST_1-1-5b ; # Purge local dir (if offical release replaces it)
+> rsync -vrutz --copy-links /work/durack1/Shared/150219_AMIPForcingData/SST_1-1-6 . ; # Copy remote dir
+> chmod 755 SST_1-1-6
+> chmod 755 SST_1-1-6/*.csh SST_1-1-6/*.dat SST_1-1-6/*.f SST_1-1-6/*.ncl SST_1-1-6/*.sh
+> chmod 644 SST_1-1-6/*.bz2 SST_1-1-6/*.nc SST_1-1-6/*.txt
+# Update this file once everything is updated
+# > rsync -vrut /work/durack1/Shared/150219_AMIPForcingData/README.txt . ; # for v1.1.6 updates live to amipbcs/README.txt
+# Update README.md
+# Add new dir to repo
+> git add SST_1-1-6
+# Commit version
+> git commit -am 'Updated for new release - 1.1.6; CMOR3.5.0'
 > git push
