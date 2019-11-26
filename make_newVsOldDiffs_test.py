@@ -41,6 +41,7 @@ PJD 21 Nov 2019     - Updated from string import replace with object handle
 PJD 21 Nov 2019     - Updated durolib mkDirNoOSErr to os.makedirs
 PJD 21 Nov 2019     - Added os.chmod to supplement os.makedirs calls
 PJD 21 Nov 2019     - Added back in vcs.removeobject calls
+PJD 26 Nov 2019     - Update for debugging @downiec
 
 @author: durack1
 """
@@ -53,10 +54,10 @@ import numpy as np
 #%% Turn on purging of VCS objects?
 delFudge = True
 outPathVer = 'pngs_v1.1.6'
-outPath = '/work/durack1/Shared/150219_AMIPForcingData'
-outPath = '/p/user_pub/work'
+#outPath = '/work/durack1/Shared/150219_AMIPForcingData'
+outPath = './'
 ver = 'v20191121' ; # Update for each run
-verPath = os.path.join(outPath,'input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-6/')
+verPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-6/'
 verOld = 'v20190124' ; # Update for each run
 verOldPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-5/'
 
