@@ -45,7 +45,7 @@ PJD 26 Nov 2019     - Update for debugging @downiec
 
 @author: durack1
 """
-import cdat_info,EzTemplate,gc,glob,os,time,resource,vcs #,sys,pdb
+import cdat_info,EzTemplate,gc,glob,os,time,resource,vcs,sys #,pdb
 import cdms2 as cdm
 import numpy as np
 #sys.path.append('/export/durack1/git/durolib/durolib/')
@@ -56,10 +56,13 @@ delFudge = True
 outPathVer = 'pngs_v1.1.6'
 #outPath = '/work/durack1/Shared/150219_AMIPForcingData'
 outPath = './'
-ver = 'v20191121' ; # Update for each run
-verPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-6/'
-verOld = 'v20190124' ; # Update for each run
-verOldPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-5/'
+dirname, filename = os.path.split(os.path.abspath(__file__))
+print(dirname,filename)
+os.chdir(dirname)
+print(os.getcwd())
+verPath = '*PCMDI-AMIP-1-1-6'
+verOldPath = '*PCMDI-AMIP-1-1-5'
+#sys.exit()
 
 #%% Define functions
 def initVCS(x,levs1,levs2,split):
@@ -116,38 +119,40 @@ def initVCS(x,levs1,levs2,split):
 
     return iso1,iso2,title,t1,t2,t3,tmpl
 
-
 #%% Create input file list
-newList    = sorted(glob.glob(''.join([verPath,'*/mon/*/gn/',ver,'/*.nc'])))
-varIndex = 12 ; #11
+newList    = sorted(glob.glob(''.join([verPath,'*.nc'])))
+varIndex = 0
 for x,filePath in enumerate(newList):
-    if 'siconc' in filePath.split('/')[varIndex]:
-        if 'bcs' in filePath.split('/')[varIndex]:
+    if 'siconc' in filePath.split('_')[varIndex]:
+        if 'bcs' in filePath.split('_')[varIndex]:
             sicbcList = filePath
         else:
             sicList = filePath
-    if 'tos' in filePath.split('/')[varIndex]:
-        if 'bcs' in filePath.split('/')[varIndex]:
+    if 'tos' in filePath.split('_')[varIndex]:
+        if 'bcs' in filePath.split('_')[varIndex]:
             tosbcList = filePath
         else:
             tosList = filePath
 del(filePath,newList,x); gc.collect()
 
-oldList    = sorted(glob.glob(''.join([verOldPath,'*/mon/*/gn/',verOld,'/*.nc'])))
-varIndex = 11
+oldList    = sorted(glob.glob(''.join([verOldPath,'*.nc'])))
 for x,filePath in enumerate(oldList):
-    if 'siconc' in filePath.split('/')[varIndex]:
-        if 'bcs' in filePath.split('/')[varIndex]:
+    if 'siconc' in filePath.split('_')[varIndex]:
+        if 'bcs' in filePath.split('_')[varIndex]:
             sicbcList2 = filePath
         else:
             sicList2 = filePath
-    if 'tos' in filePath.split('/')[varIndex]:
-        if 'bcs' in filePath.split('/')[varIndex]:
+    if 'tos' in filePath.split('_')[varIndex]:
+        if 'bcs' in filePath.split('_')[varIndex]:
             tosbcList2 = filePath
         else:
             tosList2 = filePath
 #pdb.set_trace()
 del(filePath,oldList,x); gc.collect()
+
+
+print('tosList:',tosList)
+print('sicbcList2:',sicbcList2)
 
 #%% Purge existing files - lock to version number
 for root, dirs, files in os.walk(os.path.join('./pngs',outPathVer), topdown=False):
