@@ -47,6 +47,7 @@ PJD 10 Sep 2021     - Created cdms315vcs210910 env
 PJD 15 Sep 2021     - Created cdms315vcsjoblib210915 env
                       mamba create -n cdms315vcsjoblib210915 -c main -c conda-forge -c cdat cdms2 cdutil genutil joblib vcs vcsaddons
 PJD 15 Sep 2021     - Updated to use joblib calls n_jobs=12
+PJD 15 Sep 2021     - Increase step size 12->24
 
 @author: durack1
 """
@@ -84,12 +85,23 @@ def initVCS(levs1, levs2, s1s, s2s, diff, yr, mon, filePath):
     import vcs
     import EzTemplate
 
-    # Use month to index [0:11] matrices
-    monStr = mon+1
+    # Debugging
     #print('mon:', mon)
     #print('s1s.shape:', s1s.shape)
     #print('s2s.shape:', s2s.shape)
     #print('diff.shape:', diff.shape)
+
+    # 12 months - use month to index [0:11] matrices
+    monStr = mon+1
+
+    # 24 months - use index [0:23] to determine month and year
+    # if mon >= 12:
+    #     yr = yr+1
+    #     monStr = np.mod(mon, 12)+1
+    # else:
+    #     monStr = mon+1
+
+    # Index single month for plotting
     s1 = s1s[mon, ]
     s2 = s2s[mon, ]
     dif = diff[mon, ]
@@ -102,7 +114,7 @@ def initVCS(levs1, levs2, s1s, s2s, diff, yr, mon, filePath):
     iso1.levels = levs1
     iso1.ext_1 = True
     iso1.ext_2 = True
-    cols = vcs.getcolors(iso1.levels, split=1)
+    cols = vcs.getcolors(iso1.levels, split=0)
     iso1.fillareacolors = cols
 
     iso2 = x.createisofill()
@@ -277,12 +289,12 @@ for var in ['sic', 'tos']:
         f1.close()
         f2.close()
         m = 0
-        for count, yr in enumerate(range(1870, y2)):
+        for count, yr in enumerate(range(1870, y2)): #, 2)):
             if count == 0:
                 m1 = m
             else:
                 m1 = m1
-            m2 = m1+12
+            m2 = m1+12 #+24
             print('m1, m2:', m1, m2)
             startTime = time.time()
             s1s = s1[m1:m2, ]
