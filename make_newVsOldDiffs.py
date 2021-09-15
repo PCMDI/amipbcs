@@ -101,12 +101,7 @@ def initVCS(levs1, levs2, s1s, s2s, diff, yr, mon, filePath):
     # else:
     #     monStr = mon+1
 
-    # Index single month for plotting
-    s1 = s1s[mon, ]
-    s2 = s2s[mon, ]
-    dif = diff[mon, ]
-
-    # Initialize and define
+    # Initialize VCS and define
     x = vcs.init(bg=True, geometry=(1200, 1560))  # Add bg and geometry
 
     x.setcolormap("bl_to_darkred")
@@ -157,6 +152,12 @@ def initVCS(levs1, levs2, s1s, s2s, diff, yr, mon, filePath):
 
     del(Ez)  # Purge EzTemplate object
     vcs.removeobject(vcs.elements['textorientation'][oldOrientation])
+    # VCS initialization complete
+
+    # Index single month for plotting
+    s1 = s1s[mon, ]
+    s2 = s2s[mon, ]
+    dif = diff[mon, ]
 
     # Now plot
     title.string = '%i-%.2i' % (yr, monStr)
@@ -241,7 +242,7 @@ for var in ['sic', 'tos']:
 
     # %% Setup canvas options and plot
     bg = True  # For 1 yr uses ~260MB
-    delFudge = True # Turn on purging of VCS objects?
+    delFudge = True  # Turn on purging of VCS objects?
     donotstoredisplay = True  # Fix from fries2
     y2 = 2018  # 2017 ; #1871; #2013
     outFiles = []
@@ -269,7 +270,7 @@ for var in ['sic', 'tos']:
         filePathVer = os.path.join(outPath, 'pngs', outPathVer)
         if not os.path.exists(filePathVer):
             # mkDirNoOSErr(os.path.join(outPath,'pngs',outPathVer))
-            os.makedirs(filePathVer, mode=493) # decimal equivalent of o755
+            os.makedirs(filePathVer, mode=493)  # decimal equivalent of o755
             os.chmod(filePathVer, mode=493)
         # Create directory tree - variable
         filePath = os.path.join(filePathVer, varNameRead)
@@ -289,12 +290,12 @@ for var in ['sic', 'tos']:
         f1.close()
         f2.close()
         m = 0
-        for count, yr in enumerate(range(1870, y2)): #, 2)):
+        for count, yr in enumerate(range(1870, y2)):  # , 2)):
             if count == 0:
                 m1 = m
             else:
                 m1 = m1
-            m2 = m1+12 #+24
+            m2 = m1+12  # +24
             print('m1, m2:', m1, m2)
             startTime = time.time()
             s1s = s1[m1:m2, ]
@@ -338,7 +339,7 @@ for var in ['sic', 'tos']:
         outMP4File = os.path.join('pngs', ''.join(
             ['AMIPBCS_newVsOld_', varNameRead, verId, '.mp4']))
         print('Processing: ', outMP4File)
-        outFiles = outFiles.sort() # Make sure years are consecutive
+        outFiles = outFiles.sort()  # Make sure years are consecutive
         import vcs  # Load module to cache
         x = vcs.init()
         # ,options=u'-r 2') ; # Rate is frame per second - 1/2s per month
