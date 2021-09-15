@@ -13,8 +13,8 @@
     "product":                      "derived",
     "data_usage_tips":              "The mid-month data should be linearly interpolated in time and then clipped for use as boundary conditions to drive AMIP simulations as described at: https://pcmdi.llnl.gov/mips/amip",
 
-    "#outpath":                      "/p/user_pub/work",
-    "outpath":                      "/work/durack1/Shared/150219_AMIPForcingData",
+    "outpath":                      "/p/user_pub/climate_work/durack1",
+    "#outpath":                      "/work/durack1/Shared/150219_AMIPForcingData",
     "_history_template":            "%s; CMOR rewrote data to be consistent with <activity_id>, CMIP6, and <Conventions> standards",
     "output_path_template":         "<activity_id><mip_era><target_mip><institution_id><source_id><realm><frequency><variable_id><grid_label><version>",
     "output_file_template":         "<variable_id><activity_id><dataset_category><target_mip><source_id><grid_label>",
