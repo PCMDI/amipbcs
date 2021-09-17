@@ -48,6 +48,7 @@ PJD 15 Sep 2021     - Created cdms315vcsjoblib210915 env
                       mamba create -n cdms315vcsjoblib210915 -c main -c conda-forge -c cdat cdms2 cdutil genutil joblib vcs vcsaddons
 PJD 15 Sep 2021     - Updated to use joblib calls n_jobs=12
 PJD 15 Sep 2021     - Increase step size 12->24
+PJD 16 Sep 2021     - Debug outFile list
 
 @author: durack1
 """
@@ -58,6 +59,7 @@ import os
 import time
 import resource
 import cdms2 as cdm
+#import pdb
 import numpy as np
 from joblib import Parallel, delayed
 # sys.path.append('/export/durack1/git/durolib/durolib/')
@@ -72,9 +74,12 @@ ver = 'v20210909'  # Update for each run
 verId = '-v1-2-0'
 verPath = os.path.join(
     verPath, 'input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-2-0/')
+# tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-2-0_gn_187001-202108.nc
 # Old data
 verOld = 'v20191121'  # Update for each run
 verOldPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-6/'
+# tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-6_gn_187001-201812.nc
+y2 = 2019  # Last year of overlap (yr+1 for indexing)
 
 # %% Define functions
 
@@ -233,19 +238,24 @@ for var in ['sic', 'tos']:
         levs1 = list(np.arange(-2.5, 37.5, 2.5))  # TOS
         levs2 = list(np.arange(-.2, .21, .025))
         levs2[8] = 0.  # Fix middle point
-        split = 0  # 0 for -2.5 to 35 scale
+        #split = 0  # 0 for -2.5 to 35 scale
     else:
         varName = var
         levs1 = list(np.arange(-5, 115, 10))  # SIC
         levs2 = list(np.arange(-5, 5.5, .5))
-        split = 0
 
     # %% Setup canvas options and plot
     bg = True  # For 1 yr uses ~260MB
     delFudge = True  # Turn on purging of VCS objects?
     donotstoredisplay = True  # Fix from fries2
-    y2 = 2018  # 2017 ; #1871; #2013
     outFiles = []
+
+    # Print status to console
+    print('UV-CDAT version:'.ljust(21), cdat_info.get_version())
+    print('UV-CDAT prefix:'.ljust(21), cdat_info.get_prefix())
+    print('delFudge:'.ljust(21), delFudge)
+    print('Background graphics:'.ljust(21), bg)
+    print('donotstoredisplay:'.ljust(21), donotstoredisplay)
 
     # %% Set obs vs bcs
     for data in ['obs', 'bcs']:
@@ -305,13 +315,17 @@ for var in ['sic', 'tos']:
             diff = s2s-s1s
             m1 = m2  # Reset start index
             # Test times
-            # print 'new:',varNameNewRead.ljust(9),s1s.getTime().asComponentTime()
-            # print 'old:',varNameRead.ljust(9),s2s.getTime().asComponentTime()
+            print('time new:', varNameNewRead.ljust(9),
+                  s1s.getTime().asComponentTime()[-1])
+            print('time old:', varNameNewRead.ljust(9),
+                  s2s.getTime().asComponentTime()[-1])
 
             # Send jobs to processors
             fileFullPath = Parallel(n_jobs=12)(delayed(initVCS)(
                 levs1, levs2, s1s, s2s, diff, yr, m, filePath) for m in range(12))
-            outFiles.append(fileFullPath)
+            #print('fileFullPath:', fileFullPath)
+            for outFile in fileFullPath:
+                outFiles.append(outFile)
 
             endTime = time.time()
             timeStr = 'Time: %06.3f secs;' % (endTime-startTime)
@@ -320,26 +334,18 @@ for var in ['sic', 'tos']:
             counterStr = '%05d' % counter
             printStr = 'processing: %i' % (yr)
             pyObj = 'PyObj#: %07d;' % (len(gc.get_objects()))
-            if counter == 1:
-                print('UV-CDAT version:'.ljust(21),
-                      cdat_info.get_version())
-                print('UV-CDAT prefix:'.ljust(21), cdat_info.get_prefix())
-                print('delFudge:'.ljust(21), delFudge)
-                print('Background graphics:'.ljust(21), bg)
-                print('donotstoredisplay:'.ljust(21), donotstoredisplay)
             print(counterStr, printStr, varName.ljust(
                 6), BC, timeStr, memStr, pyObj)
             del(endTime, timeStr, memStr, counterStr, pyObj)  # Do a cleanup
             counter = counter+1
             gc.collect()  # Attempt to force a memory flush
-        # f1.close() ; f2.close()
         del(f1, s1, f2, s2)
 
         # Write movie file
         outMP4File = os.path.join('pngs', ''.join(
             ['AMIPBCS_newVsOld_', varNameRead, verId, '.mp4']))
         print('Processing: ', outMP4File)
-        outFiles = outFiles.sort()  # Make sure years are consecutive
+        outFiles.sort()  # Make sure years are consecutive
         import vcs  # Load module to cache
         x = vcs.init()
         # ,options=u'-r 2') ; # Rate is frame per second - 1/2s per month
@@ -350,6 +356,7 @@ for var in ['sic', 'tos']:
         x.close()
         outFiles = []  # Reset for obs vs bcs
         del vcs  # Cleanup module cache
+        gc.collect()  # Attempt to force a memory flush
 
 # %%
 '''
