@@ -684,6 +684,20 @@ c
             niter = max0(niter, nnn)
             resid = resid + sum
             residmax = amax1(residmax, residmax1)
+
+
+
+c           New diagnostics 210928
+c            write(9, '(i6, i6, i6, i6, 1pe12.2)')
+c     &            j, jbeg(j), jend, kk, (ss(k), k=1,kk)
+c            write(9, '(i6, 1pe12.2)')  niter, resid, residmax, (avg(k),
+c     &            k=1,kk)
+c
+c               write(*,'(i5, 8(1pe10.2))') n, obsmean(n), avg(n), r(n),
+c     &              s(n), ss(n), aa(n), bb(n), cc(n)
+
+
+
 c
 c          300 finishes loop over independent segments.
   300    continue

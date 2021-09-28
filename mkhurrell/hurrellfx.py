@@ -11,6 +11,7 @@ PJD 15 Jul 2019     - Updated createMonthlyMidpoints with varOut argument
 PJD 16 Jul 2019     - Updated units assignment outside of grid if block (createMonthlyMidpoints)
 PJD  8 Aug 2019     - Further updates to deal with merge conflicts
 PJD 23 Sep 2021     - Add NaNf output debug
+PJD 28 Sep 2021     - Working with @taylor13 on debugging
 
 @author: pochedls and durack1
 """
@@ -235,6 +236,21 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             if mask[i, j] < 0:
                 ss = obsmean
             else:
+
+
+                # if alat == -77.5 and alon == 182.5:
+                # # call solver
+                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
+                #     = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
+                #                         maxiter, aa, cc, obsmean, jcnt)
+                # elif alat == -76.5 and alon == 186.5:
+                # # call solver
+                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
+                #     = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
+                #                         maxiter, aa, cc, obsmean, jcnt)
+                # else:
+                #     continue
+
                 # call solver
                 (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
                 = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
@@ -253,6 +269,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                     plt.legend()
                     plt.show()
                     print("stepping..")
+
+
             # subset time series and add to array
             tosimp[:, i, j] = ss[12:-12]
             if notconverg > 0:
