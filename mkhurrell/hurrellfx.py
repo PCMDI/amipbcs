@@ -238,37 +238,37 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             else:
 
 
-                # if alat == -77.5 and alon == 182.5:
-                # # call solver
-                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                #     = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                #                         maxiter, aa, cc, obsmean, jcnt)
-                # elif alat == -76.5 and alon == 186.5:
-                # # call solver
-                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                #     = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                #                         maxiter, aa, cc, obsmean, jcnt)
-                # else:
-                #     continue
+                if alat == -77.5 and alon == 182.5:
+                # call solver
+                    (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
+                    = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
+                                        maxiter, aa, cc, obsmean, jcnt)
+                elif alat == -76.5 and alon == 186.5:
+                # call solver
+                    (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
+                    = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
+                                        maxiter, aa, cc, obsmean, jcnt)
+                else:
+                    continue
 
                 # call solver
-                (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                                    maxiter, aa, cc, obsmean, jcnt)
-                # Debug solver output
-                inds = np.where(np.isnan(ss))[0]
-                if len(inds) > 0:
-                    plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
-                    plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
-                    print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                    print('input:')
-                    print(obsmean[inds[0] - 12 : inds[0] + 12])
-                    print('output:')
-                    print(ss[inds[0] - 12 : inds[0] + 12])
-                    plt.title(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                    plt.legend()
-                    plt.show()
-                    print("stepping..")
+                # (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
+                # = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
+                #                     maxiter, aa, cc, obsmean, jcnt)
+                # # Debug solver output
+                # inds = np.where(np.isnan(ss))[0]
+                # if len(inds) > 0:
+                #     plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
+                #     plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
+                #     print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
+                #     print('input:')
+                #     print(obsmean[inds[0] - 12 : inds[0] + 12])
+                #     print('output:')
+                #     print(ss[inds[0] - 12 : inds[0] + 12])
+                #     plt.title(' '.join(["lat:", str(alat), "lon:", str(alon)]))
+                #     plt.legend()
+                #     plt.show()
+                #     print("stepping..")
 
 
             # subset time series and add to array

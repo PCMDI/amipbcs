@@ -688,10 +688,10 @@ c
 
 
 c           New diagnostics 210928
-c            write(9, '(i6, i6, i6, i6, 1pe12.2)')
-c     &            j, jbeg(j), jend, kk, (ss(k), k=1,kk)
-c            write(9, '(i6, 1pe12.2)')  niter, resid, residmax, (avg(k),
-c     &            k=1,kk)
+            write(9, '(i6, i6, i6, i6, (1pe12.2))')
+     &            j, jbeg(j), jend, kk, (ss(k), k=1,kk)
+            write(9, '(i6, (1pe12.2))')  niter, resid, residmax, (avg(k),
+     &            k=1,kk)
 c
 c               write(*,'(i5, 8(1pe10.2))') n, obsmean(n), avg(n), r(n),
 c     &              s(n), ss(n), aa(n), bb(n), cc(n)
