@@ -236,9 +236,12 @@ for varId in ['siconc', 'tos']:
                 lastMn+1), calendarStep='months')
     print('first:', time.asComponentTime()[0])
     print('last: ', time.asComponentTime()[-1])
-    print('time.units', time.units)
+    print('time.units:', time.units)
     print('time len:', len(time))
-    print('var.units', var.units)
+    print('varName:', varName)
+    print('outVar:', outVar)
+    print('var.units:', var.units)
+    print('ftype:', ftype)
 
     # Reassign correct calendar/time axis to variable
     var.setAxis(0, time)

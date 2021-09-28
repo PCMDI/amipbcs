@@ -3,6 +3,7 @@ c    Stephen Po-Chedley to make it compatible with f2py
 c        (notably, add intent to some solvmid subroutine arguments)
 c    KT cleaned up code, comments were added for documentation, and
 c        additional diagnostics are now returned (3 August 2019)
+c    PJD added print statement to solvmid to test python console (22 Sept 2021)
 c
 c 34567812345678123456781234567812345678123456781234567812345678123456781234567890
 c
@@ -216,6 +217,10 @@ c
       real r(nmon), avg(nmon), aa(nmon), bb(nmon), cc(nmon),
      &     add(nmon)
       double precision s(nmon), sum
+c
+c     Check print statements are showing in python calling console
+      print*, 'solvmid executing. alon:', alon, ' alat:', alat
+
 c
 c     set control on whether derivatives needed to compute jacobian will be
 c        computed through an analytical approximation or by numerical

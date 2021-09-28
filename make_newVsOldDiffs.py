@@ -49,6 +49,7 @@ PJD 15 Sep 2021     - Created cdms315vcsjoblib210915 env
 PJD 15 Sep 2021     - Updated to use joblib calls n_jobs=12
 PJD 15 Sep 2021     - Increase step size 12->24
 PJD 16 Sep 2021     - Debug outFile list
+PJD 17 Sep 2021     - Added x = vcs.init()/ffmpeg to delete queue (is there a need to joblib this?)
 
 @author: durack1
 """
@@ -355,7 +356,7 @@ for var in ['sic', 'tos']:
         # x.animation.save('demo.mp4')
         x.close()
         outFiles = []  # Reset for obs vs bcs
-        del vcs  # Cleanup module cache
+        del vcs, x  # Cleanup module cache
         gc.collect()  # Attempt to force a memory flush
 
 # %%
