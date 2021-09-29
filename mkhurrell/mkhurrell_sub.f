@@ -688,10 +688,12 @@ c
 
 
 c           New diagnostics 210928
+            i1 = mod(jbeg(j)-1, nmon) + 1
+            i2 = min0( mod((kk-2+jbeg(j)), nmon) + 1, nmon)
             write(9, '(i6, i6, i6, i6, (1pe12.2))')
-     &            j, jbeg(j), jend, kk, (ss(k), k=1,kk)
-            write(9, '(i6, (1pe12.2))')  niter, resid, residmax, (avg(k),
-     &            k=1,kk)
+     &            j, jbeg(j), jend, kk, (ss(k), k=i1,i2)
+            write(9, '(i6, 2000(1pe12.2))')  niter, resid, residmax,
+     &            (avg(k), k=1,kk)
 c
 c               write(*,'(i5, 8(1pe10.2))') n, obsmean(n), avg(n), r(n),
 c     &              s(n), ss(n), aa(n), bb(n), cc(n)
