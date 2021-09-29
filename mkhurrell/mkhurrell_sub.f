@@ -530,6 +530,19 @@ c
                r(k) = obsmean(n) - avg(k)
                sum = sum + abs(r(k))
                residmax1 = amax1(residmax1, abs(r(k)))
+
+
+
+c           New diagnostics 210929
+               if (((j .eq. 78) .and. (jbeg(j) .eq. 1274)) .or.
+     &             ((j .eq. 107) .and.  (jbeg(j) .eq. 1730))) then
+                 write(9, '(3(i6), 5(1pe12.2))')
+     &                nnn, k, n, r(k), avg(k), obsmean(n), ss(n),
+     &                residmax1
+               endif
+
+
+
   210        continue
              resid1 = sum/(kk-2)
 c
