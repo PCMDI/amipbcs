@@ -230,7 +230,14 @@ c        approach will be used for all iterations
       imethod = 0
 c
 c ???  check following value
-      relax = 1.0
+
+
+c     Updating value 210929
+c      relax = 1.0
+      relax = 1.1
+
+
+
 c
       niter = 0
       notconverg = 0
