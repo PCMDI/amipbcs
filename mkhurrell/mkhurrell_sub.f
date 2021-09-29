@@ -687,13 +687,15 @@ c
 
 
 
-c           New diagnostics 210928
+c           New diagnostics 210929
             i1 = mod(jbeg(j)-1, nmon) + 1
             i2 = min0( mod((kk-2+jbeg(j)), nmon) + 1, nmon)
             write(9, '(i6, i6, i6, i6, (1pe12.2))')
      &            j, jbeg(j), jend, kk, (ss(k), k=i1,i2)
-            write(9, '(i6, 2000(1pe12.2))')  niter, resid, residmax,
-     &            (avg(k), k=1,kk)
+            write(9, '(i6, (1pe12.2))')
+     &            niter, resid, residmax, (avg(k), k=1,kk)
+            write(9, '(i6, 2000(1pe12.2))')
+     &            niter, resid, residmax, (obsmean(k), k=i1,i2)
 c
 c               write(*,'(i5, 8(1pe10.2))') n, obsmean(n), avg(n), r(n),
 c     &              s(n), ss(n), aa(n), bb(n), cc(n)
@@ -703,6 +705,14 @@ c     &              s(n), ss(n), aa(n), bb(n), cc(n)
 c
 c          300 finishes loop over independent segments.
   300    continue
+
+
+
+c           New flush the buffer 210929
+            write(9,'((i6))') i, j
+
+
+
 c
 c        fill in values where consecutive means are outside limits
          do 250 i=1,nmon
