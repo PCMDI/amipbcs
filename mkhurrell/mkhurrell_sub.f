@@ -230,13 +230,7 @@ c        approach will be used for all iterations
       imethod = 0
 c
 c ???  check following value
-
-
-c     Updating value 210929
-c      relax = 1.0
-      relax = 1.1
-
-
+      relax = 1.0
 
 c
       niter = 0
@@ -543,9 +537,9 @@ c
 c           New diagnostics 210929
                if (((j .eq. 78) .and. (jbeg(j) .eq. 1274)) .or.
      &             ((j .eq. 107) .and.  (jbeg(j) .eq. 1730))) then
-                 write(9, '(3(i6), 5(1pe12.2))')
+                 write(9, '(3(i6), 6(1pe12.2))')
      &                nnn, k, n, r(k), avg(k), obsmean(n), ss(n),
-     &                residmax1
+     &                aa(k), bb(k), cc(k)
                endif
 
 
