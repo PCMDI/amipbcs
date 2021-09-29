@@ -695,7 +695,7 @@ c           New diagnostics 210929
             write(9, '(i6, (1pe12.2))')
      &            niter, resid, residmax, (avg(k), k=1,kk)
             write(9, '(i6, 2000(1pe12.2))')
-     &            niter, resid, residmax, (obsmean(k), k=i1,i2)
+     &            niter, residmax1, residmax, (obsmean(k), k=i1,i2)
 c
 c               write(*,'(i5, 8(1pe10.2))') n, obsmean(n), avg(n), r(n),
 c     &              s(n), ss(n), aa(n), bb(n), cc(n)
@@ -708,7 +708,7 @@ c          300 finishes loop over independent segments.
 
 
 
-c           New flush the buffer 210929
+c           New - attempt to flush the buffer 210929
             write(9,'((i6))') i, j
 
 
