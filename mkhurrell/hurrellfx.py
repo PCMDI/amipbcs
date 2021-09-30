@@ -12,6 +12,7 @@ PJD 16 Jul 2019     - Updated units assignment outside of grid if block (createM
 PJD  8 Aug 2019     - Further updates to deal with merge conflicts
 PJD 23 Sep 2021     - Add NaNf output debug
 PJD 28 Sep 2021     - Working with @taylor13 on debugging
+PJD 30 Sep 2021     - Update to run through complete grid
 
 @author: pochedls and durack1
 """
@@ -182,7 +183,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     # set default values for tmid
     maxiter = 200
-    bbmin = 0.001
+    bbmin = 0.1  # 0.001
     jcnt = np.array(-1)
     if ftype == "sst":
         conv = 0.001
@@ -237,38 +238,38 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 ss = obsmean
             else:
 
+                # debug
+                # if alat == -77.5 and alon == 182.5:
+                # # call solver
+                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
+                #     = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
+                #                         maxiter, aa, cc, obsmean, jcnt)
+                # elif alat == -76.5 and alon == 186.5:
+                # # call solver
+                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
+                #     = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
+                #                         maxiter, aa, cc, obsmean, jcnt)
+                # else:
+                #     continue
 
-                if alat == -77.5 and alon == 182.5:
                 # call solver
-                    (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                    = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                                        maxiter, aa, cc, obsmean, jcnt)
-                elif alat == -76.5 and alon == 186.5:
-                # call solver
-                    (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                    = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                                        maxiter, aa, cc, obsmean, jcnt)
-                else:
-                    continue
-
-                # call solver
-                # (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                # = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                #                     maxiter, aa, cc, obsmean, jcnt)
-                # # Debug solver output
-                # inds = np.where(np.isnan(ss))[0]
-                # if len(inds) > 0:
-                #     plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
-                #     plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
-                #     print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                #     print('input:')
-                #     print(obsmean[inds[0] - 12 : inds[0] + 12])
-                #     print('output:')
-                #     print(ss[inds[0] - 12 : inds[0] + 12])
-                #     plt.title(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                #     plt.legend()
-                #     plt.show()
-                #     print("stepping..")
+                (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
+                = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
+                                    maxiter, aa, cc, obsmean, jcnt)
+                # Debug solver output
+                inds = np.where(np.isnan(ss))[0]
+                if len(inds) > 0:
+                    plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
+                    plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
+                    print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
+                    print('input:')
+                    print(obsmean[inds[0] - 12 : inds[0] + 12])
+                    print('output:')
+                    print(ss[inds[0] - 12 : inds[0] + 12])
+                    plt.title(' '.join(["lat:", str(alat), "lon:", str(alon)]))
+                    plt.legend()
+                    plt.show()
+                    print("stepping..")
 
 
             # subset time series and add to array
