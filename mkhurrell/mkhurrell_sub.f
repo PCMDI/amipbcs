@@ -815,12 +815,19 @@ c
 c
 C      The following was a part of the original code. Removed Aug 1, 2019.
 C      It appeared to take longer to iterate.
-C      if (bb .lt. bbmin) then
-C        bb = bbmin
+
+
+
+c     New diagnostic code 210929
+      if (bb .lt. bbmin) then
+        bb = bbmin
 C        r = 0.2*bbmin
 C        aa = amax1(r, aa)
 C        cc = amax1(r, cc)
-C      endif
+      endif
+
+
+
 c
       return
       end
