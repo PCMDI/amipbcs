@@ -153,6 +153,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     PJD 16 Jul 2019     - Update units assignment outside of if 'grid' block
     PJD  8 Aug 2019     - Update for merged conflicts
+    PJD  2 Nov 2021     - Update bbmin .1 -> 0.01
 
     """
     # regrid data if needed
@@ -183,7 +184,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     # set default values for tmid
     maxiter = 200
-    bbmin = 0.1  # 0.001
+    bbmin = 0.01  # 0.1  # 0.001
     jcnt = np.array(-1)
     if ftype == "sst":
         conv = 0.001

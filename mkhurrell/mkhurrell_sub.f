@@ -207,6 +207,7 @@ c
       integer, intent(out) :: icnt, niter, notconverg, jj
       integer, intent(out) :: jumps(nmon)
       real conv, tmin, tmax, dt, bbmin, alon, alat, dxm, dxp, s1, s2
+      real delta
       real obsmean(nmon), a(nmon), c(nmon)
       real, intent(out) :: ss(nmon)
       real, intent(out) :: resid, residmax
@@ -219,7 +220,7 @@ c
       double precision s(nmon), sum
 c
 c     Check print statements are showing in python calling console
-      print*, 'solvmid executing. alon:', alon, ' alat:', alat
+      print*, 'solvmid executing. alat:', alat, ' alon:', alon
 
 c
 c     set control on whether derivatives needed to compute jacobian will be
@@ -231,6 +232,9 @@ c        approach will be used for all iterations
 c
 c ???  check following value
       relax = 1.0
+
+c     Create new input for numer - 211102
+      delta = (tmax/tmin)/50
 
 c
       niter = 0
@@ -369,6 +373,8 @@ c
            else
              call numer(conv, tmin, tmax, bbmin, a(n), c(n), ss(nm),
      &                ss(n), ss(np), aa(n), bb(n), cc(n), avg(n))
+c             call numer(delta, tmin, tmax, bbmin, a(n), c(n), ss(nm),
+c     &                ss(n), ss(np), aa(n), bb(n), cc(n), avg(n))
            endif
            r(n) = obsmean(n) - avg(n)
            sum = sum + abs(r(n))
@@ -527,6 +533,9 @@ c
                else
                  call numer(conv, tmin, tmax, bbmin, a(n), c(n), ss(nm),
      &                ss(n), ss(np), aa(k), bb(k), cc(k), avg(k))
+c                 call numer(delta, tmin, tmax, bbmin, a(n), c(n),
+c     &                 ss(nm), ss(n), ss(np), aa(k), bb(k), cc(k),
+c     &                 avg(k))
                endif
                r(k) = obsmean(n) - avg(k)
                sum = sum + abs(r(k))
