@@ -806,17 +806,9 @@ c
       cc = (amean(tmin,tmax,a,c,ssm,ss,sspp) -
      &      amean(tmin,tmax,a,c,ssm,ss,sspm)) / (2.*delta)
 c
-c     the following ensures that the diagonal elements will dominate, and
-c        that the matrix solver won't blow up, but it doesn't assure
-c        optimal convergence speed.
-c
-      aa = amin1(aa, bb)
-      cc = amin1(cc, bb)
 c
 C      The following was a part of the original code. Removed Aug 1, 2019.
 C      It appeared to take longer to iterate.
-
-
 
 c     New diagnostic code 210929
       if (bb .lt. bbmin) then
@@ -826,8 +818,12 @@ C        aa = amax1(r, aa)
 C        cc = amax1(r, cc)
       endif
 
-
-
+c     the following ensures that the diagonal elements will dominate, and
+c        that the matrix solver won't blow up, but it doesn't assure
+c        optimal convergence speed.
+c
+      aa = amin1(aa, bb)
+      cc = amin1(cc, bb)
 c
       return
       end
