@@ -207,7 +207,6 @@ c
       integer, intent(out) :: icnt, niter, notconverg, jj
       integer, intent(out) :: jumps(nmon)
       real conv, tmin, tmax, dt, bbmin, alon, alat, dxm, dxp, s1, s2
-      real delta
       real obsmean(nmon), a(nmon), c(nmon)
       real, intent(out) :: ss(nmon)
       real, intent(out) :: resid, residmax
@@ -234,7 +233,7 @@ c ???  check following value
       relax = 1.0
 
 c     Create new input for numer - 211102
-      delta = (tmax/tmin)/50
+c      delta = (tmax/tmin)/50
 
 c
       niter = 0
