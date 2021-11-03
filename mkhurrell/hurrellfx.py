@@ -294,7 +294,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     ncells = len(lat) * len(lon)
     nontriv = ncells - minall - maxall
     print()
-    print()
     print("number of grid cells: ", ncells)
     print("number of cells with non-trivial solutions: ", ncells - minall - maxall)
     print("number of cells with values all = tmax: ", maxall)
@@ -308,7 +307,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     print("total number of independent samples: ", jjall)
     print("number of cells where calculation failed to converge: ", sumnotconverg)
     print("maximum residual across all cells and months: ", allresidmax)
-    print()
     print()
 
     # create cdms transient variable
