@@ -77,6 +77,7 @@ PJD  7 Sep 2021     - Updated source URL from ftp://ftp.emc.ncep.noaa.gov/cmb/ss
                       ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/
 PJD  9 Sep 2021     - Updated to latest August 2021 data
                     - TODO:
+                    - Update input data, truncate last 3 months, pad first 3 months
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
 
@@ -247,7 +248,7 @@ for varId in ['siconc', 'tos']:
     var.setAxis(0, time)
 
     # RUN HURRELL_WRAPPER.py to generate BC output
-    # run ./compile to refresh binaries
+    # run ./compile to refresh binaries (ensure conda env is consistent!)
     # Get target grid
     targetGrid = var.getGrid()
     print('grid generated..')
@@ -274,7 +275,7 @@ for varId in ['siconc', 'tos']:
 
 
 
-### IS THERE A NEED TO TRUNCATE LAST ~3 MONTHS FROM OUTPUT? ###
+### IS THERE A NEED TO TRUNCATE FIRST/LAST ~3 MONTHS FROM OUTPUT? ###
 
 
 
