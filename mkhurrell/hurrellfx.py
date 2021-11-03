@@ -154,6 +154,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD 16 Jul 2019     - Update units assignment outside of if 'grid' block
     PJD  8 Aug 2019     - Update for merged conflicts
     PJD  2 Nov 2021     - Update bbmin .1 -> 0.01 (consistent with conv)
+    PJD  2 Nov 2021     - Correct nitertot counter
 
     """
     # regrid data if needed
@@ -281,7 +282,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             if residmax > allresidmax:
                 allresidmax = residmax
             icnttot = icnttot + icnt
-            nitertot = nitertot + 1
+            nitertot = nitertot + niter
             if jj == -2:
                 minall = minall + 1
             elif jj == -1:
