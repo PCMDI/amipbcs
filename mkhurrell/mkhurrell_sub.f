@@ -211,7 +211,7 @@ c
       real, intent(out) :: ss(nmon)
       real, intent(out) :: resid, residmax
       integer i, n, imethod, n1, n2, i1, i2, i3, nnn, jend,
-     &      kk, j, k, kkk, nm, np, limit
+     &      kk, j, k, kkk, nm, np
       integer jbeg(nmon)
       real relax, residmax1, resid1, addmax, addmin
       real r(nmon), avg(nmon), aa(nmon), bb(nmon), cc(nmon),
@@ -379,7 +379,7 @@ c     &                ss(n), ss(np), aa(n), bb(n), cc(n), avg(n))
            sum = sum + abs(r(n))
            residmax = amax1(residmax, abs(r(n)))
   110    continue
-         resid = sum/nmon
+         resid = real(sum)/nmon
 c
          if (residmax .gt. conv) then
 c
@@ -409,7 +409,7 @@ c            solve for new estimate of mid-month values
              call cyclic(alon, alat, aa, bb, cc, cc(nmon), aa(1), r, s,
      &                nmon)
              do 120 n=1,nmon
-               ss(n) = ss(n) + relax*s(n)
+               ss(n) = ss(n) + real(relax) * real(s(n))
   120        continue
 c            if ss exceeds tmax or tmin, then it should exceed it no
 c                more than absolutely necessary:
@@ -553,7 +553,7 @@ c           New diagnostics 210929
 
 
   210        continue
-             resid1 = sum/(kk-2)
+             resid1 = real(sum)/(kk-2)
 c
              if (residmax1 .gt. conv) then
 c
@@ -598,7 +598,7 @@ c                solve for new estimate of mid-month values
      &                 s(2), kkk)
                  do 220 k=2,kk-1
                    n  = mod((k+jbeg(j)-2), nmon) + 1
-                   ss(n) = ss(n) + relax*s(k)
+                   ss(n) = ss(n) + real(relax) * real(s(k))
   220            continue
 c               if ss exceeds tmax or tmin, then it should exceed it no
 c                    more than absolutely necessary:
@@ -704,7 +704,7 @@ c
              endif
 c
             niter = max0(niter, nnn)
-            resid = resid + sum
+            resid = resid + real(sum)
             residmax = amax1(residmax, residmax1)
 
 
@@ -796,7 +796,7 @@ c       values at times m-1, m, and m, respectively.
 c
       implicit none
       real delta, tmin, tmax, bbmin, a, c, ssm, ss, ssp, aa, bb, cc, avg
-      real ssmm, ssmp, sssm, sssp, sspm, sspp, r
+      real ssmm, ssmp, sssm, sssp, sspm, sspp
       real amean
 c
       avg = amean(tmin,tmax,a,c,ssm,ss,ssp)
@@ -1088,6 +1088,8 @@ c
 c          print*, 'longitude = ', alon, '  latitude = ', alat
 c          pause 'tridag: rewrite equations'
       endif
+      bet=alat
+      bet=alon
       bet=b(1)
       u(1)=r(1)/bet
 c
@@ -1151,7 +1153,8 @@ c
 c
       call tridag(alon,alat,a,bb,c,u,z,n)
 c
-      fact=(x(1)+beta*x(n)/gamma)/(1.+z(1)+beta*z(n)/gamma)
+      fact=(real(x(1)) + beta * real(x(n))/gamma) /
+     & (1.+real(z(1)) + beta * real(z(n))/gamma)
 c
       do 13 i=1,n
         x(i)=x(i)-fact*z(i)
