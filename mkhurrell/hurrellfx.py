@@ -66,7 +66,10 @@ def addClimo(tosi, nyears, ndays, ftype):
     nyears of the start and end of the time series) to the start and end
     of the sst/sic time series (tosi). The function will update the
     ndays vector. The climatology decays into the 'real' data using a
-    correlation vector set by the data type (ftype = 'ice' or 'sst').
+    correlation vector set by the data type (ftype = 'ice' or 'sst'). The
+    values of these decorrelation vectors was calculated from observed data
+    by Karl Taylor - calculation and validation of quantities from the data
+    provided to the function would be a useful test
     """
     if ftype == "sst":
         decorrel = [0.68, 0.46, 0.33, 0.26, 0.20, 0.17]
