@@ -12,6 +12,7 @@ PJD  8 Aug 2019     - Further updates to deal with merge conflicts
 PJD 23 Sep 2021     - Add NaNf output debug
 PJD 28 Sep 2021     - Working with @taylor13 on debugging
 PJD 30 Sep 2021     - Update to run through complete grid
+PJD  4 Nov 2021     - Update addClimo to ensure last trailing month is December/12
 
 @author: pochedls and durack1
 """
@@ -20,6 +21,7 @@ import cdms2
 import mkhurrell
 # mkhurrell.cpython-37m-x86_64-linux-gnu ; # This occurred the first time it was compiled
 import numpy as np
+import pdb
 # Control debug output format
 np.set_printoptions(formatter={'float': lambda x: "{:8.3f}".format(x)})
 from calendar import monthrange
@@ -62,14 +64,14 @@ def addClimo(tosi, nyears, ndays, ftype):
     """
     tosi, ndaysp = addClimo(tosi, nyears, ndays, ftype)
 
-    Function adds a one-year climatology (calculated from the first
-    nyears of the start and end of the time series) to the start and end
-    of the sst/sic time series (tosi). The function will update the
-    ndays vector. The climatology decays into the 'real' data using a
-    correlation vector set by the data type (ftype = 'ice' or 'sst'). The
-    values of these decorrelation vectors was calculated from observed data
-    by Karl Taylor - calculation and validation of quantities from the data
-    provided to the function would be a useful test
+    Function adds a one-year climatology (calculated from the first nyears of
+    the start and end of the time series) to the start and end of the sst/sic
+    time series (tosi). The function will update the ndays vector. The
+    climatology decays into the 'real' data using a correlation vector set by
+    the data type (ftype = 'ice' or 'sst'). The values of these decorrelation
+    vectors was calculated from observed data by Karl Taylor - calculation and
+    validation of quantities from the data provided to the function would be a
+    useful test
     """
     if ftype == "sst":
         decorrel = [0.68, 0.46, 0.33, 0.26, 0.20, 0.17]
@@ -87,6 +89,21 @@ def addClimo(tosi, nyears, ndays, ftype):
     time = tosi.getTime()
     lat = tosi.getLatitude()
     lon = tosi.getLongitude()
+    lastMonth = time.asComponentTime()[-1].month
+    # 9 = 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9; + 10, 11 ,12
+    monVec = np.concatenate([np.arange(1, 13), np.arange(1, 13)], axis=0)
+    monInd = np.arange(23, -1, -1)  # 23:0
+    lastMonInd = np.where(monVec==lastMonth)[0][0]  # First index
+    calOrg = np.concatenate([np.arange(lastMonth+1, 13),
+                             np.arange(1, lastMonth+1)], axis=0)
+
+
+
+    ## Update to ascertain last year, build climatology and append 12 months
+    ## minimum to ensure last month is December/12
+
+
+
     # get nyear average climo [12 x lat x lon]
     sclimo = np.mean(
         np.reshape(tosi[0 : nyears * 12, :, :], (nyears, 12, len(lat), len(lon))),
@@ -95,17 +112,29 @@ def addClimo(tosi, nyears, ndays, ftype):
     eclimo = np.mean(
         np.reshape(tosi[-nyears * 12 :, :, :], (nyears, 12, len(lat), len(lon))), axis=0
     )
-    # get anomaly map of first/last month
+    # get anomaly map of first/last month - original
+	#smap = tosi[6:12, :, :] - sclimo[6:12, :, :]
+	#emap = tosi[0:6, :, :] - eclimo[0:6, :, :]
+    # get anomaly map of first/last months - revised
     smap = tosi[6:12, :, :] - sclimo[6:12, :, :]
-    emap = tosi[0:6, :, :] - eclimo[0:6, :, :]
+    emap = tosi[-6:, :, :] - eclimo[6:12, :, :]
     # scale climatology by decorrel vector
     sanom = smap * np.array(np.expand_dims(np.expand_dims(decorrel[::-1], 1), 2))
     eanom = emap * np.array(np.expand_dims(np.expand_dims(decorrel, 1), 2))
+
+    # create climatology pad - preserve cyclic assumption (end in December)
+    
+
     # add adjustment to climatology
     sclimo[6:, :, :] = sclimo[6:, :, :] + sanom
     eclimo[:6, :, :] = eclimo[:6, :, :] + eanom
     # concatenate climatology
     tosi = np.concatenate((sclimo, tosi, eclimo), axis=0)
+
+
+    pdb.set_trace()
+
+
     # get first and last month
     smonth = time.asComponentTime()[0].month
     emonth = time.asComponentTime()[-1].month
