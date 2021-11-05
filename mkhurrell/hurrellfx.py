@@ -4,8 +4,7 @@
 """
 Stephen Po-Chedley 15 November 2018
 
-Routines used to calculate the monthly midpoint values for
-AMIP boundary conditions.
+Routines used to calculate the monthly midpoint values for AMIP boundary conditions.
 
 PJD 15 Jul 2019     - Updated createMonthlyMidpoints with varOut argument
 PJD 16 Jul 2019     - Updated units assignment outside of grid if block (createMonthlyMidpoints)
@@ -24,7 +23,7 @@ import numpy as np
 # Control debug output format
 np.set_printoptions(formatter={'float': lambda x: "{:8.3f}".format(x)})
 from calendar import monthrange
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 
 def getNumDays(time):
@@ -96,7 +95,7 @@ def addClimo(tosi, nyears, ndays, ftype):
     # get anomaly map of first/last month
     smap = tosi[6:12, :, :] - sclimo[6:12, :, :]
     emap = tosi[0:6, :, :] - eclimo[0:6, :, :]
-    # scale climatology by decorel vector
+    # scale climatology by decorrel vector
     sanom = smap * np.array(np.expand_dims(np.expand_dims(decorrel[::-1], 1), 2))
     eanom = emap * np.array(np.expand_dims(np.expand_dims(decorrel, 1), 2))
     # add adjustment to climatology
@@ -155,6 +154,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD  8 Aug 2019     - Update for merged conflicts
     PJD  2 Nov 2021     - Update bbmin .1 -> 0.01 (consistent with conv)
     PJD  2 Nov 2021     - Correct nitertot counter
+    PJD  3 Nov 2021     - Comment solvmid debug statements
 
     """
     # regrid data if needed
@@ -240,7 +240,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 ss = obsmean
             else:
 
-                # debug
+                # Debug for example issues
                 # if alat == -77.5 and alon == 182.5:
                 # # call solver
                 #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
@@ -259,20 +259,19 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
                                     maxiter, aa, cc, obsmean, jcnt)
                 # Debug solver output
-                inds = np.where(np.isnan(ss))[0]
-                if len(inds) > 0:
-                    plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
-                    plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
-                    print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                    print('input:')
-                    print(obsmean[inds[0] - 12 : inds[0] + 12])
-                    print('output:')
-                    print(ss[inds[0] - 12 : inds[0] + 12])
-                    plt.title(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                    plt.legend()
-                    plt.show()
-                    print("stepping..")
-
+                #inds = np.where(np.isnan(ss))[0]
+                #if len(inds) > 0:
+                #    plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
+                #    plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
+                #    print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
+                #    print('input:')
+                #    print(obsmean[inds[0] - 12 : inds[0] + 12])
+                #    print('output:')
+                #    print(ss[inds[0] - 12 : inds[0] + 12])
+                #    plt.title(' '.join(["lat:", str(alat), "lon:", str(alon)]))
+                #    plt.legend()
+                #    plt.show()
+                #    print("stepping..")
 
             # subset time series and add to array
             tosimp[:, i, j] = ss[12:-12]

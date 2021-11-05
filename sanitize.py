@@ -76,8 +76,9 @@ PJD  2 Sep 2021     - Further testing and migration to /p/user_pub/climate_work/
 PJD  7 Sep 2021     - Updated source URL from ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/ to
                       ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/
 PJD  9 Sep 2021     - Updated to latest August 2021 data
+PJD  3 Nov 2021     - Update for latest code; Code pads 12-months to beginning and end so no truncation required
+PJD  4 Nov 2021     - Update for latest September 2021 data
                     - TODO:
-                    - Update input data, truncate last 3 months, pad first 3 months
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
 
@@ -204,7 +205,7 @@ for varId in ['siconc', 'tos']:
     units = varList[varId]['units']
     outVar = varList[varId]['outVar']
     inFile = '.'.join(
-        ['MODEL', fileVar, 'HAD187001-198110.OI198111-202108.nc'])
+        ['MODEL', fileVar, 'HAD187001-198110.OI198111-202109.nc'])
     fH = cdm.open(os.path.join(sanPath, inFile), 'r')
     var = fH(varName)
     print('var.shape', var.shape)
@@ -265,7 +266,7 @@ for varId in ['siconc', 'tos']:
 
     # create tos midpoint values
     print('Entering createMonthlyMidpoints function..')
-    nyears = 5
+    nyears = 10  # Buffer 12-month climatology calculated over years
     varBcs = hurrellfx.createMonthlyMidpoints(
         var, ftype, units, nyears, outVar)  #, grid=targetGrid, mask=sftof)
     print('Exiting createMonthlyMidpoints function..')
@@ -273,10 +274,8 @@ for varId in ['siconc', 'tos']:
     print(varId,'.shape:', var.shape)
     print(varId, 'bcs.shape:', varBcs.shape)
 
-
-
-### IS THERE A NEED TO TRUNCATE FIRST/LAST ~3 MONTHS FROM OUTPUT? ###
-
+    # Cleanup partial year data
+    pdb.set_trace()
 
 
     # 1. Write siconc/tos and siconcBcs/tosBcs
