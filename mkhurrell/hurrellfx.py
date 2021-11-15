@@ -74,6 +74,9 @@ def addClimo(tosi, nyears, ndays, ftype):
     vectors was calculated from observed data by Karl Taylor - calculation and
     validation of quantities from the data provided to the function would be a
     useful test
+
+    PJD 15 Nov 2021     - Added edaysl; updated pad to 24 months from start and
+                          up to 23 months (if January) to end
     """
 
     # Create decorrel vectors that are 24-months long
@@ -88,6 +91,7 @@ def addClimo(tosi, nyears, ndays, ftype):
     lat = tosi.getLatitude()
     lon = tosi.getLongitude()
 
+    # code to test end indexes
     # lastMonth = time.asComponentTime()[-1].month
     # 9 = 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9; + 10, 11 ,12
     # monVec = np.concatenate([np.arange(1, 13), np.arange(1, 13)], axis=0)
@@ -96,8 +100,6 @@ def addClimo(tosi, nyears, ndays, ftype):
     # calOrg = np.concatenate(
     #    [np.arange(lastMonth + 1, 13), np.arange(1, lastMonth + 1)], axis=0
     # )
-    ## Update to ascertain last year, build climatology and append 12 months
-    ## minimum to ensure last month is December/12
 
     # get nyear average climo [12 x lat x lon] - start/end month not relevant
     sclimo = np.mean(
@@ -175,6 +177,7 @@ def addClimo(tosi, nyears, ndays, ftype):
     # two years of climatology. The end with up to 23 months of climatology. If
     # your time series ends in June, you end up with 18 months of climatology.
     # If the time series ends in May, you have 19 months of climatology, etc.
+    # variable edaysl provides length of end padding
 
     return tosi, ndaysp, edaysl
 
@@ -360,7 +363,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
             # subset time series (remove padded months) and add to array
             # assumes start is padded with 24 months, end padded by len(edaysl)
-            # tosimp[:, i, j] = ss[12:-12]
             tosimp[:, i, j] = ss[24:-edaysl]
 
             # test for convergence
