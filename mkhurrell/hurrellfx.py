@@ -14,15 +14,14 @@ PJD 28 Sep 2021     - Working with @taylor13 on debugging
 PJD 30 Sep 2021     - Update to run through complete grid
 PJD 15 Nov 2021     - Update addClimo to ensure last trailing month is December/12
                     - See discussion in https://github.com/PCMDI/amipbcs/issues/23#issuecomment-966610924
+PJD 15 Nov 2021     - Update createMonthlyMidpoints with edaysl argument from addClimo
 
 @author: pochedls and durack1
 """
 
 import cdms2
-import mkhurrell
-# mkhurrell.cpython-37m-x86_64-linux-gnu ; # This occurred the first time it was compiled
+import mkhurrell  # mkhurrell.cpython-37m-x86_64-linux-gnu ; # This occurred the first time it was compiled
 import numpy as np
-#import pdb
 
 # Control debug output format
 np.set_printoptions(formatter={"float": lambda x: "{:8.3f}".format(x)})
@@ -111,7 +110,7 @@ def addClimo(tosi, nyears, ndays, ftype):
 
     # duplicate climatology, extending to 24-months long
     sclimo = np.tile(sclimo, (2, 1, 1))
-    eclimo = np.time(eclimo, (2, 1, 1))
+    eclimo = np.tile(eclimo, (2, 1, 1))
 
     # get anomaly map - first/last month minus nyear climatology value
     smap = tosi[0, :, :] - sclimo[0, :, :]
@@ -170,7 +169,7 @@ def addClimo(tosi, nyears, ndays, ftype):
     # assumes the start in January 1870 never changes
     tosi = tosi[0:-emonth]
     ndaysp = ndaysp[0:-emonth]
-    edaysl = len(edays)
+    edaysl = len(range(emonth, 24))
 
     # tosi and ndaysp are the final padded time series. They both start with
     # two years of climatology. The end with up to 23 months of climatology. If
@@ -220,6 +219,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD  2 Nov 2021     - Update bbmin .1 -> 0.01 (consistent with conv)
     PJD  2 Nov 2021     - Correct nitertot counter
     PJD  3 Nov 2021     - Comment solvmid debug statements
+    PJD 15 Nov 2021     - Added edaysl from addClimo
 
     """
     # regrid data if needed
@@ -281,10 +281,10 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     # construct jacobian for solver
     ndays = getNumDays(time)
-    tosip, ndaysp = addClimo(tosi, nyears, ndays, ftype)
+    tosip, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype)
     aa, cc = getJacobian(ndaysp)
 
-    # pre-allocate output matrix
+    # pre-allocate output matrix - same size as actual data (no addClimo pad)
     tosimp = np.zeros(tosi.shape)
 
     # loop over each grid cell and create midpoint values
@@ -358,8 +358,12 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 #    plt.show()
                 #    print("stepping..")
 
-            # subset time series and add to array
-            tosimp[:, i, j] = ss[12:-12]
+            # subset time series (remove padded months) and add to array
+            # assumes start is padded with 24 months, end padded by len(edaysl)
+            # tosimp[:, i, j] = ss[12:-12]
+            tosimp[:, i, j] = ss[24:-edaysl]
+
+            # test for convergence
             if notconverg > 0:
                 print(alat, alon, icnt, niter, notconverg, jj, resid, residmax)
             sumnotconverg = sumnotconverg + notconverg
