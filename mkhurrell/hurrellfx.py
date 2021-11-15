@@ -291,13 +291,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     tosimp = np.zeros(tosi.shape)
 
     # loop over each grid cell and create midpoint values
-    sumnotconverg = 0.0
-    allresidmax = 0.0
-    icnttot = 0
-    nitertot = 0
-    minall = 0
-    maxall = 0
-    jjall = 0
+    sumnotconverg, allresidmax = [0. for _ in range(2)]
+    icnttot, nitertot, minall, maxall, jjall = [0 for _ in range(5)]
     for i in range(len(lat)):
         for j in range(len(lon)):
             obsmean = np.array(tosip[:, i, j])  # extract gridpoint time series
