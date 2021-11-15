@@ -170,14 +170,14 @@ def addClimo(tosi, nyears, ndays, ftype):
     # assumes the start in January 1870 never changes
     tosi = tosi[0:-emonth]
     ndaysp = ndaysp[0:-emonth]
-    edayl = len(edays)
+    edaysl = len(edays)
 
     # tosi and ndaysp are the final padded time series. They both start with
     # two years of climatology. The end with up to 23 months of climatology. If
     # your time series ends in June, you end up with 18 months of climatology.
     # If the time series ends in May, you have 19 months of climatology, etc.
 
-    return tosi, ndaysp, edayl
+    return tosi, ndaysp, edaysl
 
 
 def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
