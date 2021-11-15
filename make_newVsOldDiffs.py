@@ -51,6 +51,7 @@ PJD 15 Sep 2021     - Increase step size 12->24
 PJD 16 Sep 2021     - Debug outFile list
 PJD 17 Sep 2021     - Added x = vcs.init()/ffmpeg to delete queue (is there a need to joblib this?)
 PJD  3 Nov 2021     - Updated for latest data
+PJD 15 Nov 2021     - Updated for latest v1.2.0 data
 
 @author: durack1
 """
@@ -73,7 +74,7 @@ outPath = '/work/durack1/Shared/150219_AMIPForcingData'
 # New data
 verPath = '/p/user_pub/climate_work/durack1/'
 #ver = 'v20210909'  # Update for each run
-ver = 'v20211103'
+ver = 'v20211115'
 verId = '-v1-2-0'
 verPath = os.path.join(
     verPath, 'input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-2-0/')
