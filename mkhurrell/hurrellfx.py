@@ -12,7 +12,8 @@ PJD  8 Aug 2019     - Further updates to deal with merge conflicts
 PJD 23 Sep 2021     - Add NaNf output debug
 PJD 28 Sep 2021     - Working with @taylor13 on debugging
 PJD 30 Sep 2021     - Update to run through complete grid
-PJD  4 Nov 2021     - Update addClimo to ensure last trailing month is December/12
+PJD 15 Nov 2021     - Update addClimo to ensure last trailing month is December/12
+                    - See discussion in https://github.com/PCMDI/amipbcs/issues/23#issuecomment-966610924
 
 @author: pochedls and durack1
 """
@@ -21,11 +22,13 @@ import cdms2
 import mkhurrell
 # mkhurrell.cpython-37m-x86_64-linux-gnu ; # This occurred the first time it was compiled
 import numpy as np
-import pdb
+#import pdb
+
 # Control debug output format
-np.set_printoptions(formatter={'float': lambda x: "{:8.3f}".format(x)})
+np.set_printoptions(formatter={"float": lambda x: "{:8.3f}".format(x)})
 from calendar import monthrange
-#from matplotlib import pyplot as plt
+
+# from matplotlib import pyplot as plt
 
 
 def getNumDays(time):
@@ -73,38 +76,31 @@ def addClimo(tosi, nyears, ndays, ftype):
     validation of quantities from the data provided to the function would be a
     useful test
     """
+
+    # Create decorrel vectors that are 24-months long
     if ftype == "sst":
-        decorrel = [0.68, 0.46, 0.33, 0.26, 0.20, 0.17]
+        decorrel = [0.68, 0.46, 0.33, 0.26, 0.20, 0.17] + [0.0] * 18
     elif ftype == "ice":
-        decorrel = [0.53, 0.23, 0.13, 0.08, 0.05, 0.02]
+        decorrel = [0.53, 0.23, 0.13, 0.08, 0.05, 0.02] + [0.0] * 18
     else:
-        decorrel = [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ]
+        decorrel = [0.0] * 24
+
     time = tosi.getTime()
     lat = tosi.getLatitude()
     lon = tosi.getLongitude()
-    lastMonth = time.asComponentTime()[-1].month
+
+    # lastMonth = time.asComponentTime()[-1].month
     # 9 = 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9; + 10, 11 ,12
-    monVec = np.concatenate([np.arange(1, 13), np.arange(1, 13)], axis=0)
-    monInd = np.arange(23, -1, -1)  # 23:0
-    lastMonInd = np.where(monVec==lastMonth)[0][0]  # First index
-    calOrg = np.concatenate([np.arange(lastMonth+1, 13),
-                             np.arange(1, lastMonth+1)], axis=0)
-
-
-
+    # monVec = np.concatenate([np.arange(1, 13), np.arange(1, 13)], axis=0)
+    # monInd = np.arange(23, -1, -1)  # 23:0
+    # lastMonInd = np.where(monVec == lastMonth)[0][0]  # First index
+    # calOrg = np.concatenate(
+    #    [np.arange(lastMonth + 1, 13), np.arange(1, lastMonth + 1)], axis=0
+    # )
     ## Update to ascertain last year, build climatology and append 12 months
     ## minimum to ensure last month is December/12
 
-
-
-    # get nyear average climo [12 x lat x lon]
+    # get nyear average climo [12 x lat x lon] - start/end month not relevant
     sclimo = np.mean(
         np.reshape(tosi[0 : nyears * 12, :, :], (nyears, 12, len(lat), len(lon))),
         axis=0,
@@ -112,39 +108,76 @@ def addClimo(tosi, nyears, ndays, ftype):
     eclimo = np.mean(
         np.reshape(tosi[-nyears * 12 :, :, :], (nyears, 12, len(lat), len(lon))), axis=0
     )
-    # get anomaly map of first/last month - original
-	#smap = tosi[6:12, :, :] - sclimo[6:12, :, :]
-	#emap = tosi[0:6, :, :] - eclimo[0:6, :, :]
-    # get anomaly map of first/last months - revised
-    smap = tosi[6:12, :, :] - sclimo[6:12, :, :]
-    emap = tosi[-6:, :, :] - eclimo[6:12, :, :]
+
+    # duplicate climatology, extending to 24-months long
+    sclimo = np.tile(sclimo, (2, 1, 1))
+    eclimo = np.time(eclimo, (2, 1, 1))
+
+    # get anomaly map - first/last month minus nyear climatology value
+    smap = tosi[0, :, :] - sclimo[0, :, :]
+    emap = tosi[-1, :, :] - eclimo[-1, :, :]
+
     # scale climatology by decorrel vector
-    sanom = smap * np.array(np.expand_dims(np.expand_dims(decorrel[::-1], 1), 2))
-    eanom = emap * np.array(np.expand_dims(np.expand_dims(decorrel, 1), 2))
+    # First repeat start/end anomaly maps for 24 months (np.tile)
+    # Expand decorrel into a [24, 1, 1] matrix. If working on the starting
+    # anomaly series (sanom), reverse the order of decorrel
+    # (i.e., decorrel[::-1] to [0., 0., 0., ..., 0.33, 0.046, 0.68]).
+    # Then take the product of these two matrices (the singleton dimensions
+    # will broadcast automatically). This yields a 24 months start and end
+    # anomaly time series. For sanom the first months will be all zeros (and
+    # the end months will be all zeros for eanom) with decorrel values will be
+    # applied to the 6 adjacent months to valid data
+    sanom = np.tile(smap, (24, 1, 1)) * np.array(
+        np.expand_dims(np.expand_dims(decorrel[::-1], 1), 2)
+    )
+    eanom = np.tile(emap, (24, 1, 1)) * np.array(
+        np.expand_dims(np.expand_dims(decorrel, 1), 2)
+    )
 
-    # create climatology pad - preserve cyclic assumption (end in December)
-    
+    # add these anomaly time series to the start and ending climatologies
+    sclimo = sclimo + sanom
+    eclimo = eclimo + eanom
 
-    # add adjustment to climatology
-    sclimo[6:, :, :] = sclimo[6:, :, :] + sanom
-    eclimo[:6, :, :] = eclimo[:6, :, :] + eanom
-    # concatenate climatology
+    # concatenate climatology with start/sclimo and end/eclimo
     tosi = np.concatenate((sclimo, tosi, eclimo), axis=0)
 
-
-    pdb.set_trace()
-
-
-    # get first and last month
+    # get the first and last month (e.g., January = 1 and June = 6)
     smonth = time.asComponentTime()[0].month
     emonth = time.asComponentTime()[-1].month
-    # pad ndays vector with appropriate values
+
+    # create ndays vector with climatological length values (* 2 = 24 months)
     ndaysclimo = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] * 2)
-    sdays = ndaysclimo[smonth - 1 : smonth + 11]
-    edays = ndaysclimo[emonth : emonth + 12]
+
+    # tosi starts in January - append a climatology of January through December
+    # (times two). We want the number of days in January -> December appended
+    # (twice) to the ndays time series. In this case, indices 0 through 11 in
+    # ndaysclimo = ([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+    #                31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
+    sdays = list(ndaysclimo[smonth - 1 : smonth + 11]) * 2
+
+    # tosi ends in June - append a climatology of July through June (times
+    # two). We want the number of days in July -> June appended (twice) to the
+    # ndays time series. In this case, indices 6 through 17 are required
+    # ([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+    #   31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
+    edays = list(ndaysclimo[emonth : emonth + 12]) * 2
+
+    # concatenate all day lengths together
     ndaysp = np.concatenate((sdays, ndays, edays))
 
-    return tosi, ndaysp
+    # end timeseries in December. If last month is June, remove last 6 months
+    # of the 24-month climatology (July, August, ..., December). The below
+    # assumes the start in January 1870 never changes
+    tosi = tosi[0:-emonth]
+    ndaysp = ndaysp[0:-emonth]
+    edayl = len(edays)
+
+    # tosi and ndaysp are the final padded time series. They both start with
+    # two years of climatology. The end with up to 23 months of climatology. If
+    # your time series ends in June, you end up with 18 months of climatology.
+    # If the time series ends in May, you have 19 months of climatology, etc.
+
+    return tosi, ndaysp, edayl
 
 
 def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
@@ -287,12 +320,32 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 #     continue
 
                 # call solver
-                (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                = mkhurrell.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                                    maxiter, aa, cc, obsmean, jcnt)
+                (
+                    ss,
+                    icnt,
+                    niter,
+                    notconverg,
+                    jj,
+                    resid,
+                    residmax,
+                    jumps,
+                ) = mkhurrell.solvmid(
+                    alon,
+                    alat,
+                    conv,
+                    dt,
+                    tmin,
+                    tmax,
+                    bbmin,
+                    maxiter,
+                    aa,
+                    cc,
+                    obsmean,
+                    jcnt,
+                )
                 # Debug solver output
-                #inds = np.where(np.isnan(ss))[0]
-                #if len(inds) > 0:
+                # inds = np.where(np.isnan(ss))[0]
+                # if len(inds) > 0:
                 #    plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
                 #    plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
                 #    print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
