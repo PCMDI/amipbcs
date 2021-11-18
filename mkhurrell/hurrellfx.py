@@ -15,6 +15,7 @@ PJD 30 Sep 2021     - Update to run through complete grid
 PJD 15 Nov 2021     - Update addClimo to ensure last trailing month is December/12
                     - See discussion in https://github.com/PCMDI/amipbcs/issues/23#issuecomment-966610924
 PJD 15 Nov 2021     - Update createMonthlyMidpoints with edaysl argument from addClimo
+PJD 17 Nov 2021     - Update notconverg reporting - debug non-convergence
 
 @author: pochedls and durack1
 """
@@ -22,11 +23,9 @@ PJD 15 Nov 2021     - Update createMonthlyMidpoints with edaysl argument from ad
 import cdms2
 import mkhurrell  # mkhurrell.cpython-37m-x86_64-linux-gnu ; # This occurred the first time it was compiled
 import numpy as np
-
 # Control debug output format
 np.set_printoptions(formatter={"float": lambda x: "{:8.3f}".format(x)})
 from calendar import monthrange
-
 # from matplotlib import pyplot as plt
 
 
@@ -291,7 +290,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     tosimp = np.zeros(tosi.shape)
 
     # loop over each grid cell and create midpoint values
-    sumnotconverg, allresidmax = [0. for _ in range(2)]
+    sumnotconverg, allresidmax = [0.0 for _ in range(2)]
     icnttot, nitertot, minall, maxall, jjall = [0 for _ in range(5)]
     for i in range(len(lat)):
         for j in range(len(lon)):
@@ -357,12 +356,22 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 #    print("stepping..")
 
             # subset time series (remove padded months) and add to array
-            # assumes start is padded with 24 months, end padded by len(edaysl)
+            # assumes start is padded with 24 months, end padded by edaysl = len(edays)
             tosimp[:, i, j] = ss[24:-edaysl]
 
             # test for convergence
             if notconverg > 0:
-                print(alat, alon, icnt, niter, notconverg, jj, resid, residmax)
+                print(
+                    "notconverg:",
+                    alat,
+                    alon,
+                    icnt,
+                    niter,
+                    notconverg,
+                    jj,
+                    resid,
+                    residmax,
+                )
             sumnotconverg = sumnotconverg + notconverg
             if residmax > allresidmax:
                 allresidmax = residmax

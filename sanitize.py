@@ -78,6 +78,7 @@ PJD  7 Sep 2021     - Updated source URL from ftp://ftp.emc.ncep.noaa.gov/cmb/ss
 PJD  9 Sep 2021     - Updated to latest August 2021 data
 PJD  3 Nov 2021     - Update for latest code; Code pads 12-months to beginning and end so no truncation required
 PJD  4 Nov 2021     - Update for latest September 2021 data
+PJD 17 Nov 2021     - Switchout for latest October 2021 data
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -228,7 +229,7 @@ for varId in ["siconc", "tos"]:
     ftype = varList[varId]["ftype"]
     units = varList[varId]["units"]
     outVar = varList[varId]["outVar"]
-    inFile = ".".join(["MODEL", fileVar, "HAD187001-198110.OI198111-202109.nc"])
+    inFile = ".".join(["MODEL", fileVar, "HAD187001-198110.OI198111-202110.nc"])
     fH = cdm.open(os.path.join(sanPath, inFile), "r")
     var = fH(varName)
     print("var.shape", var.shape)
@@ -255,7 +256,7 @@ for varId in ["siconc", "tos"]:
             )
         else:
             print("Some calendar error, passing to pdb")
-            pdb.set_trace()
+            #pdb.set_trace()
             # Dec (1) 2017 completion; June (6) 2016 completion
             time = makeCalendar(
                 "1870", endYr, monthEnd=(lastMn + 1), calendarStep="months"
