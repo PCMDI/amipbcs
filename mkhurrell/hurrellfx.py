@@ -23,10 +23,12 @@ PJD 17 Nov 2021     - Update notconverg reporting - debug non-convergence
 import cdms2
 import mkhurrell  # mkhurrell.cpython-37m-x86_64-linux-gnu ; # This occurred the first time it was compiled
 import numpy as np
+
 # Control debug output format
 np.set_printoptions(formatter={"float": lambda x: "{:8.3f}".format(x)})
 from calendar import monthrange
-# from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
+import pdb
 
 
 def getNumDays(time):
@@ -285,6 +287,69 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     ndays = getNumDays(time)
     tosip, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype)
     aa, cc = getJacobian(ndaysp)
+
+    # test that January 1868 and December ~2022 are start and end
+    timeLen = tosip.shape[0]
+    if np.mod(timeLen, 12) != 0:
+        print("Start/end January/December not satisfied")
+        pdb.set_trace()
+    else:
+        print("timeLen:", timeLen)
+
+    # evaluate padding - check January 1868 and December 2022 for discontinuity
+    aCount = 0
+    padPlot = 0
+    print("Check padded timeseries for start/end >96% discontinuities")
+    for i in range(len(lat)):
+        for j in range(len(lon)):
+            if lat[i] > -91:  # 80
+                # Calculate discontinuities >96%
+                tosipDiff = tosip[0, i, j] - tosip[-1, i, j]
+                if np.abs(tosipDiff) > 96:
+                    print(
+                        ">96:",
+                        "{:5.1f}".format(lat[i]),
+                        "{:5.1f}".format(lon[j]),
+                        "{:5.1f}".format(tosipDiff),
+                    )
+                    aCount = aCount + 1
+                if padPlot and np.mean(tosi[:, i, j]) < 98:
+                    ax1 = plt.subplot(211)
+                    plt.title(' '.join([ftype, "lat:", str(lat[i]), "lon:", str(lon[j])]))
+                    plt.plot(np.arange(24, 60), tosi[0:36, i, j].data, label="start tosi/obs")
+                    plt.plot(np.arange(0, 60), tosip[0:60, i, j].data+5, label="start tosip+5")
+                    ax1.legend()
+                    ax2 = plt.subplot(212)
+                    endInd = 60-edaysl
+                    tosiInd = len(np.arange(0, 60-edaysl))
+                    plt.plot(np.arange(0, endInd), tosi[-tosiInd:, i, j].data, label="end tosi/obs")
+                    plt.plot(np.arange(0, 60), tosip[-60:, i, j].data+5, label="end tosip+5")
+                    ax2.legend()
+                    ax2Ylims = ax2.get_ylim()
+                    ax2YRange = (ax2Ylims[1]-ax2Ylims[0])/5.
+                    ax2TextY = ax2Ylims[0]-ax2YRange  # Just outside of boundbox
+                    plt.text(
+                        61.5,
+                        ax2TextY,
+                        ['tosip[0]:', '{:5.1f}'.format(tosip[0, i, j]),
+                         'tosip[-1]:', '{:5.1f}'.format(tosip[-1, i, j]),
+                         'diff:', '{:5.1f}'.format(tosipDiff)],
+                        fontsize=8,
+                        horizontalalignment="right",
+                    )
+                    plt.show()
+                    # Write diagnostics to the terminal
+                    print(' '.join([ftype, "lat:", str(lat[i]), "lon:", str(lon[j])]))
+                    print('input start:')
+                    print(np.zeros(24,), tosi[0:36, i, j])
+                    print('output start:')
+                    print(tosip[0:24, i, j], tosip[24:60, i, j])
+                    print('input end:')
+                    print(tosi[-tosiInd:, i, j], np.zeros(edaysl,))
+                    print('output end:')
+                    print(tosip[-60:-edaysl, i, j], tosip[-edaysl:, i, j])
+                    print("stepping..")
+    print("aCount:", aCount)
 
     # pre-allocate output matrix - same size as actual data (no addClimo pad)
     tosimp = np.zeros(tosi.shape)

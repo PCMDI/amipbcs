@@ -101,7 +101,7 @@ Saturday                 9th
 """
 import numpy as np
 import MV2 as mv
-import cmor
+#import cmor
 import datetime
 
 # import gc
