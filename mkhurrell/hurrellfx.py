@@ -16,6 +16,7 @@ PJD 15 Nov 2021     - Update addClimo to ensure last trailing month is December/
                     - See discussion in https://github.com/PCMDI/amipbcs/issues/23#issuecomment-966610924
 PJD 15 Nov 2021     - Update createMonthlyMidpoints with edaysl argument from addClimo
 PJD 17 Nov 2021     - Update notconverg reporting - debug non-convergence
+PJD 18 Nov 2021     - Update createMonthlyMidpoints with padded/tosip evaluation
 
 @author: pochedls and durack1
 """
@@ -35,8 +36,8 @@ def getNumDays(time):
     """
     ndays = getNumDays(time)
 
-    Function calculated a time series of the number of days in
-    each month based off a cdms2 time vector.
+    Function to calculate a time series of the number of days in each month
+    based off a cdms2 time vector
     """
     ndays = np.zeros(len(time), dtype=int)
     timeComponent = time.asComponentTime()
@@ -224,6 +225,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD  2 Nov 2021     - Correct nitertot counter
     PJD  3 Nov 2021     - Comment solvmid debug statements
     PJD 15 Nov 2021     - Added edaysl from addClimo
+    PJD 18 Nov 2021     - Added padding evaluation code
 
     """
     # regrid data if needed
@@ -315,38 +317,69 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                     aCount = aCount + 1
                 if padPlot and np.mean(tosi[:, i, j]) < 98:
                     ax1 = plt.subplot(211)
-                    plt.title(' '.join([ftype, "lat:", str(lat[i]), "lon:", str(lon[j])]))
-                    plt.plot(np.arange(24, 60), tosi[0:36, i, j].data, label="start tosi/obs")
-                    plt.plot(np.arange(0, 60), tosip[0:60, i, j].data+5, label="start tosip+5")
+                    plt.title(
+                        " ".join([ftype, "lat:", str(lat[i]), "lon:", str(lon[j])])
+                    )
+                    plt.plot(
+                        np.arange(24, 60), tosi[0:36, i, j].data, label="start tosi/obs"
+                    )
+                    plt.plot(
+                        np.arange(0, 60),
+                        tosip[0:60, i, j].data + 5,
+                        label="start tosip+5",
+                    )
                     ax1.legend()
                     ax2 = plt.subplot(212)
-                    endInd = 60-edaysl
-                    tosiInd = len(np.arange(0, 60-edaysl))
-                    plt.plot(np.arange(0, endInd), tosi[-tosiInd:, i, j].data, label="end tosi/obs")
-                    plt.plot(np.arange(0, 60), tosip[-60:, i, j].data+5, label="end tosip+5")
+                    endInd = 60 - edaysl
+                    tosiInd = len(np.arange(0, 60 - edaysl))
+                    plt.plot(
+                        np.arange(0, endInd),
+                        tosi[-tosiInd:, i, j].data,
+                        label="end tosi/obs",
+                    )
+                    plt.plot(
+                        np.arange(0, 60),
+                        tosip[-60:, i, j].data + 5,
+                        label="end tosip+5",
+                    )
                     ax2.legend()
                     ax2Ylims = ax2.get_ylim()
-                    ax2YRange = (ax2Ylims[1]-ax2Ylims[0])/5.
-                    ax2TextY = ax2Ylims[0]-ax2YRange  # Just outside of boundbox
+                    ax2YRange = (ax2Ylims[1] - ax2Ylims[0]) / 5.0
+                    ax2TextY = ax2Ylims[0] - ax2YRange  # Just outside of boundbox
                     plt.text(
                         61.5,
                         ax2TextY,
-                        ['tosip[0]:', '{:5.1f}'.format(tosip[0, i, j]),
-                         'tosip[-1]:', '{:5.1f}'.format(tosip[-1, i, j]),
-                         'diff:', '{:5.1f}'.format(tosipDiff)],
+                        [
+                            "tosip[0]:",
+                            "{:5.1f}".format(tosip[0, i, j]),
+                            "tosip[-1]:",
+                            "{:5.1f}".format(tosip[-1, i, j]),
+                            "diff:",
+                            "{:5.1f}".format(tosipDiff),
+                        ],
                         fontsize=8,
                         horizontalalignment="right",
                     )
                     plt.show()
                     # Write diagnostics to the terminal
-                    print(' '.join([ftype, "lat:", str(lat[i]), "lon:", str(lon[j])]))
-                    print('input start:')
-                    print(np.zeros(24,), tosi[0:36, i, j])
-                    print('output start:')
+                    print(" ".join([ftype, "lat:", str(lat[i]), "lon:", str(lon[j])]))
+                    print("input start:")
+                    print(
+                        np.zeros(
+                            24,
+                        ),
+                        tosi[0:36, i, j],
+                    )
+                    print("output start:")
                     print(tosip[0:24, i, j], tosip[24:60, i, j])
-                    print('input end:')
-                    print(tosi[-tosiInd:, i, j], np.zeros(edaysl,))
-                    print('output end:')
+                    print("input end:")
+                    print(
+                        tosi[-tosiInd:, i, j],
+                        np.zeros(
+                            edaysl,
+                        ),
+                    )
+                    print("output end:")
                     print(tosip[-60:-edaysl, i, j], tosip[-edaysl:, i, j])
                     print("stepping..")
     print("aCount:", aCount)
@@ -424,19 +457,37 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             # assumes start is padded with 24 months, end padded by edaysl = len(edays)
             tosimp[:, i, j] = ss[24:-edaysl]
 
-            # test for convergence
+            # if i=icheck and j=jcheck:
             if notconverg > 0:
                 print(
-                    "notconverg:",
-                    alat,
-                    alon,
-                    icnt,
-                    niter,
-                    notconverg,
-                    jj,
-                    resid,
-                    residmax,
+                    "Not converged - ", "j:", j, "alon:", alon, "i:", i,
+                    "alat:", alat, "conv:", conv, "dt:", dt, "tmin:", tmin,
+                    "tmax:", tmax, "bbmin:", bbmin, "maxiter:", maxiter,
+                    "jcnt:", jcnt
                 )
+                print(
+                    "len(aa):     ", len(aa),
+                    "len(cc):     ", len(cc),
+                    "len(obsmean):", len(obsmean),
+                )
+                print("aa:     ", aa)
+                print("cc:     ", cc)
+                print("obsmean:", obsmean)
+                pdb.set_trace()
+
+            # test for convergence
+            # if notconverg > 0:
+            #     print(
+            #         "notconverg:",
+            #         alat,
+            #         alon,
+            #         icnt,
+            #         niter,
+            #         notconverg,
+            #         jj,
+            #         resid,
+            #         residmax,
+            #     )
             sumnotconverg = sumnotconverg + notconverg
             if residmax > allresidmax:
                 allresidmax = residmax
@@ -486,7 +537,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
 
 def fillVoid(data):
-    """fill(data)
+    """fillVoid(data)
     assumes data is of the form [time, lat, lon] and infills zonally and then
     meridionally (setting grid cells with no data equal to adjacent grid
     cells with data).

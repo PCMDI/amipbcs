@@ -79,6 +79,7 @@ PJD  9 Sep 2021     - Updated to latest August 2021 data
 PJD  3 Nov 2021     - Update for latest code; Code pads 12-months to beginning and end so no truncation required
 PJD  4 Nov 2021     - Update for latest September 2021 data
 PJD 17 Nov 2021     - Switchout for latest October 2021 data
+PJD 18 Nov 2021     - Evaluating impact of 202109 vs 202110 input data
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -101,7 +102,8 @@ Saturday                 9th
 """
 import numpy as np
 import MV2 as mv
-#import cmor
+
+# import cmor
 import datetime
 
 # import gc
@@ -114,13 +116,10 @@ import cdms2 as cdm
 import cdat_info as cdatInfo
 import cdutil as cdu
 from socket import gethostname
-
 sys.path.insert(0, "/home/durack1/git/durolib/durolib")
 from durolib import makeCalendar  # globalAttWrite, mkDirNoOSErr
-
 sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
 from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
-
 sys.path.insert(0, "mkhurrell")
 import hurrellfx
 
@@ -192,12 +191,21 @@ host = "".join(
 history = "".join([history, "; \n", host])
 print(history)
 
-# %% Set directories
+# %% Set directories and input data
 homePath = "/work/durack1/Shared/150219_AMIPForcingData/"
 # sanPath     = os.path.join(homePath,'_'.join(['360x180',dataVerSht,'san']))
 sanPath = os.path.join(
     homePath, "".join(["SST_", dataVerSht.replace("v", "").replace(".", "-")])
 )
+dataEnd = "202110"
+#sanPath = os.path.join(homePath, "SST_1-2-0_old4")
+#dataEnd = "202109"
+#sanPath = os.path.join(homePath, "SST_1-2-0_old3")
+#dataEnd = "202108"
+#sanPath = os.path.join(homePath, "SST_1-2-0_old2")
+#dataEnd = "202106"
+sanPath = os.path.join(homePath, "SST_1-2-0-1-1-6")
+dataEnd = "201903"
 print("sanPath:", sanPath)
 
 # %% Get files
@@ -229,7 +237,7 @@ for varId in ["siconc", "tos"]:
     ftype = varList[varId]["ftype"]
     units = varList[varId]["units"]
     outVar = varList[varId]["outVar"]
-    inFile = ".".join(["MODEL", fileVar, "HAD187001-198110.OI198111-202110.nc"])
+    inFile = "".join(["MODEL.", fileVar, ".HAD187001-198110.OI198111-", dataEnd, ".nc"])
     fH = cdm.open(os.path.join(sanPath, inFile), "r")
     var = fH(varName)
     print("var.shape", var.shape)
@@ -256,7 +264,7 @@ for varId in ["siconc", "tos"]:
             )
         else:
             print("Some calendar error, passing to pdb")
-            #pdb.set_trace()
+            # pdb.set_trace()
             # Dec (1) 2017 completion; June (6) 2016 completion
             time = makeCalendar(
                 "1870", endYr, monthEnd=(lastMn + 1), calendarStep="months"
@@ -301,6 +309,12 @@ for varId in ["siconc", "tos"]:
     )  # , grid=targetGrid, mask=sftof)
     print("Exiting createMonthlyMidpoints function..")
 
+
+
+    print('inputFile:', dataEnd)
+
+
+
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
     time = var.getTime()
@@ -308,13 +322,17 @@ for varId in ["siconc", "tos"]:
 
     # Cleanup partial year data - always end on full or half years (12/6)
     endInd = np.mod(time.asComponentTime()[-1].month, 6)
-    var = var[:-endInd,]
-    varBcs = varBcs[:-endInd,]
+    var = var[
+        :-endInd,
+    ]
+    varBcs = varBcs[
+        :-endInd,
+    ]
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
     time = var.getTime()
     print(time.asComponentTime()[-1])
-    if time.asComponentTime()[-1].month  not in (6, 12):
+    if time.asComponentTime()[-1].month not in (6, 12):
         pdb.set_trace()
 
     # 1. Write siconc/tos and siconcBcs/tosBcs
