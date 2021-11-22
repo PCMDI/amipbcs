@@ -216,7 +216,7 @@ c
       real relax, residmax1, resid1, addmax, addmin
       real r(nmon), avg(nmon), aa(nmon), bb(nmon), cc(nmon),
      &     add(nmon)
-      double precision s(nmon), sum
+      double precision s(nmon), sums
 c
 c     Check print statements are showing in python calling console
       print*, 'solvmid executing. alat:', alat, ' alon:', alon
@@ -355,7 +355,7 @@ c            represent a single period of a repeating cycle)
 c
          nnn = 0
 c        begin iteration procedure
-  105    sum = 0.0
+  105    sums = 0.0d0
          residmax = 0.0
 
 c         calc. latest approximation of means (given mid-month values)
@@ -376,10 +376,10 @@ c             call numer(delta, tmin, tmax, bbmin, a(n), c(n), ss(nm),
 c     &                ss(n), ss(np), aa(n), bb(n), cc(n), avg(n))
            endif
            r(n) = obsmean(n) - avg(n)
-           sum = sum + abs(r(n))
+           sums = sums + abs(r(n))
            residmax = amax1(residmax, abs(r(n)))
   110    continue
-         resid = real(sum)/nmon
+         resid = real(sums)/nmon
 c
          if (residmax .gt. conv) then
 c
@@ -409,7 +409,7 @@ c            solve for new estimate of mid-month values
              call cyclic(alon, alat, aa, bb, cc, cc(nmon), aa(1), r, s,
      &                nmon)
              do 120 n=1,nmon
-               ss(n) = ss(n) + real(relax) * real(s(n))
+               ss(n) = ss(n) + relax * real(s(n))
   120        continue
 c            if ss exceeds tmax or tmin, then it should exceed it no
 c                more than absolutely necessary:
@@ -518,7 +518,7 @@ c
 c
 c            calculate jacobian and estimate of residual
 c
-             sum = 0.0
+             sums = 0.0d0
              residmax1 = 0.0
              do 210 k = 2, kk-1
                nm = mod((k+jbeg(j)-3), nmon) + 1
@@ -537,7 +537,7 @@ c     &                 ss(nm), ss(n), ss(np), aa(k), bb(k), cc(k),
 c     &                 avg(k))
                endif
                r(k) = obsmean(n) - avg(k)
-               sum = sum + abs(r(k))
+               sums = sums + abs(r(k))
                residmax1 = amax1(residmax1, abs(r(k)))
 
 
@@ -553,7 +553,7 @@ c           New diagnostics 210929
 
 
   210        continue
-             resid1 = real(sum)/(kk-2)
+             resid1 = real(sums)/(kk-2)
 c
              if (residmax1 .gt. conv) then
 c
@@ -598,7 +598,7 @@ c                solve for new estimate of mid-month values
      &                 s(2), kkk)
                  do 220 k=2,kk-1
                    n  = mod((k+jbeg(j)-2), nmon) + 1
-                   ss(n) = ss(n) + real(relax) * real(s(k))
+                   ss(n) = ss(n) + relax * real(s(k))
   220            continue
 c               if ss exceeds tmax or tmin, then it should exceed it no
 c                    more than absolutely necessary:
@@ -704,7 +704,7 @@ c
              endif
 c
             niter = max0(niter, nnn)
-            resid = resid + real(sum)
+            resid = resid + real(sums)
             residmax = amax1(residmax, residmax1)
 
 

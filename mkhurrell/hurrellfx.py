@@ -226,6 +226,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD  3 Nov 2021     - Comment solvmid debug statements
     PJD 15 Nov 2021     - Added edaysl from addClimo
     PJD 18 Nov 2021     - Added padding evaluation code
+    PJD 22 Nov 2022     - Updated jcnt np.array -> int type and back -> np.array
 
     """
     # regrid data if needed
@@ -458,7 +459,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             tosimp[:, i, j] = ss[24:-edaysl]
 
             # if i=icheck and j=jcheck:
-            if notconverg > 0:
+            if notconverg == 4000:  ##> 0:
                 print(
                     "Not converged - ", "j:", j, "alon:", alon, "i:", i,
                     "alat:", alat, "conv:", conv, "dt:", dt, "tmin:", tmin,
@@ -474,6 +475,10 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 print("cc:     ", cc)
                 print("obsmean:", obsmean)
                 pdb.set_trace()
+                # plt.plot(aa)
+                # plt.plot(cc)
+                # plt.plot(obsmean)
+
 
             # test for convergence
             # if notconverg > 0:
