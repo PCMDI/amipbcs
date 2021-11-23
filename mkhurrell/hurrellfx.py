@@ -459,7 +459,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             tosimp[:, i, j] = ss[24:-edaysl]
 
             # if i=icheck and j=jcheck:
-            if notconverg == 4000:  ##> 0:
+            if notconverg > 0:
                 print(
                     "Not converged - ", "j:", j, "alon:", alon, "i:", i,
                     "alat:", alat, "conv:", conv, "dt:", dt, "tmin:", tmin,

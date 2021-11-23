@@ -199,6 +199,8 @@ c                printed).
 c                *****  Python code should set jcnt to a negative integer before
 c                *****  first calling solvmid
 c
+c   PJD 22 Nov 2021 - Updated for check inputs
+
       implicit none
       integer nmon12
       parameter (nmon12=12)
@@ -220,6 +222,15 @@ c
 c
 c     Check print statements are showing in python calling console
       print*, 'solvmid executing. alat:', alat, ' alon:', alon
+
+c     Check inputs
+      print*, "solvmid - j:", j, "alon:", alon, "i:", i, "alat:",
+     & alat, "conv:", conv, "dt:", dt, "tmin:", tmin, "tmax:",
+     & tmax, "bbmin:", bbmin, "maxiter:", maxiter, "jcnt:",
+     & jcnt
+      print*, "len(aa):     ", size(aa)
+      print*, "len(cc):     ", size(cc)
+      print*, "len(obsmean):", size(obsmean)
 
 c
 c     set control on whether derivatives needed to compute jacobian will be
