@@ -227,7 +227,7 @@ c     Check inputs
       print*, "solvmid - j:", j, "alon:", alon, "i:", i, "alat:",
      & alat, "conv:", conv, "dt:", dt, "tmin:", tmin, "tmax:",
      & tmax, "bbmin:", bbmin, "maxiter:", maxiter, "jcnt:",
-     & jcnt
+     & jcnt, 'nmon:', nmon
       print*, "len(aa):     ", size(aa)
       print*, "len(cc):     ", size(cc)
       print*, "len(obsmean):", size(obsmean)
