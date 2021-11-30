@@ -256,7 +256,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
         mask = np.ones((len(lat), len(lon)))
 
     # set default values for tmid
-    maxiter = 500 ##200
+    maxiter = 200
     bbmin = 0.01  # 0.1  # 0.001
     jcnt = np.array(-1)
     if ftype == "sst":

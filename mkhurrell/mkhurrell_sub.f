@@ -249,6 +249,8 @@ c      delta = (tmax/tmin)/50
 c
       niter = 0
       notconverg = 0
+      resid = 0.
+      residmax = 0.
       do 40, n=1,nmon
         jumps(n) = 0
         aa(n) = 1.e20
@@ -257,8 +259,7 @@ c
         ss(n) = obsmean(n)
         add(n) = 0.0
   40  continue
-      resid = 0.
-      residmax = 0.
+
 c
 c    check for occurrence where obs monthly means are consecutively at upper
 c      and lower limits. If so, smooth data, being careful to preserve annual
