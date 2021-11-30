@@ -254,6 +254,8 @@ c
         aa(n) = 1.e20
         bb(n) = 1.e20
         cc(n) = 1.e20
+        ss(n) = obsmean(n)
+        add(n) = 0.0
   40  continue
       resid = 0.
       residmax = 0.
@@ -267,11 +269,7 @@ c
         write(9,'("       lat    lon   #jumps   #iter  failed    ",
      &    "segs    resid  residmax     jump times")')
       endif
-c
-      do 48 n=1,nmon
-        ss(n)=obsmean(n)
-        add(n) = 0.0
-   48 continue
+
 c
       n2 = nmon
       do 50 n=1,nmon
