@@ -80,6 +80,7 @@ PJD  3 Nov 2021     - Update for latest code; Code pads 12-months to beginning a
 PJD  4 Nov 2021     - Update for latest September 2021 data
 PJD 17 Nov 2021     - Switchout for latest October 2021 data
 PJD 18 Nov 2021     - Evaluating impact of 202109 vs 202110 input data
+PJD  2 Dec 2021     - Updates to hurrellfx.py and *sub.f - obs range checks
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -334,6 +335,8 @@ for varId in ["siconc", "tos"]:
     print(time.asComponentTime()[-1])
     if time.asComponentTime()[-1].month not in (6, 12):
         pdb.set_trace()
+
+'''
 
     # 1. Write siconc/tos and siconcBcs/tosBcs
     for varToCMOR in ["obs", "obsBcs"]:
@@ -608,7 +611,7 @@ for filePath in files:
 ###          sourceId, realm, frequency, gridLabel, dataVersion)
 # Create output files for publication
 ###createPubFiles(destPath, jsonId, jsonFilePaths, variableFilePaths)
-
+'''
 
 # %% Obsolete
 """
