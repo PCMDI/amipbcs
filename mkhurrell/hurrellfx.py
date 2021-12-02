@@ -17,6 +17,7 @@ PJD 15 Nov 2021     - Update addClimo to ensure last trailing month is December/
 PJD 15 Nov 2021     - Update createMonthlyMidpoints with edaysl argument from addClimo
 PJD 17 Nov 2021     - Update notconverg reporting - debug non-convergence
 PJD 18 Nov 2021     - Update createMonthlyMidpoints with padded/tosip evaluation
+PJD  2 Dec 2021     - Update addClimo with vmax/vmin arguments
 
 @author: pochedls and durack1
 """
@@ -64,9 +65,9 @@ def getJacobian(ndays):
     return aa, cc
 
 
-def addClimo(tosi, nyears, ndays, ftype):
+def addClimo(tosi, nyears, ndays, ftype, vmax, vmin):
     """
-    tosi, ndaysp = addClimo(tosi, nyears, ndays, ftype)
+    tosi, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype, vmax, vmin)
 
     Function adds a one-year climatology (calculated from the first nyears of
     the start and end of the time series) to the start and end of the sst/sic
@@ -79,6 +80,7 @@ def addClimo(tosi, nyears, ndays, ftype):
 
     PJD 15 Nov 2021     - Added edaysl; updated pad to 24 months from start and
                           up to 23 months (if January) to end
+    PJD  2 Dec 2021     - Added vmax/vmin and reset if pad data out of bounds
     """
 
     # Create decorrel vectors that are 24-months long
@@ -140,6 +142,12 @@ def addClimo(tosi, nyears, ndays, ftype):
     # add these anomaly time series to the start and ending climatologies
     sclimo = sclimo + sanom
     eclimo = eclimo + eanom
+
+    # check values are within ranges, reset if not
+    sclimo[sclimo > vmax] = vmax
+    sclimo[sclimo < vmin] = vmin
+    eclimo[eclimo > vmax] = vmax
+    eclimo[eclimo < vmin] = vmin
 
     # concatenate climatology with start/sclimo and end/eclimo
     tosi = np.concatenate((sclimo, tosi, eclimo), axis=0)
@@ -226,7 +234,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD  3 Nov 2021     - Comment solvmid debug statements
     PJD 15 Nov 2021     - Added edaysl from addClimo
     PJD 18 Nov 2021     - Added padding evaluation code
-    PJD 22 Nov 2022     - Updated jcnt np.array -> int type and back -> np.array
+    PJD 22 Nov 2021     - Updated jcnt np.array -> int type and back -> np.array
+    PJD  2 Dec 2021     - Updated addClimo call with t/vmax and vmin args
 
     """
     # regrid data if needed
@@ -288,7 +297,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     # construct jacobian for solver
     ndays = getNumDays(time)
-    tosip, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype)
+    tosip, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype, tmax, tmin)
     aa, cc = getJacobian(ndaysp)
 
     # test that January 1868 and December ~2022 are start and end
