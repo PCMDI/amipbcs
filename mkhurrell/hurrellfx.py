@@ -29,7 +29,7 @@ import numpy as np
 # Control debug output format
 np.set_printoptions(formatter={"float": lambda x: "{:8.3f}".format(x)})
 from calendar import monthrange
-#rom matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 import pdb
 
 
@@ -270,34 +270,34 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     jcnt = np.array(-1)
     if ftype == "sst":
         conv = 0.001
-        tmax = 400.0
+        vmax = 400.0
         dt = 0.001
         if (
             (units.lower() == "celcius")
             | (units.lower() == "c")
             | (units.lower() == "degc")
         ):
-            tmin = -1.8
+            vmin = -1.8
         elif (units.lower() == "kelvin") | (units.lower() == "k"):
-            tmin = 271.35
+            vmin = 271.35
     elif ftype == "ice":
-        tmin = 0.0
+        vmin = 0.0
         if (units.lower() == "fraction") | (units.lower() == "1"):
             conv = 0.0001
-            tmax = 1.0
+            vmax = 1.0
         elif (units.lower() == "percent") | (units.lower() == "%"):
             conv = 0.01
-            tmax = 100.0
-        dt = (tmax - tmin) / 100.0
+            vmax = 100.0
+        dt = (vmax - vmin) / 100.0
 
-    maxFlag = np.max(np.max(np.max(tosi))) > tmax
-    minFlag = np.min(np.min(np.min(tosi))) < tmin
+    maxFlag = np.max(np.max(np.max(tosi))) > vmax
+    minFlag = np.min(np.min(np.min(tosi))) < vmin
     if minFlag | maxFlag:
         raise ValueError("Underlying data exceeds limits for " + ftype + " data")
 
     # construct jacobian for solver
     ndays = getNumDays(time)
-    tosip, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype, tmax, tmin)
+    tosip, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype, vmax, vmin)
     aa, cc = getJacobian(ndaysp)
 
     # test that January 1868 and December ~2022 are start and end
@@ -439,8 +439,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                     alat,
                     conv,
                     dt,
-                    tmin,
-                    tmax,
+                    vmin,
+                    vmax,
                     bbmin,
                     maxiter,
                     aa,
@@ -471,8 +471,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             if notconverg > 0:
                 print(
                     "Not converged - ", "j:", j, "alon:", alon, "i:", i,
-                    "alat:", alat, "conv:", conv, "dt:", dt, "tmin:", tmin,
-                    "tmax:", tmax, "bbmin:", bbmin, "maxiter:", maxiter,
+                    "alat:", alat, "conv:", conv, "dt:", dt, "vmin:", vmin,
+                    "vmax:", vmax, "bbmin:", bbmin, "maxiter:", maxiter,
                     "jcnt:", jcnt
                 )
                 print(
