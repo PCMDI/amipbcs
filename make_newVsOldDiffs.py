@@ -52,6 +52,7 @@ PJD 16 Sep 2021     - Debug outFile list
 PJD 17 Sep 2021     - Added x = vcs.init()/ffmpeg to delete queue (is there a need to joblib this?)
 PJD  3 Nov 2021     - Updated for latest data
 PJD 15 Nov 2021     - Updated for latest v1.2.0 data
+PJD  2 Dec 2021     - Updated for latest data
 
 @author: durack1
 """
@@ -74,11 +75,11 @@ outPath = '/work/durack1/Shared/150219_AMIPForcingData'
 # New data
 verPath = '/p/user_pub/climate_work/durack1/'
 #ver = 'v20210909'  # Update for each run
-ver = 'v20211115'
+ver = 'v20211202'
 verId = '-v1-2-0'
 verPath = os.path.join(
     verPath, 'input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-2-0/')
-# tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-2-0_gn_187001-202108.nc
+# tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-2-0_gn_187001-202106.nc
 # Old data
 verOld = 'v20191121'  # Update for each run
 verOldPath = '/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-6/'

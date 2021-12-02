@@ -1,0 +1,119 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module pcmdiAmipBcs ! in 
+    interface  ! in :pcmdiAmipBcs
+        subroutine solvmid(alon,alat,nmon,conv,dt,vmin,vmax,bbmin,maxiter,a,c,obsmean,ss,icnt,niter,notconverg,jj,resid,residmax,jumps,jcnt) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            real :: alon
+            real :: alat
+            integer, optional,check(len(a)>=nmon),depend(a) :: nmon=len(a)
+            real :: conv
+            real :: dt
+            real :: vmin
+            real :: vmax
+            real :: bbmin
+            integer :: maxiter
+            real dimension(nmon) :: a
+            real dimension(nmon),depend(nmon) :: c
+            real dimension(nmon),depend(nmon) :: obsmean
+            real dimension(nmon),intent(out),depend(nmon) :: ss
+            integer intent(out) :: icnt
+            integer intent(out) :: niter
+            integer intent(out) :: notconverg
+            integer intent(out) :: jj
+            real intent(out) :: resid
+            real intent(out) :: residmax
+            integer dimension(nmon),intent(out),depend(nmon) :: jumps
+            integer intent(inout) :: jcnt
+        end subroutine solvmid
+        subroutine numer(delta,tmin,tmax,bbmin,a,c,ssm,ss,ssp,aa,bb,cc,avg) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            real :: delta
+            real :: tmin
+            real :: tmax
+            real :: bbmin
+            real :: a
+            real :: c
+            real :: ssm
+            real :: ss
+            real :: ssp
+            real :: aa
+            real :: bb
+            real :: cc
+            real :: avg
+        end subroutine numer
+        subroutine approx(tmin,tmax,a,c,ssm,ss,ssp,aa,bb,cc,avg) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            real :: tmin
+            real :: tmax
+            real :: a
+            real :: c
+            real :: ssm
+            real :: ss
+            real :: ssp
+            real :: aa
+            real :: bb
+            real :: cc
+            real :: avg
+        end subroutine approx
+        subroutine tridag(alon,alat,a,b,c,r,u,n) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            real :: alon
+            real :: alat
+            real dimension(n) :: a
+            real dimension(n),depend(n) :: b
+            real dimension(n),depend(n) :: c
+            real dimension(n),depend(n) :: r
+            double precision dimension(n),depend(n) :: u
+            integer, optional,check(len(a)>=n),depend(a) :: n=len(a)
+        end subroutine tridag
+        subroutine cyclic(alon,alat,a,b,c,alpha,beta,r,x,n) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            real :: alon
+            real :: alat
+            real dimension(n) :: a
+            real dimension(n),depend(n) :: b
+            real dimension(n),depend(n) :: c
+            real :: alpha
+            real :: beta
+            real dimension(n),depend(n) :: r
+            double precision dimension(n),depend(n) :: x
+            integer, optional,check(len(a)>=n),depend(a) :: n=len(a)
+        end subroutine cyclic
+        function amean(tmin,tmax,a,c,ssm,ss,ssp) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            real :: tmin
+            real :: tmax
+            real :: a
+            real :: c
+            real :: ssm
+            real :: ss
+            real :: ssp
+            real :: amean
+        end function amean
+        subroutine adjlimit(maxormin,tlimit,a,c,sm,s,sp) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            integer :: maxormin
+            real :: tlimit
+            real :: a
+            real :: c
+            real :: sm
+            real :: s
+            real :: sp
+        end subroutine adjlimit
+        subroutine errormsg1(jcnt,nmon,n,alon,alat,add,obsmean) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            integer :: jcnt
+            integer, optional,check(len(obsmean)>=nmon),depend(obsmean) :: nmon=len(obsmean)
+            integer :: n
+            real :: alon
+            real :: alat
+            real :: add
+            real dimension(nmon) :: obsmean
+        end subroutine errormsg1
+        subroutine errormsg2(icnt,jcnt,alon,alat,addmax,addmin) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
+            integer :: icnt
+            integer :: jcnt
+            real :: alon
+            real :: alat
+            real :: addmax
+            real :: addmin
+        end subroutine errormsg2
+    end interface 
+end python module pcmdiAmipBcs
+
+! This file was auto-generated with f2py (version:1.21.4).
+! See http://cens.ioc.ee/projects/f2py2e/

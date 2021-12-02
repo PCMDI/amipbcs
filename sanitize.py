@@ -81,6 +81,7 @@ PJD  4 Nov 2021     - Update for latest September 2021 data
 PJD 17 Nov 2021     - Switchout for latest October 2021 data
 PJD 18 Nov 2021     - Evaluating impact of 202109 vs 202110 input data
 PJD  2 Dec 2021     - Updates to hurrellfx.py and *sub.f - obs range checks
+PJD  2 Dec 2021     - Renamed mkhurrell -> pcmdiAmipBcs; hurrellfx.py -> pcmdiAmipBcsFx.py
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -103,16 +104,14 @@ Saturday                 9th
 """
 import numpy as np
 import MV2 as mv
-
-# import cmor
+import cmor
 import datetime
-
 # import gc
 import glob
 import os
 import pytz
 import sys
-import pdb  # json
+import pdb
 import cdms2 as cdm
 import cdat_info as cdatInfo
 import cdutil as cdu
@@ -121,8 +120,8 @@ sys.path.insert(0, "/home/durack1/git/durolib/durolib")
 from durolib import makeCalendar  # globalAttWrite, mkDirNoOSErr
 sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
 from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
-sys.path.insert(0, "mkhurrell")
-import hurrellfx
+sys.path.insert(0, "pcmdiAmipBcs")
+import pcmdiAmipBcsFx
 
 # %% Kludge for json/encoder warning
 # import warnings
@@ -205,14 +204,9 @@ dataEnd = "202110"
 #dataEnd = "202108"
 #sanPath = os.path.join(homePath, "SST_1-2-0_old2")
 #dataEnd = "202106"
-sanPath = os.path.join(homePath, "SST_1-2-0-1-1-6")
-dataEnd = "201903"
+#sanPath = os.path.join(homePath, "SST_1-2-0-1-1-6")
+#dataEnd = "201903"
 print("sanPath:", sanPath)
-
-# %% Get files
-# newList = sorted(glob.glob(os.path.join(sanPath, 'MODEL*.nc')))
-# print(os.path.join(sanPath, 'MODEL*.nc'))
-# print('newList:', newList)
 
 # %% Process each variable
 varList = {}
@@ -282,8 +276,6 @@ for varId in ["siconc", "tos"]:
     # Reassign correct calendar/time axis to variable
     var.setAxis(0, time)
 
-    # RUN HURRELL_WRAPPER.py to generate BC output
-    # run ./compile to refresh binaries (ensure conda env is consistent!)
     # Get target grid
     targetGrid = var.getGrid()
     print("grid generated..")
@@ -302,20 +294,16 @@ for varId in ["siconc", "tos"]:
     f.close()
     print("sftof read..")
 
+    # run pcmdiAmipBcs/compile to refresh binaries (ensure conda env is consistent!)
     # create tos midpoint values
     print("Entering createMonthlyMidpoints function..")
-    nyears = 10  # Buffer 12-month climatology calculated over nyears
-    varBcs = hurrellfx.createMonthlyMidpoints(
-        var, ftype, units, nyears, outVar
-    )  # , grid=targetGrid, mask=sftof)
+    nyears = 10  # Buffer ~24-month climatology calculated over nyears
+    varBcs = pcmdiAmipBcsFx.createMonthlyMidpoints(
+        var, ftype, units, nyears, outVar)  # , grid=targetGrid, mask=sftof)
     print("Exiting createMonthlyMidpoints function..")
 
-
-
+    # check input file and and output times
     print('inputFile:', dataEnd)
-
-
-
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
     time = var.getTime()
@@ -323,20 +311,14 @@ for varId in ["siconc", "tos"]:
 
     # Cleanup partial year data - always end on full or half years (12/6)
     endInd = np.mod(time.asComponentTime()[-1].month, 6)
-    var = var[
-        :-endInd,
-    ]
-    varBcs = varBcs[
-        :-endInd,
-    ]
+    var = var[:-endInd,]
+    varBcs = varBcs[:-endInd,]
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
     time = var.getTime()
     print(time.asComponentTime()[-1])
     if time.asComponentTime()[-1].month not in (6, 12):
         pdb.set_trace()
-
-'''
 
     # 1. Write siconc/tos and siconcBcs/tosBcs
     for varToCMOR in ["obs", "obsBcs"]:
@@ -395,14 +377,11 @@ for varId in ["siconc", "tos"]:
         f.close()
         cmor.close()
 
-
 # 2. Create areacello and sftof and write
 
 # areacello
 areacello = cdu.area_weights(
-    var[
-        0,
-    ]
+    var[0,]
 )
 # areacello.sum() = 1.0
 earthSurfaceArea = 510.1
@@ -607,311 +586,7 @@ for filePath in files:
     jsonFilePaths.append(jsonFilePath)
 
 # Clean up permissions
-###washPerms(destPath, activityId, mipEra, targetMip, institutionId,
-###          sourceId, realm, frequency, gridLabel, dataVersion)
+washPerms(destPath, activityId, mipEra, targetMip, institutionId,
+          sourceId, realm, frequency, gridLabel, dataVersion)
 # Create output files for publication
-###createPubFiles(destPath, jsonId, jsonFilePaths, variableFilePaths)
-'''
-
-# %% Obsolete
-"""
-count = 0
-for filePath in newList:
-    obsVsBC = filePath.split('/')[-1].split('_')[0]
-    varName = filePath.split('/')[-1].split('_')[1]
-    climCheck = filePath.split('/')[-1].split('_')[-1]
-    if obsVsBC == 'bcinfo' or obsVsBC == 'spinup' or obsVsBC == '.out' or climCheck == 'clim.nc':
-        print('Invalid file, skipping..')
-        continue
-    if 'bc' in obsVsBC:
-        BC = 'bcs'
-        # Turn off time_bounds - only latitude/longitude written
-        cdm.setAutoBounds(2)
-    else:
-        BC = ''
-        # Turn on time_bounds - time/latitude/longitude written
-        cdm.setAutoBounds(1)
-    if varName == 'sst':
-        varLoad = ''.join(['tos', BC])
-        varPath = 'tos'
-    else:
-        varLoad = ''.join([varName, BC])
-        varPath = varName
-    print('filePath:', filePath)
-    fH = cdm.open(filePath)
-    if (last_month == 6 and last_year in filePath):
-        var = fH(varLoad, time=slice(0, 6))
-    else:
-        var = fH(varLoad)
-    varLen = var.shape[0]
-
-    # %% Cleanup coord atts
-    # time
-    time = var.getAxis(0)
-    time.standard_name = 'time'
-    time.long_name = 'time'
-    time.calendar = 'gregorian'  # Force Gregorian
-    time.axis = 'T'
-    time.toRelativeTime('days since 1870-1-1')  # Fix negative values
-    # Resolve issues with bounds being mid-time values rather than month-end/start values
-    cdu.setTimeBoundsMonthly(time)
-    if BC == 'bcs':
-        time._bounds_ = None  # Required to purge bounds created by cdu call above
-
-    # %% Write timestep to composite variable
-    if varLen == 12:
-        countUp = count + 12
-    else:
-        countUp = count + varLen
-    varComp[count:countUp] = var
-    timeComp[count:countUp] = time
-    count = countUp
-
-    # %% Cleanup coord atts and create areacello
-    if last_year in filePath:
-        # latitude
-        latitude = var.getAxis(1)
-        latitude.id = 'lat'
-        latitude.standard_name = 'latitude'
-        latitude.long_name = 'latitude'
-        latitude.axis = 'Y'
-        delattr(latitude, 'realtopology')
-        # longitude
-        longitude = var.getAxis(2)
-        longitude.id = 'lon'
-        longitude.standard_name = 'longitude'
-        longitude.long_name = 'longitude'
-        longitude.axis = 'X'
-        delattr(longitude, 'realtopology')
-
-        # Create areacello and sftof variables
-        fxFiles = ['areacello', 'sftof']
-        if 'amipbc_sic' in filePath:
-            # areacello
-            areacello = cdu.area_weights(var[0, ])  # areacello.sum() = 1.0
-            earthSurfaceArea = 510.1  # million km2
-            earthSurfaceAreaM2 = earthSurfaceArea*1e12  # m2
-            areacelloM2 = areacello*earthSurfaceAreaM2
-            areacelloM2.standard_name = 'cell_area'
-            areacelloM2.long_name = 'Ocean Grid-Cell Area'
-            areacelloM2.units = 'm2'
-            areacelloM2.id = 'areacello'
-            areacello = areacelloM2
-            del(areacelloM2)
-            # sftlf
-            maskFile = '/work/durack1/Shared/obs_data/WOD13/170425_WOD13_masks_1deg.nc'
-            fMask = cdm.open(maskFile)
-            landSea1deg = fMask('landsea')
-            # Fix longitude
-            a = landSea1deg[:, 0:180]
-            b = landSea1deg[:, 180:]
-            c = np.concatenate((b, a), axis=1)
-            del(a, b)
-            landSea1degTmp = cdm.createVariable(c, type='int16')
-            del(c)
-            # Impose identical axes to areacello
-            landSea1degTmp.setAxis(0, areacello.getAxis(0))
-            landSea1degTmp.setAxis(1, areacello.getAxis(1))
-            landSea1deg = landSea1degTmp
-            del(landSea1degTmp)
-            landSea1deg = mv.where(landSea1deg > 1., 0.,
-                                   landSea1deg)  # sea=0, land=1
-            # Change land > 2.
-            landSea1deg = mv.where(landSea1deg == 1., 2., landSea1deg)
-            # Change sea > 100.
-            landSea1deg = mv.where(landSea1deg == 0., 100., landSea1deg)
-            # Change land > 0.
-            landSea1deg = mv.where(landSea1deg == 2., 0., landSea1deg)
-            # Need to tweak some cells
-            sftof = cdm.createVariable(landSea1deg)
-            sftof.standard_name = 'sea_area_fraction'
-            sftof.long_name = 'Sea Area Fraction'
-            sftof.units = '%'
-            sftof.id = 'sftof'
-
-            # Create output files
-            for counter, output in enumerate(fxFiles):
-                outFileA = os.path.join(sanPath, filePath.split('/')[-1])
-                outFileA = outFileA.replace('_'.join(['', last_year]), '')
-                #outFileA = outFileA.replace('sst',output)
-                outFileA = outFileA.replace('sic', output)
-                print('Processing: ', outFileA)
-                if not os.path.exists(sanPath):
-                    mkDirNoOSErr(sanPath)
-                if os.path.exists(outFileA):
-                    os.remove(outFileA)
-                fO = cdm.open(outFileA, 'w')
-                # global atts
-                # 'noid' option prevents data_contact and institution being written
-                globalAttWrite(fO, options='noid')
-                fO.Conventions = 'CF-1.6'
-                fO.sync()
-                fxVar = eval(output)
-                fO.title = fxVar.long_name
-                fO.activity_id = activity_id
-                fO.further_info_url = further_info_url
-                fO.comment = comment
-                fO.sync()
-                fO.contact = contact
-                fO.sync()  # Overwritten globalAttWrite
-                utcNow = datetime.datetime.utcnow()
-                utcNow = utcNow.replace(tzinfo=pytz.utc)
-                timeFormat = utcNow.strftime("%Y-%m-%dT%H:%M:%SZ")
-                fO.creation_date = timeFormat
-                fO.data_structure = data_structure
-                fO.institute_id = institute_id
-                fO.sync()
-                fO.institution = institution
-                fO.sync()
-                fO.license = license_txt
-                fO.mip_specs = mip_specs
-                fO.project_id = project_id
-                fO.realm = 'fx'
-                fO.references = ref_obs
-                fO.sync()
-                fO.source = source
-                fO.source_id = dataVer
-                fO.write(fxVar.astype('float32'))
-                fO.close()
-                if counter == 0:
-                    outFileA1 = outFileA
-                elif counter == 1:
-                    outFileA2 = outFileA
-            del(areacello, sftof, earthSurfaceArea,
-                earthSurfaceAreaM2, counter, outFileA)
-            gc.collect()
-    del(var, time)
-    gc.collect()
-    fH.close()
-
-    # %% Write to outfile
-    if last_year in filePath:
-        # # Convert variables to cdms transient variables
-        # var     = cdm.createVariable(varComp)
-        # time    = cdm.createAxis(timeComp,id='time')
-        # # Assign new coord atts
-        # var.setAxis(0,time)
-        # var.setAxis(1,latitude)
-        # var.setAxis(2,longitude)
-        # time.standard_name      = 'time'
-        # time.long_name          = 'time'
-        # time.units              = 'days since 1870-1-1'
-        # time.calendar           = 'gregorian'
-        # time.axis               = 'T'
-
-        # pdb.set_trace()
-        if last_month == 6:
-            end_year = str(int(last_year))  # Half year/Same year
-            time = makeCalendar('1870', end_year, monthEnd=(
-                last_month+1), calendarStep='months')
-        else:  # Case of full year; last_month = 12
-            end_year = str(int(last_year)+1)  # Correct off by one, full year
-            if last_month == 12:
-                # Dec (1) 2017 completion; June (6) 2016 completion
-                time = makeCalendar(
-                    '1870', end_year, monthEnd=1, calendarStep='months')
-            else:
-                print('Some calendar error, passing to pdb')
-                pdb.set_trace()
-                # Dec (1) 2017 completion; June (6) 2016 completion
-                time = makeCalendar('1870', end_year, monthEnd=(
-                    last_month+1), calendarStep='months')
-        print('first:', time.asComponentTime()[0])
-        print('last: ', time.asComponentTime()[-1])
-        print('time len:', len(time))
-        # sys.exit()
-        # Test new time axis
-        # print time.asComponentTime()[0]
-        # print time.asComponentTime()[-1]
-        # print len(time)
-        # Trim blank entries
-        # print varComp.shape
-        varComp = varComp[0:count, ]
-        # print varComp.shape
-        # Create new variable and append axes
-        var = cdm.createVariable(varComp)
-        var.setAxis(0, time)
-        var.setAxis(1, latitude)
-        var.setAxis(2, longitude)
-
-        if BC == 'bcs':
-            var.cell_methods = 'time: point'
-            longTxt = 'constructed mid-month'
-            dataUsageTips = 'The mid-month data should be linearly interpolated in time and then clipped for use as boundary conditions to drive AMIP simulations as described at: https://pcmdi.llnl.gov/mips/amip/'
-            refTxt = ref_bcs
-        else:
-            var.cell_methods = 'time: mean'
-            longTxt = 'observed monthly mean'
-            dataUsageTips = 'The observed monthly-mean data should *NOT* be used to drive AMIP simulations. For further information see: https://pcmdi.llnl.gov/mips/amip/'
-            refTxt = ref_obs
-
-        if varName == 'sst':
-            var.id = ''.join(['tos', BC])
-            var.name = ''.join(['tos', BC])
-            var.long_name = ' '.join(
-                ['AMIP', longTxt, 'sea surface temperature'])
-            var.standard_name = 'sea_surface_temperature'
-            var.units = 'degC'  # 'K'
-            realmTxt = 'ocean'
-        elif varName == 'sic':
-            var.id = ''.join(['siconc', BC])
-            var.name = ''.join(['siconc', BC])
-            var.long_name = ' '.join(
-                ['AMIP', longTxt, 'sea ice area fraction'])
-            var.standard_name = 'sea_ice_area_fraction'
-            var.units = '%'
-            realmTxt = 'seaIce'
-
-        # %% Create output file
-        outFile = os.path.join(sanPath, filePath.split('/')[-1])
-        outFile = outFile.replace(last_year, time_period)
-        outFile = outFile.replace('sst', 'tos')
-        outFile = outFile.replace('sic', 'siconc')
-        print('Processing: ', outFile)
-        if not os.path.exists(sanPath):
-            mkDirNoOSErr(sanPath)
-        if os.path.exists(outFile):
-            os.remove(outFile)
-        fO = cdm.open(outFile, 'w')
-        # global atts
-        # 'noid' option prevents data_contact and institution being written
-        globalAttWrite(fO, options='noid')
-        fO.Conventions = 'CF-1.6'
-        fO.sync()
-        fO.title = var.long_name
-        fO.activity_id = activity_id
-        fO.further_info_url = further_info_url
-        fO.comment = comment
-        fO.sync()
-        fO.contact = contact
-        fO.sync()  # Overwritten globalAttWrite
-        utcNow = datetime.datetime.utcnow()
-        utcNow = utcNow.replace(tzinfo=pytz.utc)
-        timeFormat = utcNow.strftime("%Y-%m-%dT%H:%M:%SZ")
-        fO.creation_date = timeFormat
-        fO.data_structure = data_structure
-        fO.data_usage_tips = dataUsageTips
-        fO.sync()
-        fO.frequency = 'mon'
-        fO.sync()
-        fO.institute_id = institute_id
-        fO.sync()
-        fO.institution = institution
-        fO.sync()
-        fO.license = license_txt
-        fO.mip_specs = mip_specs
-        if BC == '':
-            fO.product = 'observations'
-        else:
-            fO.product = 'derived'
-        fO.project_id = project_id
-        fO.realm = realmTxt
-        fO.references = refTxt
-        fO.sync()
-        fO.source = source
-        fO.source_id = dataVer
-        fO.write(var.astype('float32'))
-        del(time, latitude, longitude)
-        gc.collect()
-        fO.close()
-"""
+createPubFiles(destPath, jsonId, jsonFilePaths, variableFilePaths)

@@ -1,9 +1,10 @@
 c    This code was written by Karl Taylor with light modifications made by
 c    Stephen Po-Chedley to make it compatible with f2py
 c        (notably, add intent to some solvmid subroutine arguments)
-c    KT cleaned up code, comments were added for documentation, and
-c        additional diagnostics are now returned (3 August 2019)
-c    PJD added print statement to solvmid to test python console (22 Sept 2021)
+c    KT   3 Aug 2019 - cleaned up code, comments were added for documentation,
+c                      and additional diagnostics are now returned
+c    PJD 22 Sep 2021 - added print statement to solvmid to test python console
+c    PJD  2 Dec 2021 - Renamed mkhurrell_sub.f - pcmdiAmipBcs_sub.f
 c
 c 34567812345678123456781234567812345678123456781234567812345678123456781234567890
 c
@@ -201,6 +202,7 @@ c                *****  first calling solvmid
 c
 c   PJD 22 Nov 2021 - Updated for check inputs
 c   PJD  2 Dec 2021 - Updated tmax/min -> vmax/min following hurrellfx.py
+c   PJD  2 Dec 2021 - Commented out write(9) statements, print/write(*) statements
 
       implicit none
       integer nmon12
@@ -225,13 +227,13 @@ c     Check print statements are showing in python calling console
       print*, 'solvmid executing. alat:', alat, ' alon:', alon
 
 c     Check inputs
-      print*, "solvmid - j:", j, "alon:", alon, "i:", i, "alat:",
-     & alat, "conv:", conv, "dt:", dt, "vmin:", vmin, "vmax:",
-     & vmax, "bbmin:", bbmin, "maxiter:", maxiter, "jcnt:",
-     & jcnt, 'nmon:', nmon
-      print*, "len(aa):     ", size(aa)
-      print*, "len(cc):     ", size(cc)
-      print*, "len(obsmean):", size(obsmean)
+c      print*, "solvmid - j:", j, "alon:", alon, "i:", i, "alat:",
+c     & alat, "conv:", conv, "dt:", dt, "vmin:", vmin, "vmax:",
+c     & vmax, "bbmin:", bbmin, "maxiter:", maxiter, "jcnt:",
+c     & jcnt, 'nmon:', nmon
+c      print*, "len(aa):     ", size(aa)
+c      print*, "len(cc):     ", size(cc)
+c      print*, "len(obsmean):", size(obsmean)
 
 c
 c     set control on whether derivatives needed to compute jacobian will be
@@ -263,12 +265,11 @@ c
 
 c
 c    check for occurrence where obs monthly means are consecutively at upper
-c      and lower limits. If so, smooth data, being careful to preserve annual
-c      mean. Also initialize ss = obsmean
-c
+c    and lower limits. If so, smooth data, being careful to preserve annual
+c    mean. Also initialize ss = obsmean
       if (jcnt .lt. 0) then
         jcnt = 0
-        write(9,'("       lat    lon   #jumps   #iter  failed    ",
+        write(*,'("       lat    lon   #jumps   #iter  failed    ",
      &    "segs    resid  residmax     jump times")')
       endif
 
@@ -552,15 +553,13 @@ c     &                 avg(k))
                residmax1 = amax1(residmax1, abs(r(k)))
 
 
-
 c           New diagnostics 210929
-               if (((j .eq. 78) .and. (jbeg(j) .eq. 1274)) .or.
-     &             ((j .eq. 107) .and.  (jbeg(j) .eq. 1730))) then
-                 write(9, '(3(i6), 6(1pe12.2))')
-     &                nnn, k, n, r(k), avg(k), obsmean(n), ss(n),
-     &                aa(k), bb(k), cc(k)
-               endif
-
+c               if (((j .eq. 78) .and. (jbeg(j) .eq. 1274)) .or.
+c     &             ((j .eq. 107) .and.  (jbeg(j) .eq. 1730))) then
+c                 write(9, '(3(i6), 6(1pe12.2))')
+c     &                nnn, k, n, r(k), avg(k), obsmean(n), ss(n),
+c     &                aa(k), bb(k), cc(k)
+c               endif
 
 
   210        continue
@@ -579,7 +578,7 @@ c               endif
      &           then
 c                 print*, ' '
 c                 print*, 'latitude = ', alat, ' longitude = ', alon
-                 write(*,'(f8.1, i5, 2f8.1)') residmax1, nnn, alat, alon
+c                 write(*,'(f8.1, i5, 2f8.1)') residmax1, nnn, alat, alon
 c
                  n = jbeg(j)
                  avg(1) = obsmean(n)
@@ -588,12 +587,12 @@ c
                  avg(kk) = obsmean(n)
                  r(kk) = 0.0
 c
-                 do 215 k=1,kk
-                   n  = mod((k+jbeg(j)-2), nmon) + 1
-                   write(*,'(i5, 8(1pe10.2), i5, i5)') n, obsmean(n),
-     &                  avg(k), r(k), s(k), ss(n), aa(k),
-     &                  bb(k), cc(k), j, jj
-  215            continue
+c                 do 215 k=1,kk
+c                   n  = mod((k+jbeg(j)-2), nmon) + 1
+c                   write(*,'(i5, 8(1pe10.2), i5, i5)') n, obsmean(n),
+c     &                  avg(k), r(k), s(k), ss(n), aa(k),
+c     &                  bb(k), cc(k), j, jj
+c  215            continue
                endif
 c
                if (nnn .gt. maxiter) then
@@ -719,34 +718,28 @@ c
             residmax = amax1(residmax, residmax1)
 
 
-
 c           New diagnostics 210929
-            i1 = mod(jbeg(j)-1, nmon) + 1
-            i2 = min0( mod((kk-2+jbeg(j)), nmon) + 1, nmon)
-            write(9, '(i6, i6, i6, i6, (1pe12.2))')
-     &            j, jbeg(j), jend, kk, (ss(k), k=i1,i2)
-            write(9, '(i6, (1pe12.2))')
-     &            niter, resid, residmax, (avg(k), k=1,kk)
-            write(9, '(i6, 2000(1pe12.2))')
-     &            niter, residmax1, residmax, (obsmean(k), k=i1,i2)
+c            i1 = mod(jbeg(j)-1, nmon) + 1
+c            i2 = min0( mod((kk-2+jbeg(j)), nmon) + 1, nmon)
+c            write(9, '(i6, i6, i6, i6, (1pe12.2))')
+c     &            j, jbeg(j), jend, kk, (ss(k), k=i1,i2)
+c            write(9, '(i6, (1pe12.2))')
+c     &            niter, resid, residmax, (avg(k), k=1,kk)
+c            write(9, '(i6, 2000(1pe12.2))')
+c     &            niter, residmax1, residmax, (obsmean(k), k=i1,i2)
 c
 c               write(*,'(i5, 8(1pe10.2))') n, obsmean(n), avg(n), r(n),
 c     &              s(n), ss(n), aa(n), bb(n), cc(n)
 
 
-
-c
 c          300 finishes loop over independent segments.
   300    continue
 
 
-
 c           New - attempt to flush the buffer 210929
-            write(9,'((i6))') i, j
+c            write(9,'((i6))') i, j
 
 
-
-c
 c        fill in values where consecutive means are outside limits
          do 250 i=1,nmon
            i1 = mod((i-2+nmon), nmon) + 1
@@ -769,17 +762,17 @@ c     end of if/else distinguishing between cyclic case and
 c         independent segments case.
       endif
 c
-      if (notconverg .gt. 0) then
-        write(9, '("***", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2,
-     &   1pe10.2, 3i6)')
-     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
-     &         jumps(1), jumps(2), jumps(3)
-      elseif (icnt .gt. 0) then
-        write(9, '("   ", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2,
-     &   1pe10.2, 3i5)')
-     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
-     &         jumps(1), jumps(2), jumps(3)
-      endif
+c      if (notconverg .gt. 0) then
+c        write(9, '("***", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2,
+c     &   1pe10.2, 3i6)')
+c     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
+c     &         jumps(1), jumps(2), jumps(3)
+c      elseif (icnt .gt. 0) then
+c        write(9, '("   ", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2,
+c     &   1pe10.2, 3i5)')
+c     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
+c     &         jumps(1), jumps(2), jumps(3)
+c      endif
 c
 c      if (icnt .gt. 0) then
 c        print*, 'icnt= ',icnt,'  jumps at times' ,(jumps(n), n=1,icnt)
