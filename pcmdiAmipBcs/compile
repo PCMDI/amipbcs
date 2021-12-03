@@ -4,8 +4,17 @@
 # https://stackoverflow.com/questions/52749662/using-deprecated-numpy-api
 # https://numpy.org/devdocs/f2py/signature-file.html#extensions
 
+# Report gfortran versions on path
+echo "gfortran compiler on path"
+echo `f2py -c --help-fcompiler | grep gnu95`
+read -t 5 -p "Cleanup and compile will begin in 2 seconds.."
+echo
+
+# Cleanup old files
 rm pcmdiAmipBcs.*.so
 rm pcmdiAmipBcs.so
 rm sgnFile.pyf
+
+# Compile
 f2py --overwrite-signature -m pcmdiAmipBcs -h sgnFile.pyf pcmdiAmipBcs_sub.f
 f2py -c --fcompiler="gnu95" sgnFile.pyf pcmdiAmipBcs_sub.f
