@@ -1,0 +1,46 @@
+2021-11-15 15:47:34 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/ [2401] -> ".listing" [1]
+2021-11-15 15:47:35 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202101.gz [198542] -> "oiv2mon.202101.gz" [1]
+2021-11-15 15:47:35 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202102.gz [195395] -> "oiv2mon.202102.gz" [1]
+2021-11-15 15:47:36 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202103.gz [195848] -> "oiv2mon.202103.gz" [1]
+2021-11-15 15:47:37 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202104.gz [196240] -> "oiv2mon.202104.gz" [1]
+2021-11-15 15:47:37 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202105.gz [196864] -> "oiv2mon.202105.gz" [1]
+2021-11-15 15:47:38 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202106.gz [196623] -> "oiv2mon.202106.gz" [1]
+2021-11-15 15:47:39 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202107.gz [196404] -> "oiv2mon.202107.gz" [1]
+2021-11-15 15:47:39 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202108.gz [196515] -> "oiv2mon.202108.gz" [1]
+2021-11-15 15:47:40 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202109.gz [196696] -> "oiv2mon.202109.gz" [1]
+2021-11-15 15:47:41 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202110.gz [198330] -> "oiv2mon.202110.gz" [1]
+FINISHED --2021-11-15 15:47:41--
+Total wall clock time: 8.2s
+Downloaded: 10 files, 1.9M in 2.8s (684 KB/s)
+2021-11-15 15:47:42 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/ [2401] -> ".listing" [1]
+2021-11-15 15:47:42 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202001.gz [196724] -> "oiv2mon.202001.gz" [1]
+2021-11-15 15:47:43 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202002.gz [195358] -> "oiv2mon.202002.gz" [1]
+2021-11-15 15:47:44 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202003.gz [195160] -> "oiv2mon.202003.gz" [1]
+2021-11-15 15:47:44 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202004.gz [195711] -> "oiv2mon.202004.gz" [1]
+2021-11-15 15:47:45 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202005.gz [197193] -> "oiv2mon.202005.gz" [1]
+2021-11-15 15:47:46 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202006.gz [196943] -> "oiv2mon.202006.gz" [1]
+2021-11-15 15:47:47 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202007.gz [197386] -> "oiv2mon.202007.gz" [1]
+2021-11-15 15:47:47 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202008.gz [197709] -> "oiv2mon.202008.gz" [1]
+2021-11-15 15:47:48 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202009.gz [197349] -> "oiv2mon.202009.gz" [1]
+2021-11-15 15:47:49 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202010.gz [197710] -> "oiv2mon.202010.gz" [1]
+2021-11-15 15:47:49 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202011.gz [199509] -> "oiv2mon.202011.gz" [1]
+2021-11-15 15:47:50 URL: ftp://ftp.cpc.ncep.noaa.gov/precip/PORT/sst/oimonth_v2/oiv2mon.202012.gz [200193] -> "oiv2mon.202012.gz" [1]
+FINISHED --2021-11-15 15:47:50--
+Total wall clock time: 9.3s
+Downloaded: 12 files, 2.3M in 3.1s (752 KB/s)
+2021-11-15 15:47:51 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/ [35835] -> ".listing" [1]
+2021-11-15 15:47:52 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201901.gz [197266] -> "oiv2mon.201901.gz" [1]
+2021-11-15 15:47:53 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201902.gz [194872] -> "oiv2mon.201902.gz" [1]
+2021-11-15 15:47:53 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201903.gz [195429] -> "oiv2mon.201903.gz" [1]
+2021-11-15 15:47:54 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201904.gz [196418] -> "oiv2mon.201904.gz" [1]
+2021-11-15 15:47:55 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201905.gz [197338] -> "oiv2mon.201905.gz" [1]
+2021-11-15 15:47:55 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201906.gz [197237] -> "oiv2mon.201906.gz" [1]
+2021-11-15 15:47:56 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201907.gz [197445] -> "oiv2mon.201907.gz" [1]
+2021-11-15 15:47:57 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201908.gz [197571] -> "oiv2mon.201908.gz" [1]
+2021-11-15 15:47:57 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201909.gz [196317] -> "oiv2mon.201909.gz" [1]
+2021-11-15 15:47:58 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201910.gz [197616] -> "oiv2mon.201910.gz" [1]
+2021-11-15 15:47:59 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201911.gz [198470] -> "oiv2mon.201911.gz" [1]
+2021-11-15 15:47:59 URL: ftp://ftp.emc.ncep.noaa.gov/cmb/sst/oimonth_v2/oiv2mon.201912.gz [199132] -> "oiv2mon.201912.gz" [1]
+FINISHED --2021-11-15 15:48:00--
+Total wall clock time: 9.5s
+Downloaded: 12 files, 2.3M in 3.4s (682 KB/s)
