@@ -1,8 +1,10 @@
 c    This code was written by Karl Taylor with light modifications made by
 c    Stephen Po-Chedley to make it compatible with f2py
 c        (notably, add intent to some solvmid subroutine arguments)
-c    KT cleaned up code, comments were added for documentation, and
-c        additional diagnostics are now returned (3 August 2019)
+c    KT   3 Aug 2019 - cleaned up code, comments were added for documentation,
+c                      and additional diagnostics are now returned
+c    PJD 22 Sep 2021 - added print statement to solvmid to test python console
+c    PJD  2 Dec 2021 - Renamed mkhurrell_sub.f - pcmdiAmipBcs_sub.f
 c
 c 34567812345678123456781234567812345678123456781234567812345678123456781234567890
 c
@@ -138,7 +140,7 @@ c
 c
 c *********************************************************************
 c
-      subroutine solvmid(alon, alat, nmon, conv, dt, tmin, tmax,
+      subroutine solvmid(alon, alat, nmon, conv, dt, vmin, vmax,
      &     bbmin, maxiter, a, c, obsmean, ss, icnt, niter, notconverg,
      &     jj, resid, residmax, jumps, jcnt)
 c
@@ -198,6 +200,10 @@ c                printed).
 c                *****  Python code should set jcnt to a negative integer before
 c                *****  first calling solvmid
 c
+c   PJD 22 Nov 2021 - Updated for check inputs
+c   PJD  2 Dec 2021 - Updated tmax/min -> vmax/min following hurrellfx.py
+c   PJD  2 Dec 2021 - Commented out write(9) statements, print/write(*) statements
+
       implicit none
       integer nmon12
       parameter (nmon12=12)
@@ -205,17 +211,30 @@ c
       integer, intent(inout) :: jcnt
       integer, intent(out) :: icnt, niter, notconverg, jj
       integer, intent(out) :: jumps(nmon)
-      real conv, tmin, tmax, dt, bbmin, alon, alat, dxm, dxp, s1, s2
+      real conv, vmin, vmax, dt, bbmin, alon, alat, dxm, dxp, s1, s2
       real obsmean(nmon), a(nmon), c(nmon)
       real, intent(out) :: ss(nmon)
       real, intent(out) :: resid, residmax
       integer i, n, imethod, n1, n2, i1, i2, i3, nnn, jend,
-     &      kk, j, k, kkk, nm, np, limit
+     &      kk, j, k, kkk, nm, np
       integer jbeg(nmon)
       real relax, residmax1, resid1, addmax, addmin
       real r(nmon), avg(nmon), aa(nmon), bb(nmon), cc(nmon),
      &     add(nmon)
-      double precision s(nmon), sum
+      double precision s(nmon), sums
+c
+c     Check print statements are showing in python calling console
+      print*, 'solvmid executing. alat:', alat, ' alon:', alon
+
+c     Check inputs
+c      print*, "solvmid - j:", j, "alon:", alon, "i:", i, "alat:",
+c     & alat, "conv:", conv, "dt:", dt, "vmin:", vmin, "vmax:",
+c     & vmax, "bbmin:", bbmin, "maxiter:", maxiter, "jcnt:",
+c     & jcnt, 'nmon:', nmon
+c      print*, "len(aa):     ", size(aa)
+c      print*, "len(cc):     ", size(cc)
+c      print*, "len(obsmean):", size(obsmean)
+
 c
 c     set control on whether derivatives needed to compute jacobian will be
 c        computed through an analytical approximation or by numerical
@@ -226,47 +245,49 @@ c        approach will be used for all iterations
 c
 c ???  check following value
       relax = 1.0
+
+c     Create new input for numer - 211102
+c      delta = (tmax/tmin)/50
+
 c
       niter = 0
       notconverg = 0
+      resid = 0.
+      residmax = 0.
       do 40, n=1,nmon
         jumps(n) = 0
         aa(n) = 1.e20
         bb(n) = 1.e20
         cc(n) = 1.e20
+        ss(n) = obsmean(n)
+        add(n) = 0.0
   40  continue
-      resid = 0.
-      residmax = 0.
+
 c
 c    check for occurrence where obs monthly means are consecutively at upper
-c      and lower limits. If so, smooth data, being careful to preserve annual
-c      mean. Also initialize ss = obsmean
-c
+c    and lower limits. If so, smooth data, being careful to preserve annual
+c    mean. Also initialize ss = obsmean
       if (jcnt .lt. 0) then
         jcnt = 0
-        write(9,'("       lat    lon   #jumps   #iter  failed    ",
+        write(*,'("       lat    lon   #jumps   #iter  failed    ",
      &    "segs    resid  residmax     jump times")')
       endif
-c
-      do 48 n=1,nmon
-        ss(n)=obsmean(n)
-        add(n) = 0.0
-   48 continue
+
 c
       n2 = nmon
       do 50 n=1,nmon
         n1 = n2
         n2 = n
-        if ((obsmean(n2)-obsmean(n1)) .gt. (tmax-tmin-2.*dt)) then
+        if ((obsmean(n2)-obsmean(n1)) .gt. (vmax-vmin-2.*dt)) then
           add(n1) = add(n1) +
-     &           (0.5*(obsmean(n2)-obsmean(n1)-tmax+tmin) + dt)/c(n1)
+     &           (0.5*(obsmean(n2)-obsmean(n1)-vmax+vmin) + dt)/c(n1)
           add(n2) = add(n2) -
-     &           (0.5*(obsmean(n2)-obsmean(n1)-tmax+tmin) + dt)/a(n2)
-        elseif ((obsmean(n1)-obsmean(n2)) .gt. (tmax-tmin-2.*dt)) then
+     &           (0.5*(obsmean(n2)-obsmean(n1)-vmax+vmin) + dt)/a(n2)
+        elseif ((obsmean(n1)-obsmean(n2)) .gt. (vmax-vmin-2.*dt)) then
           add(n1) = add(n1) -
-     &           (0.5*(obsmean(n1)-obsmean(n2)-tmax+tmin) + dt)/c(n1)
+     &           (0.5*(obsmean(n1)-obsmean(n2)-vmax+vmin) + dt)/c(n1)
           add(n2) = add(n2) +
-     &           (0.5*(obsmean(n1)-obsmean(n2)-tmax+tmin) + dt)/a(n2)
+     &           (0.5*(obsmean(n1)-obsmean(n2)-vmax+vmin) + dt)/a(n2)
         endif
    50 continue
 c
@@ -291,23 +312,23 @@ c        call errormsg2(icnt, jcnt, alon, alat, addmax, addmin)
 c
 c    check if all are le tmin or all are ge tmax; if so set values and return
 c
-      if (obsmean(1) .le. (tmin+0.01*dt)) then
+      if (obsmean(1) .le. (vmin+0.01*dt)) then
         do 80 i=2,nmon
-          if (obsmean(i) .gt. (tmin+0.01*dt)) go to 99
+          if (obsmean(i) .gt. (vmin+0.01*dt)) go to 99
    80   continue
 c             All values are at tmin.
         do 85 i=1,nmon
-          ss(i) = tmin
+          ss(i) = vmin
    85   continue
         jj=-2
         return
-      elseif (obsmean(1) .ge. (tmax-0.01*dt)) then
+      elseif (obsmean(1) .ge. (vmax-0.01*dt)) then
         do 90 i=2,nmon
-          if (obsmean(i) .lt. (tmax-0.01*dt)) go to 99
+          if (obsmean(i) .lt. (vmax-0.01*dt)) go to 99
    90   continue
 c             All values are at tmax.
         do 95 i=1,nmon
-          ss(i) = tmax
+          ss(i) = vmax
    95   continue
         jj=-1
         return
@@ -327,12 +348,12 @@ c            jbeg will point to the beginning of each of these segments.
         i1 = i
         i2 = mod(i,nmon) + 1
         i3 = mod((i+1), nmon) + 1
-        if (((obsmean(i1) .le. tmin+0.01*dt) .and.
-     &       (obsmean(i2) .le. tmin+0.01*dt) .and.
-     &       (obsmean(i3) .gt. tmin+0.01*dt)) .or.
-     &      ((obsmean(i1) .ge. tmax-0.01*dt) .and.
-     &       (obsmean(i2) .ge. tmax-0.01*dt) .and.
-     &       (obsmean(i3) .lt. tmax-0.01*dt))) then
+        if (((obsmean(i1) .le. vmin+0.01*dt) .and.
+     &       (obsmean(i2) .le. vmin+0.01*dt) .and.
+     &       (obsmean(i3) .gt. vmin+0.01*dt)) .or.
+     &      ((obsmean(i1) .ge. vmax-0.01*dt) .and.
+     &       (obsmean(i2) .ge. vmax-0.01*dt) .and.
+     &       (obsmean(i3) .lt. vmax-0.01*dt))) then
 c         jj is counter for number of intervals satisfying criteria
           jj = jj + 1
           jbeg(jj) = i2
@@ -346,7 +367,7 @@ c            represent a single period of a repeating cycle)
 c
          nnn = 0
 c        begin iteration procedure
-  105    sum = 0.0
+  105    sums = 0.0d0
          residmax = 0.0
 
 c         calc. latest approximation of means (given mid-month values)
@@ -358,17 +379,19 @@ c
            bb(n) = 0.0
            avg(n) = 0.0
            if (nnn .lt. imethod) then
-             call approx(tmin, tmax, a(n), c(n), ss(nm), ss(n),
+             call approx(vmin, vmax, a(n), c(n), ss(nm), ss(n),
      &                ss(np), aa(n), bb(n), cc(n), avg(n))
            else
-             call numer(conv, tmin, tmax, bbmin, a(n), c(n), ss(nm),
+             call numer(conv, vmin, vmax, bbmin, a(n), c(n), ss(nm),
      &                ss(n), ss(np), aa(n), bb(n), cc(n), avg(n))
+c             call numer(delta, tmin, tmax, bbmin, a(n), c(n), ss(nm),
+c     &                ss(n), ss(np), aa(n), bb(n), cc(n), avg(n))
            endif
            r(n) = obsmean(n) - avg(n)
-           sum = sum + abs(r(n))
+           sums = sums + abs(r(n))
            residmax = amax1(residmax, abs(r(n)))
   110    continue
-         resid = sum/nmon
+         resid = real(sums)/nmon
 c
          if (residmax .gt. conv) then
 c
@@ -398,7 +421,7 @@ c            solve for new estimate of mid-month values
              call cyclic(alon, alat, aa, bb, cc, cc(nmon), aa(1), r, s,
      &                nmon)
              do 120 n=1,nmon
-               ss(n) = ss(n) + relax*s(n)
+               ss(n) = ss(n) + relax * real(s(n))
   120        continue
 c            if ss exceeds tmax or tmin, then it should exceed it no
 c                more than absolutely necessary:
@@ -410,49 +433,49 @@ c             REPLACE START HERE
              do 130 n=1,nmon
                nm = mod((n+nmon-2), nmon) + 1
                np = mod(n, nmon) + 1
-               if (ss(n) .gt. tmax) then
-                 if (ss(nm) .le. tmax) then
-                   dxm = (ss(n)-tmax)/((ss(n)-ss(nm))*a(n))
+               if (ss(n) .gt. vmax) then
+                 if (ss(nm) .le. vmax) then
+                   dxm = (ss(n)-vmax)/((ss(n)-ss(nm))*a(n))
                  else
                    dxm = 0.0
                  endif
-                 if (ss(np) .le. tmax) then
-                   dxp = (ss(n)-tmax)/((ss(n)-ss(np))*c(n))
+                 if (ss(np) .le. vmax) then
+                   dxp = (ss(n)-vmax)/((ss(n)-ss(np))*c(n))
                  else
                    dxp = 0.0
                  endif
                  if ((dxm .gt. 0.5) .and. (dxp .gt. 0.5)) then
-                   s1 = tmax + (tmax-ss(nm))*a(n)/(2.-a(n))
-                   s2 = tmax + (tmax-ss(np))*c(n)/(2.-c(n))
+                   s1 = vmax + (vmax-ss(nm))*a(n)/(2.-a(n))
+                   s2 = vmax + (vmax-ss(np))*c(n)/(2.-c(n))
                    ss(n) = amin1(s1, s2)
                  elseif ((dxm .eq. 0.0) .and. (dxp .eq. 0.0)) then
-                   ss(n) = tmax
+                   ss(n) = vmax
                  elseif ((dxp .eq. 0.0) .and. (dxm .gt. 0.5)) then
-                   ss(n) = tmax + (tmax-ss(nm))*a(n)/(2.-a(n))
+                   ss(n) = vmax + (vmax-ss(nm))*a(n)/(2.-a(n))
                  elseif ((dxm .eq. 0.0) .and. (dxp .gt. 0.5)) then
-                   ss(n) = tmax + (tmax-ss(np))*c(n)/(2.-c(n))
+                   ss(n) = vmax + (vmax-ss(np))*c(n)/(2.-c(n))
                  endif
-               elseif (ss(n) .lt. tmin) then
-                 if (ss(nm) .ge. tmin) then
-                   dxm = (ss(n)-tmin)/((ss(n)-ss(nm))*a(n))
+               elseif (ss(n) .lt. vmin) then
+                 if (ss(nm) .ge. vmin) then
+                   dxm = (ss(n)-vmin)/((ss(n)-ss(nm))*a(n))
                  else
                    dxm = 0.0
                  endif
-                 if (ss(np) .ge. tmin) then
-                   dxp = (ss(n)-tmin)/((ss(n)-ss(np))*c(n))
+                 if (ss(np) .ge. vmin) then
+                   dxp = (ss(n)-vmin)/((ss(n)-ss(np))*c(n))
                  else
                    dxp = 0.0
                  endif
                  if ((dxm .gt. 0.5) .and. (dxp .gt. 0.5)) then
-                   s1 = tmin + (tmin-ss(nm))*a(n)/(2.-a(n))
-                   s2 = tmin + (tmin-ss(np))*c(n)/(2.-c(n))
+                   s1 = vmin + (vmin-ss(nm))*a(n)/(2.-a(n))
+                   s2 = vmin + (vmin-ss(np))*c(n)/(2.-c(n))
                    ss(n) = amax1(s1, s2)
                  elseif ((dxm .eq. 0.0) .and. (dxp .eq. 0.0)) then
-                   ss(n) = tmin
+                   ss(n) = vmin
                  elseif ((dxp .eq. 0.0) .and. (dxm .gt. 0.5)) then
-                   ss(n) = tmin + (tmin-ss(nm))*a(n)/(2.-a(n))
+                   ss(n) = vmin + (vmin-ss(nm))*a(n)/(2.-a(n))
                  elseif ((dxm .eq. 0.0) .and. (dxp .gt. 0.5)) then
-                   ss(n) = tmin + (tmin-ss(np))*c(n)/(2.-c(n))
+                   ss(n) = vmin + (vmin-ss(np))*c(n)/(2.-c(n))
                  endif
                endif
   130        continue
@@ -491,10 +514,10 @@ c
            i2 = mod(jend, nmon) + 1
 c             find end of interval that is independent of part of the
 c                full time series.
-           if (((obsmean(i1) .le. tmin+0.01*dt) .and.
-     &          (obsmean(i2) .le. tmin+0.01*dt)) .or.
-     &         ((obsmean(i1) .ge. tmax-0.01*dt) .and.
-     &          (obsmean(i2) .ge. tmax-0.01*dt))) goto 204
+           if (((obsmean(i1) .le. vmin+0.01*dt) .and.
+     &          (obsmean(i2) .le. vmin+0.01*dt)) .or.
+     &         ((obsmean(i1) .ge. vmax-0.01*dt) .and.
+     &          (obsmean(i2) .ge. vmax-0.01*dt))) goto 204
             goto 150
 c            calculate values for interval jbeg(j) to jend
 c
@@ -507,7 +530,7 @@ c
 c
 c            calculate jacobian and estimate of residual
 c
-             sum = 0.0
+             sums = 0.0d0
              residmax1 = 0.0
              do 210 k = 2, kk-1
                nm = mod((k+jbeg(j)-3), nmon) + 1
@@ -516,17 +539,31 @@ c
                bb(k) = 0.0
                avg(k) = 0.0
                if (nnn .lt. imethod) then
-                 call approx(tmin, tmax, a(n), c(n), ss(nm), ss(n),
+                 call approx(vmin, vmax, a(n), c(n), ss(nm), ss(n),
      &                ss(np), aa(k), bb(k), cc(k), avg(k))
                else
-                 call numer(conv, tmin, tmax, bbmin, a(n), c(n), ss(nm),
+                 call numer(conv, vmin, vmax, bbmin, a(n), c(n), ss(nm),
      &                ss(n), ss(np), aa(k), bb(k), cc(k), avg(k))
+c                 call numer(delta, tmin, tmax, bbmin, a(n), c(n),
+c     &                 ss(nm), ss(n), ss(np), aa(k), bb(k), cc(k),
+c     &                 avg(k))
                endif
                r(k) = obsmean(n) - avg(k)
-               sum = sum + abs(r(k))
+               sums = sums + abs(r(k))
                residmax1 = amax1(residmax1, abs(r(k)))
+
+
+c           New diagnostics 210929
+c               if (((j .eq. 78) .and. (jbeg(j) .eq. 1274)) .or.
+c     &             ((j .eq. 107) .and.  (jbeg(j) .eq. 1730))) then
+c                 write(9, '(3(i6), 6(1pe12.2))')
+c     &                nnn, k, n, r(k), avg(k), obsmean(n), ss(n),
+c     &                aa(k), bb(k), cc(k)
+c               endif
+
+
   210        continue
-             resid1 = sum/(kk-2)
+             resid1 = real(sums)/(kk-2)
 c
              if (residmax1 .gt. conv) then
 c
@@ -541,7 +578,7 @@ c               endif
      &           then
 c                 print*, ' '
 c                 print*, 'latitude = ', alat, ' longitude = ', alon
-                 write(*,'(f8.1, i5, 2f8.1)') residmax1, nnn, alat, alon
+c                 write(*,'(f8.1, i5, 2f8.1)') residmax1, nnn, alat, alon
 c
                  n = jbeg(j)
                  avg(1) = obsmean(n)
@@ -550,12 +587,12 @@ c
                  avg(kk) = obsmean(n)
                  r(kk) = 0.0
 c
-                 do 215 k=1,kk
-                   n  = mod((k+jbeg(j)-2), nmon) + 1
-                   write(*,'(i5, 8(1pe10.2), i5, i5)') n, obsmean(n),
-     &                  avg(k), r(k), s(k), ss(n), aa(k),
-     &                  bb(k), cc(k), j, jj
-  215            continue
+c                 do 215 k=1,kk
+c                   n  = mod((k+jbeg(j)-2), nmon) + 1
+c                   write(*,'(i5, 8(1pe10.2), i5, i5)') n, obsmean(n),
+c     &                  avg(k), r(k), s(k), ss(n), aa(k),
+c     &                  bb(k), cc(k), j, jj
+c  215            continue
                endif
 c
                if (nnn .gt. maxiter) then
@@ -571,7 +608,7 @@ c                solve for new estimate of mid-month values
      &                 s(2), kkk)
                  do 220 k=2,kk-1
                    n  = mod((k+jbeg(j)-2), nmon) + 1
-                   ss(n) = ss(n) + relax*s(k)
+                   ss(n) = ss(n) + relax * real(s(k))
   220            continue
 c               if ss exceeds tmax or tmin, then it should exceed it no
 c                    more than absolutely necessary:
@@ -580,24 +617,24 @@ c                treat first sample of segment:
 c
                  n  = mod((jbeg(j)-1), nmon) + 1
                  np  = mod(jbeg(j), nmon) + 1
-                 if (obsmean(n) .ge. (tmax-0.01*dt)) then
+                 if (obsmean(n) .ge. (vmax-0.01*dt)) then
                    ss(n) =
-     &                amax1(tmax, (tmax + (tmax-ss(np))*c(n)/(2.-c(n))))
+     &                amax1(vmax, (vmax + (vmax-ss(np))*c(n)/(2.-c(n))))
                  else
                    ss(n) =
-     &                amin1(tmin, (tmin + (tmin-ss(np))*c(n)/(2.-c(n))))
+     &                amin1(vmin, (vmin + (vmin-ss(np))*c(n)/(2.-c(n))))
                  endif
 c
 c                treat last sample of segment:
 c
                  nm  = mod((jend+nmon-2), nmon) + 1
                  n  = mod((jend-1), nmon) + 1
-                 if (obsmean(n) .ge. (tmax-0.01*dt)) then
+                 if (obsmean(n) .ge. (vmax-0.01*dt)) then
                    ss(n) =
-     &                amax1(tmax, (tmax + (tmax-ss(nm))*a(n)/(2.-a(n))))
+     &                amax1(vmax, (vmax + (vmax-ss(nm))*a(n)/(2.-a(n))))
                  else
                    ss(n) =
-     &                amin1(tmin, (tmin + (tmin-ss(nm))*a(n)/(2.-a(n))))
+     &                amin1(vmin, (vmin + (vmin-ss(nm))*a(n)/(2.-a(n))))
                  endif
 c
 c                if ss exceeds tmax or tmin, then it should exceed it no
@@ -609,49 +646,49 @@ c                REPLACE START HERE
                    nm = mod((k+jbeg(j)+nmon-3), nmon) + 1
                    n  = mod((k+jbeg(j)-2), nmon) + 1
                    np = mod((k+jbeg(j)-1), nmon) + 1
-                   if (ss(n) .gt. tmax) then
-                     if (ss(nm) .le. tmax) then
-                       dxm = (ss(n)-tmax)/((ss(n)-ss(nm))*a(n))
+                   if (ss(n) .gt. vmax) then
+                     if (ss(nm) .le. vmax) then
+                       dxm = (ss(n)-vmax)/((ss(n)-ss(nm))*a(n))
                      else
                        dxm = 0.0
                      endif
-                     if (ss(np) .le. tmax) then
-                       dxp = (ss(n)-tmax)/((ss(n)-ss(np))*c(n))
+                     if (ss(np) .le. vmax) then
+                       dxp = (ss(n)-vmax)/((ss(n)-ss(np))*c(n))
                      else
                        dxp = 0.0
                      endif
                      if ((dxm .gt. 0.5) .and. (dxp .gt. 0.5)) then
-                       s1 = tmax + (tmax-ss(nm))*a(n)/(2.-a(n))
-                       s2 = tmax + (tmax-ss(np))*c(n)/(2.-c(n))
+                       s1 = vmax + (vmax-ss(nm))*a(n)/(2.-a(n))
+                       s2 = vmax + (vmax-ss(np))*c(n)/(2.-c(n))
                        ss(n) = amin1(s1, s2)
                      elseif ((dxm .eq. 0.0) .and. (dxp .eq. 0.0)) then
-                       ss(n) = tmax
+                       ss(n) = vmax
                      elseif ((dxp .eq. 0.0) .and. (dxm .gt. 0.5)) then
-                       ss(n) = tmax + (tmax-ss(nm))*a(n)/(2.-a(n))
+                       ss(n) = vmax + (vmax-ss(nm))*a(n)/(2.-a(n))
                      elseif ((dxm .eq. 0.0) .and. (dxp .gt. 0.5)) then
-                       ss(n) = tmax + (tmax-ss(np))*c(n)/(2.-c(n))
+                       ss(n) = vmax + (vmax-ss(np))*c(n)/(2.-c(n))
                      endif
-                   elseif (ss(n) .lt. tmin) then
-                     if (ss(nm) .ge. tmin) then
-                       dxm = (ss(n)-tmin)/((ss(n)-ss(nm))*a(n))
+                   elseif (ss(n) .lt. vmin) then
+                     if (ss(nm) .ge. vmin) then
+                       dxm = (ss(n)-vmin)/((ss(n)-ss(nm))*a(n))
                      else
                        dxm = 0.0
                      endif
-                     if (ss(np) .ge. tmin) then
-                       dxp = (ss(n)-tmin)/((ss(n)-ss(np))*c(n))
+                     if (ss(np) .ge. vmin) then
+                       dxp = (ss(n)-vmin)/((ss(n)-ss(np))*c(n))
                      else
                        dxp = 0.0
                      endif
                      if ((dxm .gt. 0.5) .and. (dxp .gt. 0.5)) then
-                       s1 = tmin + (tmin-ss(nm))*a(n)/(2.-a(n))
-                       s2 = tmin + (tmin-ss(np))*c(n)/(2.-c(n))
+                       s1 = vmin + (vmin-ss(nm))*a(n)/(2.-a(n))
+                       s2 = vmin + (vmin-ss(np))*c(n)/(2.-c(n))
                        ss(n) = amax1(s1, s2)
                      elseif ((dxm .eq. 0.0) .and. (dxp .eq. 0.0)) then
-                       ss(n) = tmin
+                       ss(n) = vmin
                      elseif ((dxp .eq. 0.0) .and. (dxm .gt. 0.5)) then
-                       ss(n) = tmin + (tmin-ss(nm))*a(n)/(2.-a(n))
+                       ss(n) = vmin + (vmin-ss(nm))*a(n)/(2.-a(n))
                      elseif ((dxm .eq. 0.0) .and. (dxp .gt. 0.5)) then
-                       ss(n) = tmin + (tmin-ss(np))*c(n)/(2.-c(n))
+                       ss(n) = vmin + (vmin-ss(np))*c(n)/(2.-c(n))
                      endif
                    endif
   230            continue
@@ -677,25 +714,45 @@ c
              endif
 c
             niter = max0(niter, nnn)
-            resid = resid + sum
+            resid = resid + real(sums)
             residmax = amax1(residmax, residmax1)
+
+
+c           New diagnostics 210929
+c            i1 = mod(jbeg(j)-1, nmon) + 1
+c            i2 = min0( mod((kk-2+jbeg(j)), nmon) + 1, nmon)
+c            write(9, '(i6, i6, i6, i6, (1pe12.2))')
+c     &            j, jbeg(j), jend, kk, (ss(k), k=i1,i2)
+c            write(9, '(i6, (1pe12.2))')
+c     &            niter, resid, residmax, (avg(k), k=1,kk)
+c            write(9, '(i6, 2000(1pe12.2))')
+c     &            niter, residmax1, residmax, (obsmean(k), k=i1,i2)
 c
+c               write(*,'(i5, 8(1pe10.2))') n, obsmean(n), avg(n), r(n),
+c     &              s(n), ss(n), aa(n), bb(n), cc(n)
+
+
 c          300 finishes loop over independent segments.
   300    continue
-c
+
+
+c           New - attempt to flush the buffer 210929
+c            write(9,'((i6))') i, j
+
+
 c        fill in values where consecutive means are outside limits
          do 250 i=1,nmon
            i1 = mod((i-2+nmon), nmon) + 1
            i2 = mod((i-1), nmon) + 1
            i3 = mod(i, nmon) + 1
-           if ((obsmean(i1) .le. (tmin+0.01*dt)) .and.
-     &         (obsmean(i2) .le. (tmin+0.01*dt)) .and.
-     &         (obsmean(i3) .le. (tmin+0.01*dt))) then
-             ss(i2) = tmin
-           elseif ((obsmean(i1) .ge. (tmax-0.01*dt)) .and.
-     &             (obsmean(i2) .ge. (tmax-0.01*dt)) .and.
-     &             (obsmean(i3) .ge. (tmax-0.01*dt))) then
-             ss(i2) = tmax
+           if ((obsmean(i1) .le. (vmin+0.01*dt)) .and.
+     &         (obsmean(i2) .le. (vmin+0.01*dt)) .and.
+     &         (obsmean(i3) .le. (vmin+0.01*dt))) then
+             ss(i2) = vmin
+           elseif ((obsmean(i1) .ge. (vmax-0.01*dt)) .and.
+     &             (obsmean(i2) .ge. (vmax-0.01*dt)) .and.
+     &             (obsmean(i3) .ge. (vmax-0.01*dt))) then
+             ss(i2) = vmax
            endif
   250    continue
 c
@@ -705,17 +762,17 @@ c     end of if/else distinguishing between cyclic case and
 c         independent segments case.
       endif
 c
-      if (notconverg .gt. 0) then
-        write(9, '("***", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2,
-     &   1pe10.2, 3i6)')
-     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
-     &         jumps(1), jumps(2), jumps(3)
-      elseif (icnt .gt. 0) then
-        write(9, '("   ", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2,
-     &   1pe10.2, 3i5)')
-     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
-     &         jumps(1), jumps(2), jumps(3)
-      endif
+c      if (notconverg .gt. 0) then
+c        write(9, '("***", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2,
+c     &   1pe10.2, 3i6)')
+c     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
+c     &         jumps(1), jumps(2), jumps(3)
+c      elseif (icnt .gt. 0) then
+c        write(9, '("   ", f7.1, f7.1, i8, i8, i8, i8, 1pe12.2,
+c     &   1pe10.2, 3i5)')
+c     &       alat, alon, icnt, niter, notconverg, jj, resid, residmax,
+c     &         jumps(1), jumps(2), jumps(3)
+c      endif
 c
 c      if (icnt .gt. 0) then
 c        print*, 'icnt= ',icnt,'  jumps at times' ,(jumps(n), n=1,icnt)
@@ -743,7 +800,7 @@ c       values at times m-1, m, and m, respectively.
 c
       implicit none
       real delta, tmin, tmax, bbmin, a, c, ssm, ss, ssp, aa, bb, cc, avg
-      real ssmm, ssmp, sssm, sssp, sspm, sspp, r
+      real ssmm, ssmp, sssm, sssp, sspm, sspp
       real amean
 c
       avg = amean(tmin,tmax,a,c,ssm,ss,ssp)
@@ -761,21 +818,24 @@ c
       cc = (amean(tmin,tmax,a,c,ssm,ss,sspp) -
      &      amean(tmin,tmax,a,c,ssm,ss,sspm)) / (2.*delta)
 c
+c
+C      The following was a part of the original code. Removed Aug 1, 2019.
+C      It appeared to take longer to iterate.
+
+c     New diagnostic code 210929
+      if (bb .lt. bbmin) then
+        bb = bbmin
+C        r = 0.2*bbmin
+C        aa = amax1(r, aa)
+C        cc = amax1(r, cc)
+      endif
+
 c     the following ensures that the diagonal elements will dominate, and
 c        that the matrix solver won't blow up, but it doesn't assure
 c        optimal convergence speed.
 c
       aa = amin1(aa, bb)
       cc = amin1(cc, bb)
-c
-C      The following was a part of the original code. Removed Aug 1, 2019.
-C      It appeared to take longer to iterate.
-C      if (bb .lt. bbmin) then
-C        bb = bbmin
-C        r = 0.2*bbmin
-C        aa = amax1(r, aa)
-C        cc = amax1(r, cc)
-C      endif
 c
       return
       end
@@ -1032,6 +1092,8 @@ c
 c          print*, 'longitude = ', alon, '  latitude = ', alat
 c          pause 'tridag: rewrite equations'
       endif
+      bet=alat
+      bet=alon
       bet=b(1)
       u(1)=r(1)/bet
 c
@@ -1095,7 +1157,8 @@ c
 c
       call tridag(alon,alat,a,bb,c,u,z,n)
 c
-      fact=(x(1)+beta*x(n)/gamma)/(1.+z(1)+beta*z(n)/gamma)
+      fact=(real(x(1)) + beta * real(x(n))/gamma) /
+     & (1.+real(z(1)) + beta * real(z(n))/gamma)
 c
       do 13 i=1,n
         x(i)=x(i)-fact*z(i)

@@ -1,18 +1,17 @@
 {
     "institution_id":               "PCMDI",
-    "source_id":                    "PCMDI-AMIP-1-1-6",
-    "source":                       "PCMDI-AMIP 1.1.6: Merged SST based on UK MetOffice HadISST and NCEP OI2",
+    "source_id":                    "PCMDI-AMIP-1-1-7",
+    "source":                       "PCMDI-AMIP 1.1.7: Merged SST based on UK MetOffice HadISST and NCEP OI2",
     "contact ":                     "PCMDI (pcmdi-cmip@llnl.gov)",
     "further_info_url":             "https://pcmdi.llnl.gov/mips/amip",
 
     "dataset_category":             "SSTsAndSeaIce",
     "calendar":                     "gregorian",
-    "frequency":                    "mon",
     "grid_label":                   "gn",
     "nominal_resolution":           "1x1 degree",
     "region":                       "global_ocean",
 
-    "outpath":                      "/p/user_pub/work",
+    "outpath":                      "/p/user_pub/climate_work/durack1",
     "#outpath":                      "/work/durack1/Shared/150219_AMIPForcingData",
     "_history_template":            "%s; CMOR rewrote data to be consistent with <activity_id>, CMIP6, and <Conventions> standards",
     "output_path_template":         "<activity_id><mip_era><target_mip><institution_id><source_id><realm><frequency><variable_id><grid_label><version>",
@@ -20,7 +19,7 @@
     "tracking_prefix":              "hdl:21.14100",
     "license":                      "AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution-[NonCommercial-]ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing input4MIPs output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law",
 
-    "_control_vocabulary_file":     "CMOR/input4MIPs-cmor-tables/Tables/input4MIPs_CV.json",
+    "_controlled_vocabulary_file":  "CMOR/input4MIPs-cmor-tables/Tables/input4MIPs_CV.json",
     "_AXIS_ENTRY_FILE":             "CMOR/input4MIPs-cmor-tables/Tables/input4MIPs_coordinate.json",
     "_FORMULA_VAR_FILE":            "CMOR/input4MIPs-cmor-tables/Tables/input4MIPs_formula_terms.json",
     "activity_id":                  "input4MIPs"

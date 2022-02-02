@@ -1,7 +1,0 @@
-#!/bin/bash
-
-rm mkhurrell.*.so
-rm mkhurrell.so
-rm sgnFile.pyf
-f2py --overwrite-signature -m mkhurrell -h sgnFile.pyf mkhurrell_sub.f
-f2py -c --fcompiler="gnu95" sgnFile.pyf mkhurrell_sub.f

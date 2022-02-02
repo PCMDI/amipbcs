@@ -3,6 +3,10 @@
 # CMOR subdirs
 CMOR/input4MIPs-cmor-tables
 
+# _obsolete subdirs
+_obsolete
+pcmdiAmipBcs/_obsolete/*
+
 # SST_NEW* files
 SST_NEW5/*.tar.bz2
 SST_NEW5/*.nc
@@ -20,6 +24,7 @@ mkhurrell1
 
 # Shared libraries
 *.so
+pcmdiAmipBcs/__pycache__
 
 # Netcdf files
 *.nc
