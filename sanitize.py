@@ -7,6 +7,9 @@ Paul J. Durack 16th Jun 2015
 
 This script sanitizes nc files written by the lats library
 
+"""
+# 2015/16
+"""
 PJD 16 Jun 2015     - Started
 PJD 16 Jun 2015     - Finalised outputs - organized by variables and subdir
 PJD 19 Jun 2015     - Added tarfile creation
@@ -32,6 +35,9 @@ PJD  6 Sep 2016     - Updated to deal with partial years (varLen)
 PJD  6 Sep 2016     - Deal with amipbc_sst_360x180_v1.1.0a.out
 PJD  7 Sep 2016     - Deal with makeCalendar quirks - off by one
 PJD 20 Oct 2016     - Update to 1.1.1
+"""
+# 2017/18
+"""
 PJD 13 Apr 2017     - Update to 1.1.2 and generate sftof
 PJD 17 Apr 2017     - Corrected sftof mask to be correct indexes
 PJD 18 Apr 2017     - Updated CMOR to "2017.04.18.3.2.3" and corrected SImon table
@@ -55,6 +61,9 @@ PJD 20 Apr 2018     - Turn off json descriptor creation
 PJD 26 Apr 2018     - Updated to use jsonWriteFile,washPerms
 PJD 27 Apr 2018     - Updated CMOR input to write to /p/user_pub/work - opened host dir to world readable (ames4)
 PJD 27 Apr 2018     - Updated input4MIPsFuncs.py library - utc/pytz update
+"""
+# 2019
+"""
 PJD  4 Jan 2019     - Updated to 1.1.5
 PJD 17 Jan 2019     - Added last_month (and if statement) variable to deal with half vs full years
 PJD 18 Jan 2019     - Added output file list for publication steps
@@ -70,6 +79,8 @@ PJD 15 Jul 2019     - Update jsonId to deal with revised input4MIPsFuncs update
 PJD 20 Nov 2019     - Update to write out 2018 data to v1.1.6
 PJD 20 Nov 2019     - Updated prints for py3
 PJD 20 Nov 2019     - /p/user_pub/work needed perm updates to allow DRS writing (drwxrwxr-x - climatew)
+"""
+"""
 PJD 28 Jul 2021     - Update to latest data; Convert to use mkhurrell_wrapper.py; Update home path
 PJD  1 Sep 2021     - Added history attribute to replicate previous files
 PJD  2 Sep 2021     - Further testing and migration to /p/user_pub/climate_work/durack1
@@ -82,6 +93,7 @@ PJD 17 Nov 2021     - Switchout for latest October 2021 data
 PJD 18 Nov 2021     - Evaluating impact of 202109 vs 202110 input data
 PJD  2 Dec 2021     - Updates to hurrellfx.py and *sub.f - obs range checks
 PJD  2 Dec 2021     - Renamed mkhurrell -> pcmdiAmipBcs; hurrellfx.py -> pcmdiAmipBcsFx.py
+PJD  1 Feb 2022     - Updated to reflect v1.1.7 data not v1.2.0 (CMIP6 not CMIP6Plus)
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -106,6 +118,7 @@ import numpy as np
 import MV2 as mv
 import cmor
 import datetime
+
 # import gc
 import glob
 import os
@@ -116,10 +129,13 @@ import cdms2 as cdm
 import cdat_info as cdatInfo
 import cdutil as cdu
 from socket import gethostname
+
 sys.path.insert(0, "/home/durack1/git/durolib/durolib")
 from durolib import makeCalendar  # globalAttWrite, mkDirNoOSErr
+
 sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
 from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
+
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
 
@@ -138,10 +154,10 @@ cdm.setNetcdfDeflateFlag(1)
 # %% Set version info
 activity_id = "input4MIPs"
 # WILL REQUIRE UPDATING
-comment = "Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2021-06)"
 contact = "pcmdi-cmip@lists.llnl.gov"
-dataVer = "PCMDI-AMIP-1-2-0"  # WILL REQUIRE UPDATING
-dataVerSht = "v1.2.0"  # WILL REQUIRE UPDATING
+dataVerNum = "1.1.7"  # WILL REQUIRE UPDATING
+dataVer = "PCMDI-AMIP-XX".replace("XX", dataVerNum.replace(".", "-"))
+dataVerSht = "".join(["v", dataVerNum])
 data_structure = "grid"
 frequency = "mon"
 # WILL REQUIRE UPDATING - point to GMD paper when available
@@ -150,16 +166,48 @@ institution_id = "PCMDI"
 institution = "Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA"
 last_year = "2021"  # WILL REQUIRE UPDATING
 last_month = 6  # WILL REQUIRE UPDATING
-license_txt = 'AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution "Share Alike" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). The data producers and data providers make no warranty, either express or implied, including but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.'
-mip_era = "CMIP6Plus"
+comment = "Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2021-06)"
+comment = "".join(["Based on Hurrell SST/sea ice consistency criteria applied to ",
+                    "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
+                    last_year, "-", "{:0>2}".format(last_month), ")"])
+license_txt = " ".join(
+    [
+        "AMIP boundary condition data produced by PCMDI is licensed",
+        'under a Creative Commons Attribution "Share Alike" 4.0',
+        "International License (http://creativecommons.org/licenses/by/4.0/).",
+        "The data producers and data providers make no warranty,",
+        "either express or implied, including but not limited to,",
+        "warranties of merchantability and fitness for a particular",
+        "purpose. All liabilities arising from the supply of the",
+        "information (including any liability arising in negligence)",
+        "are excluded to the fullest extent permitted by law.",
+    ]
+)
+mip_era = "CMIP6"  # "CMIP6Plus"
 mip_specs = "AMIP CMIP5 CMIP6 CMIP6Plus"
 project_id = "AMIP"
-ref_obs = "Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski (2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset for the Community Atmosphere Model. J. Climate, 22 (19), pp 5145-5153. doi: 10.1175/2008JCLI2292.1"
-ref_bcs = "Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface temperature and sea ice concentration boundary conditions for AMIP II simulations. PCMDI Report 60, Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf"
-# WILL REQUIRE UPDATING
-source = "PCMDI-AMIP 1.2.0: Merged SST based on UK MetOffice HadISST and NCEP OI2"
+ref_obs = " ".join(
+    [
+        "Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski",
+        "(2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset",
+        "for the Community Atmosphere Model. J. Climate, 22 (19), pp",
+        "5145-5153. doi: 10.1175/2008JCLI2292.1",
+    ]
+)
+ref_bcs = " ".join(
+    [
+        "Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface",
+        "temperature and sea ice concentration boundary conditions for",
+        "AMIP II simulations. PCMDI Report 60, Program for Climate Model",
+        "Diagnosis and Intercomparison, Lawrence Livermore National",
+        "Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf",
+    ]
+)
+source = "PCMDI-AMIP XX: Merged SST based on UK MetOffice HadISST and NCEP OI2".replace(
+    "XX", dataVerNum
+)
 target_mip = "CMIP"
-time_period = "187001-202106"  # WILL REQUIRE UPDATING
+time_period = "".join(["187001-", last_year, "{:0>2}".format(last_month)])
 destPath = "/p/user_pub/climate_work/durack1"
 # For CMOR this is set in the CMOR/drive_input4MIPs*.json files
 # destPath = '/work/durack1/Shared/150219_AMIPForcingData'  # USE FOR TESTING
@@ -194,18 +242,19 @@ print(history)
 # %% Set directories and input data
 homePath = "/work/durack1/Shared/150219_AMIPForcingData/"
 # sanPath     = os.path.join(homePath,'_'.join(['360x180',dataVerSht,'san']))
+dataVerFudge = "v1.2.0"  # Replace dataVerSht below
 sanPath = os.path.join(
-    homePath, "".join(["SST_", dataVerSht.replace("v", "").replace(".", "-")])
+    homePath, "".join(["SST_", dataVerFudge.replace("v", "").replace(".", "-")])
 )
 dataEnd = "202110"
-#sanPath = os.path.join(homePath, "SST_1-2-0_old4")
-#dataEnd = "202109"
-#sanPath = os.path.join(homePath, "SST_1-2-0_old3")
-#dataEnd = "202108"
-#sanPath = os.path.join(homePath, "SST_1-2-0_old2")
-#dataEnd = "202106"
-#sanPath = os.path.join(homePath, "SST_1-2-0-1-1-6")
-#dataEnd = "201903"
+# sanPath = os.path.join(homePath, "SST_1-2-0_old4")
+# dataEnd = "202109"
+# sanPath = os.path.join(homePath, "SST_1-2-0_old3")
+# dataEnd = "202108"
+# sanPath = os.path.join(homePath, "SST_1-2-0_old2")
+# dataEnd = "202106"
+# sanPath = os.path.join(homePath, "SST_1-2-0-1-1-6")
+# dataEnd = "201903"
 print("sanPath:", sanPath)
 
 # %% Process each variable
@@ -299,11 +348,12 @@ for varId in ["siconc", "tos"]:
     print("Entering createMonthlyMidpoints function..")
     nyears = 10  # Buffer ~24-month climatology calculated over nyears
     varBcs = pcmdiAmipBcsFx.createMonthlyMidpoints(
-        var, ftype, units, nyears, outVar)  # , grid=targetGrid, mask=sftof)
+        var, ftype, units, nyears, outVar
+    )  # , grid=targetGrid, mask=sftof)
     print("Exiting createMonthlyMidpoints function..")
 
     # check input file and and output times
-    print('inputFile:', dataEnd)
+    print("inputFile:", dataEnd)
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
     time = var.getTime()
@@ -311,8 +361,12 @@ for varId in ["siconc", "tos"]:
 
     # Cleanup partial year data - always end on full or half years (12/6)
     endInd = np.mod(time.asComponentTime()[-1].month, 6)
-    var = var[:-endInd,]
-    varBcs = varBcs[:-endInd,]
+    var = var[
+        :-endInd,
+    ]
+    varBcs = varBcs[
+        :-endInd,
+    ]
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
     time = var.getTime()
@@ -381,7 +435,9 @@ for varId in ["siconc", "tos"]:
 
 # areacello
 areacello = cdu.area_weights(
-    var[0,]
+    var[
+        0,
+    ]
 )
 # areacello.sum() = 1.0
 earthSurfaceArea = 510.1
@@ -586,7 +642,17 @@ for filePath in files:
     jsonFilePaths.append(jsonFilePath)
 
 # Clean up permissions
-washPerms(destPath, activityId, mipEra, targetMip, institutionId,
-          sourceId, realm, frequency, gridLabel, dataVersion)
+washPerms(
+    destPath,
+    activityId,
+    mipEra,
+    targetMip,
+    institutionId,
+    sourceId,
+    realm,
+    frequency,
+    gridLabel,
+    dataVersion,
+)
 # Create output files for publication
 createPubFiles(destPath, jsonId, jsonFilePaths, variableFilePaths)
