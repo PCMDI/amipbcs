@@ -94,6 +94,7 @@ PJD 18 Nov 2021     - Evaluating impact of 202109 vs 202110 input data
 PJD  2 Dec 2021     - Updates to hurrellfx.py and *sub.f - obs range checks
 PJD  2 Dec 2021     - Renamed mkhurrell -> pcmdiAmipBcs; hurrellfx.py -> pcmdiAmipBcsFx.py
 PJD  1 Feb 2022     - Updated to reflect v1.1.7 data not v1.2.0 (CMIP6 not CMIP6Plus)
+PJD  7 Mar 2022     - Updated for v1.2.0 pre-release, will need to wait for March data to land
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -155,7 +156,7 @@ cdm.setNetcdfDeflateFlag(1)
 activity_id = "input4MIPs"
 # WILL REQUIRE UPDATING
 contact = "pcmdi-cmip@lists.llnl.gov"
-dataVerNum = "1.1.7"  # WILL REQUIRE UPDATING
+dataVerNum = "1.2.0"  # WILL REQUIRE UPDATING
 dataVer = "PCMDI-AMIP-XX".replace("XX", dataVerNum.replace(".", "-"))
 dataVerSht = "".join(["v", dataVerNum])
 data_structure = "grid"
@@ -165,11 +166,18 @@ further_info_url = "https://pcmdi.llnl.gov/mips/amip/"
 institution_id = "PCMDI"
 institution = "Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA"
 last_year = "2021"  # WILL REQUIRE UPDATING
-last_month = 6  # WILL REQUIRE UPDATING
-comment = "Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2021-06)"
-comment = "".join(["Based on Hurrell SST/sea ice consistency criteria applied to ",
-                    "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
-                    last_year, "-", "{:0>2}".format(last_month), ")"])
+last_month = 11  # WILL REQUIRE UPDATING
+# comment = "Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2021-06)"
+comment = "".join(
+    [
+        "Based on Hurrell SST/sea ice consistency criteria applied to ",
+        "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
+        last_year,
+        "-",
+        "{:0>2}".format(last_month),
+        ")",
+    ]
+)
 license_txt = " ".join(
     [
         "AMIP boundary condition data produced by PCMDI is licensed",
@@ -246,7 +254,7 @@ dataVerFudge = "v1.2.0"  # Replace dataVerSht below
 sanPath = os.path.join(
     homePath, "".join(["SST_", dataVerFudge.replace("v", "").replace(".", "-")])
 )
-dataEnd = "202110"
+dataEnd = "202202"
 # sanPath = os.path.join(homePath, "SST_1-2-0_old4")
 # dataEnd = "202109"
 # sanPath = os.path.join(homePath, "SST_1-2-0_old3")
@@ -573,86 +581,29 @@ for filePath in files:
     activityId = "input4MIPs"
     deprecated = False
     jsonId = "CMIP-PaulDurack"
-    jsonWriteFile(
-        conventions,
-        activityId,
-        contact,
-        creationDate,
-        datasetCategory,
-        sourceVersion,
-        frequency,
-        furtherInfoUrl,
-        gridLabel,
-        institution,
-        institutionId,
-        mipEra,
-        nominalResolution,
-        realm,
-        source,
-        sourceId,
-        targetMip,
-        targetMipJson,
-        title,
-        variableId,
-        filePath,
-        trackingIdList,
-        deprecated,
-        dataVersion,
-        destPath,
-        jsonId,
-    )
+    jsonWriteFile(conventions, activityId, contact, creationDate, datasetCategory,
+                  sourceVersion, frequency, furtherInfoUrl, gridLabel, institution,
+                  institutionId, mipEra, nominalResolution, realm, source, sourceId,
+                  targetMip, targetMipJson, title, variableId, filePath, trackingIdList,
+                  deprecated, dataVersion, destPath, jsonId,)
 
     # Save json file list for publication
-    destFilePath = os.path.join(
-        activityId,
-        mipEra,
-        targetMip,
-        institutionId,
-        sourceId,
-        realm,
-        frequency,
-        variableId,
-        gridLabel,
-        dataVersion,
-        fileName,
-    )
+    destFilePath = os.path.join(activityId, mipEra, targetMip, institutionId, sourceId,
+                                realm, frequency, variableId, gridLabel, dataVersion,
+                                fileName,)
     variableFilePaths.append(os.path.join(destPath, destFilePath.replace(fileName, "")))
-    jsonFilePath = os.path.join(
-        destPath,
-        activityId,
-        mipEra,
-        targetMip,
-        institutionId,
-        "".join(
-            [
-                "_".join(
-                    [
-                        institutionId,
-                        frequency,
-                        sourceId,
-                        variableId,
-                        gridLabel,
-                        dataVersion,
-                    ]
-                ),
-                ".json",
-            ]
-        ),
-    )
+    jsonFilePath = os.path.join(destPath, activityId, mipEra, targetMip, institutionId,
+                                "".join(["_".join(
+                                    [institutionId, frequency, sourceId, variableId,
+                                     gridLabel, dataVersion,]
+                                    ), ".json",]
+                                ),
+                                )
     jsonFilePaths.append(jsonFilePath)
 
 # Clean up permissions
-washPerms(
-    destPath,
-    activityId,
-    mipEra,
-    targetMip,
-    institutionId,
-    sourceId,
-    realm,
-    frequency,
-    gridLabel,
-    dataVersion,
-)
+#washPerms(destPath, activityId, mipEra, targetMip, institutionId, sourceId,
+#            realm, frequency, gridLabel, dataVersion,)
+
 # Create output files for publication
 createPubFiles(destPath, jsonId, jsonFilePaths, variableFilePaths)
