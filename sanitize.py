@@ -80,6 +80,7 @@ PJD 20 Nov 2019     - Update to write out 2018 data to v1.1.6
 PJD 20 Nov 2019     - Updated prints for py3
 PJD 20 Nov 2019     - /p/user_pub/work needed perm updates to allow DRS writing (drwxrwxr-x - climatew)
 """
+# 2021
 """
 PJD 28 Jul 2021     - Update to latest data; Convert to use mkhurrell_wrapper.py; Update home path
 PJD  1 Sep 2021     - Added history attribute to replicate previous files
@@ -93,7 +94,11 @@ PJD 17 Nov 2021     - Switchout for latest October 2021 data
 PJD 18 Nov 2021     - Evaluating impact of 202109 vs 202110 input data
 PJD  2 Dec 2021     - Updates to hurrellfx.py and *sub.f - obs range checks
 PJD  2 Dec 2021     - Renamed mkhurrell -> pcmdiAmipBcs; hurrellfx.py -> pcmdiAmipBcsFx.py
+"""
+"""
 PJD  1 Feb 2022     - Updated to reflect v1.1.7 data not v1.2.0 (CMIP6 not CMIP6Plus)
+PJD 14 Jun 2022     - Updated to reflect v1.1.8 data not v1.2.0 (CMIP6 not CMIP6Plus)
+PJD 14 Jun 2022     - Corrected license to reflect CC BY 4.0 (was garbled before)
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -114,12 +119,12 @@ Saturday                 9th
 
 @author: durack1
 """
+
+# import gc
 import numpy as np
 import MV2 as mv
 import cmor
 import datetime
-
-# import gc
 import glob
 import os
 import pytz
@@ -129,13 +134,10 @@ import cdms2 as cdm
 import cdat_info as cdatInfo
 import cdutil as cdu
 from socket import gethostname
-
 sys.path.insert(0, "/home/durack1/git/durolib/durolib")
 from durolib import makeCalendar  # globalAttWrite, mkDirNoOSErr
-
 sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
 from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
-
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
 
@@ -155,7 +157,7 @@ cdm.setNetcdfDeflateFlag(1)
 activity_id = "input4MIPs"
 # WILL REQUIRE UPDATING
 contact = "pcmdi-cmip@lists.llnl.gov"
-dataVerNum = "1.1.7"  # WILL REQUIRE UPDATING
+dataVerNum = "1.1.8"  # WILL REQUIRE UPDATING
 dataVer = "PCMDI-AMIP-XX".replace("XX", dataVerNum.replace(".", "-"))
 dataVerSht = "".join(["v", dataVerNum])
 data_structure = "grid"
@@ -165,16 +167,16 @@ further_info_url = "https://pcmdi.llnl.gov/mips/amip/"
 institution_id = "PCMDI"
 institution = "Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA"
 last_year = "2021"  # WILL REQUIRE UPDATING
-last_month = 6  # WILL REQUIRE UPDATING
+last_month = 12  # WILL REQUIRE UPDATING
 comment = "Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2021-06)"
 comment = "".join(["Based on Hurrell SST/sea ice consistency criteria applied to ",
-                    "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
-                    last_year, "-", "{:0>2}".format(last_month), ")"])
+                   "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
+                   last_year, "-", "{:0>2}".format(last_month), ")"])
 license_txt = " ".join(
     [
         "AMIP boundary condition data produced by PCMDI is licensed",
-        'under a Creative Commons Attribution "Share Alike" 4.0',
-        "International License (http://creativecommons.org/licenses/by/4.0/).",
+        "under a Creative Commons Attribution 4.0 International (CC BY 4.0;",
+        "https://creativecommons.org/licenses/by/4.0/) License.",
         "The data producers and data providers make no warranty,",
         "either express or implied, including but not limited to,",
         "warranties of merchantability and fitness for a particular",
@@ -225,7 +227,8 @@ if len(cdatVerInfo) > 2:
 else:
     cdatVerInfo = cdatInfo.version()[-1].strip("v")
     # Trim off the v
-history = "".join(["File processed: ", timeFormat, " UTC; San Francisco, CA, USA"])
+history = "".join(["File processed: ", timeFormat,
+                  " UTC; San Francisco, CA, USA"])
 host = "".join(
     [
         "Host: ",
@@ -240,13 +243,12 @@ history = "".join([history, "; \n", host])
 print(history)
 
 # %% Set directories and input data
-homePath = "/work/durack1/Shared/150219_AMIPForcingData/"
+homePath = os.path.join(destPath, "Shared/150219_AMIPForcingData/")
 # sanPath     = os.path.join(homePath,'_'.join(['360x180',dataVerSht,'san']))
-dataVerFudge = "v1.2.0"  # Replace dataVerSht below
 sanPath = os.path.join(
-    homePath, "".join(["SST_", dataVerFudge.replace("v", "").replace(".", "-")])
+    homePath, "".join(["SST_", dataVerNum.replace(".", "-")])
 )
-dataEnd = "202110"
+dataEnd = "202205"
 # sanPath = os.path.join(homePath, "SST_1-2-0_old4")
 # dataEnd = "202109"
 # sanPath = os.path.join(homePath, "SST_1-2-0_old3")
@@ -281,7 +283,8 @@ for varId in ["siconc", "tos"]:
     ftype = varList[varId]["ftype"]
     units = varList[varId]["units"]
     outVar = varList[varId]["outVar"]
-    inFile = "".join(["MODEL.", fileVar, ".HAD187001-198110.OI198111-", dataEnd, ".nc"])
+    inFile = "".join(
+        ["MODEL.", fileVar, ".HAD187001-198110.OI198111-", dataEnd, ".nc"])
     fH = cdm.open(os.path.join(sanPath, inFile), "r")
     var = fH(varName)
     print("var.shape", var.shape)
@@ -295,10 +298,12 @@ for varId in ["siconc", "tos"]:
     # Create calendar
     if lastMn == 6:
         endYr = str(int(lastYr))  # Half year/Same year
-        time = makeCalendar("1870", endYr, monthEnd=(lastMn + 1), calendarStep="months")
+        time = makeCalendar("1870", endYr, monthEnd=(
+            lastMn + 1), calendarStep="months")
     elif lastMn == 12:
         endYr = str(int(lastYr))  # Half year/Same year
-        time = makeCalendar("1870", endYr + 1, monthEnd=1, calendarStep="months")
+        time = makeCalendar("1870", endYr + 1, monthEnd=1,
+                            calendarStep="months")
     else:  # Case of full year; last_month = 12
         endYr = str(int(lastYr))  # Correct off by one, full year
         if lastMn == 12:
@@ -427,7 +432,8 @@ for varId in ["siconc", "tos"]:
         values = np.array(d[:], np.float32)
         # shuffle=1,deflate=1,deflate_level=1 ; CMOR 3.0.6+
         cmor.set_deflate(varid, 1, 1, 1)
-        cmor.write(varid, values, time_vals=time[:], time_bnds=time.getBounds())
+        cmor.write(varid, values,
+                   time_vals=time[:], time_bnds=time.getBounds())
         f.close()
         cmor.close()
 
@@ -452,7 +458,8 @@ areacelloM2.id = "areacello"
 areacello = areacelloM2
 del areacelloM2
 # sftof
-maskFile = "/work/durack1/Shared/obs_data/WOD13/170425_WOD13_masks_1deg.nc"
+maskFile = os.path.join(
+    destPath, "Shared/obs_data/WOD13/170425_WOD13_masks_1deg.nc")
 fMask = cdm.open(maskFile)
 landSea1deg = fMask("landsea")
 # Fix longitude
@@ -616,7 +623,8 @@ for filePath in files:
         dataVersion,
         fileName,
     )
-    variableFilePaths.append(os.path.join(destPath, destFilePath.replace(fileName, "")))
+    variableFilePaths.append(os.path.join(
+        destPath, destFilePath.replace(fileName, "")))
     jsonFilePath = os.path.join(
         destPath,
         activityId,
@@ -641,18 +649,18 @@ for filePath in files:
     )
     jsonFilePaths.append(jsonFilePath)
 
-# Clean up permissions
-washPerms(
-    destPath,
-    activityId,
-    mipEra,
-    targetMip,
-    institutionId,
-    sourceId,
-    realm,
-    frequency,
-    gridLabel,
-    dataVersion,
-)
+# Clean up permissions - hardcoded to /p/
+# washPerms(
+#     destPath,
+#     activityId,
+#     mipEra,
+#     targetMip,
+#     institutionId,
+#     sourceId,
+#     realm,
+#     frequency,
+#     gridLabel,
+#     dataVersion,
+# )
 # Create output files for publication
 createPubFiles(destPath, jsonId, jsonFilePaths, variableFilePaths)
