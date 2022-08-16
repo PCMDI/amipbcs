@@ -6,7 +6,7 @@ python module pcmdiAmipBcs ! in
         subroutine solvmid(alon,alat,nmon,conv,dt,vmin,vmax,bbmin,maxiter,a,c,obsmean,ss,icnt,niter,notconverg,jj,resid,residmax,jumps,jcnt) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
             real :: alon
             real :: alat
-            integer, optional,check(len(a)>=nmon),depend(a) :: nmon=len(a)
+            integer, optional,check(shape(a, 0) == nmon),depend(a) :: nmon=shape(a, 0)
             real :: conv
             real :: dt
             real :: vmin
@@ -62,7 +62,7 @@ python module pcmdiAmipBcs ! in
             real dimension(n),depend(n) :: c
             real dimension(n),depend(n) :: r
             double precision dimension(n),depend(n) :: u
-            integer, optional,check(len(a)>=n),depend(a) :: n=len(a)
+            integer, optional,check(shape(a, 0) == n),depend(a) :: n=shape(a, 0)
         end subroutine tridag
         subroutine cyclic(alon,alat,a,b,c,alpha,beta,r,x,n) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
             real :: alon
@@ -74,7 +74,7 @@ python module pcmdiAmipBcs ! in
             real :: beta
             real dimension(n),depend(n) :: r
             double precision dimension(n),depend(n) :: x
-            integer, optional,check(len(a)>=n),depend(a) :: n=len(a)
+            integer, optional,check(shape(a, 0) == n),depend(a) :: n=shape(a, 0)
         end subroutine cyclic
         function amean(tmin,tmax,a,c,ssm,ss,ssp) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
             real :: tmin
@@ -97,7 +97,7 @@ python module pcmdiAmipBcs ! in
         end subroutine adjlimit
         subroutine errormsg1(jcnt,nmon,n,alon,alat,add,obsmean) ! in :pcmdiAmipBcs:pcmdiAmipBcs_sub.f
             integer :: jcnt
-            integer, optional,check(len(obsmean)>=nmon),depend(obsmean) :: nmon=len(obsmean)
+            integer, optional,check(shape(obsmean, 0) == nmon),depend(obsmean) :: nmon=shape(obsmean, 0)
             integer :: n
             real :: alon
             real :: alat
@@ -115,5 +115,6 @@ python module pcmdiAmipBcs ! in
     end interface 
 end python module pcmdiAmipBcs
 
-! This file was auto-generated with f2py (version:1.21.4).
-! See http://cens.ioc.ee/projects/f2py2e/
+! This file was auto-generated with f2py (version:1.23.2).
+! See:
+! https://web.archive.org/web/20140822061353/http://cens.ioc.ee/projects/f2py2e
