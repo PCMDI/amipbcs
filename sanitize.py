@@ -100,6 +100,7 @@ PJD  2 Dec 2021     - Renamed mkhurrell -> pcmdiAmipBcs; hurrellfx.py -> pcmdiAm
 PJD  1 Feb 2022     - Updated to reflect v1.1.7 data not v1.2.0 (CMIP6 not CMIP6Plus)
 PJD 14 Jun 2022     - Updated to reflect v1.1.8 data not v1.2.0 (CMIP6 not CMIP6Plus)
 PJD 14 Jun 2022     - Corrected license to reflect CC BY 4.0 (was garbled before)
+PJD 16 Aug 2022     - Updated to reflect latest amipbcs inputs; CMOR 3.7.0 pre-release
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
