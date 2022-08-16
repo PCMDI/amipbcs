@@ -1,23 +1,12 @@
 {
     "institution_id":               "PCMDI",
     "source_id":                    "PCMDI-AMIP-1-1-8",
-    "source":                       "PCMDI-AMIP 1.1.8: Merged SST based on UK MetOffice HadISST and NCEP OI2",
-    "contact ":                     "PCMDI (pcmdi-cmip@llnl.gov)",
-    "further_info_url":             "https://pcmdi.llnl.gov/mips/amip",
-
-    "dataset_category":             "SSTsAndSeaIce",
-    "calendar":                     "gregorian",
-    "grid_label":                   "gn",
-    "nominal_resolution":           "1x1 degree",
-    "region":                       "global_ocean",
 
     "outpath":                      "/p/user_pub/climate_work/durack1",
-    "#outpath":                      "/work/durack1/Shared/150219_AMIPForcingData",
     "_history_template":            "%s; CMOR rewrote data to be consistent with <activity_id>, CMIP6, and <Conventions> standards",
     "output_path_template":         "<activity_id><mip_era><target_mip><institution_id><source_id><realm><frequency><variable_id><grid_label><version>",
     "output_file_template":         "<variable_id><activity_id><dataset_category><target_mip><source_id><grid_label>",
     "tracking_prefix":              "hdl:21.14100",
-    "license":                      "AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution 4.0 International (CC BY 4.0; https://creativecommons.org/licenses/by/4.0/) License. The data producers and data providers make no warranty, either express or implied, including but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
 
     "_controlled_vocabulary_file":  "CMOR/input4MIPs-cmor-tables/Tables/input4MIPs_CV.json",
     "_AXIS_ENTRY_FILE":             "CMOR/input4MIPs-cmor-tables/Tables/input4MIPs_coordinate.json",

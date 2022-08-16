@@ -4,6 +4,11 @@
 # https://stackoverflow.com/questions/52749662/using-deprecated-numpy-api
 # https://numpy.org/devdocs/f2py/signature-file.html#extensions
 
+# Issues have cropped up with distutils deprecation py3.12, see
+# https://github.com/conda-forge/pymc-feedstock/issues/58
+# A new env with setuptools=!65.* seems to have fixed it, but weirdly the gcc 12.1 isn't picked up
+# mamba create -n cmo361Ncdm315cdu821mat353gcc1210py310 -c PCMDI/label/nightly -c conda-forge python=3.10 cmor cdat_info cdms2 cdutil gcc matplotlib pytz "setuptools !=65.*"
+
 # Report gfortran versions on path
 echo "gfortran compiler on path"
 echo `f2py -c --help-fcompiler | grep gnu95`
