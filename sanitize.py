@@ -95,6 +95,7 @@ PJD 18 Nov 2021     - Evaluating impact of 202109 vs 202110 input data
 PJD  2 Dec 2021     - Updates to hurrellfx.py and *sub.f - obs range checks
 PJD  2 Dec 2021     - Renamed mkhurrell -> pcmdiAmipBcs; hurrellfx.py -> pcmdiAmipBcsFx.py
 """
+# 2022
 """
 PJD  1 Feb 2022     - Updated to reflect v1.1.7 data not v1.2.0 (CMIP6 not CMIP6Plus)
 PJD 14 Jun 2022     - Updated to reflect v1.1.8 data not v1.2.0 (CMIP6 not CMIP6Plus)
@@ -136,10 +137,10 @@ import cdutil as cdu
 from socket import gethostname
 sys.path.insert(0, "/home/durack1/git/durolib/durolib")
 from durolib import makeCalendar  # globalAttWrite, mkDirNoOSErr
-sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
-from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
+sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
+from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
 
 # %% Kludge for json/encoder warning
 # import warnings
