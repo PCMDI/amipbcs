@@ -10,6 +10,7 @@ PJD  2 Nov 2021     - Updated following tweaks in https://github.com/PCMDI/amipb
 PJD  3 May 2023     - Updates for the v1.1.9 data
 PJD  3 May 2023     - Updated for cdms2 -> xcdat
 PJD  3 May 2023     - Added plotter function
+PJD  4 May 2023     - Hitting issue with 2002-11 timestep and xarray DataArray plotting
 
 @author: durack1
 """
@@ -21,6 +22,7 @@ import matplotlib.pyplot as plt
 import glob
 import numpy as np
 import os
+import pdb
 import shutil
 from xcdat import open_dataset
 
@@ -43,11 +45,24 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
                               false_northing=None,
                           ),
                           )
-    cs1 = ax1.contourf(x, y, da1[0,],
-                       lev1,
+    print("type(da1.lon):", type(da1.lon))
+    print("type(da1.lat):", type(da1.lat))
+    print("type(da1):", type(da1))
+    print("type(lev1):", type(lev1))
+    print("type(cmap):", type(cmap))
+    #cs1 = ax1.contourf(da1.lon, da1.lat, da1[0,],
+    #x1 = np.squeeze(np.array(da1.data))
+    #la1 = np.array(da1.lat.data)
+    #lo1 = np.array(da1.lon.data)
+    da1.load()
+    ## Failing line - only when an xarray DataArray is sent
+    cs1 = ax1.contourf(da1.lon.data, da1.lat.data, da1.squeeze().data,
+    #cs1 = ax1.contourf(lo1, la1, x1,
+                       20,
                        transform=ccrs.PlateCarree(),
-                       cmap=cmap,
+                       cmap=cmap
                        )
+    pdb.set_trace()
     tx1 = plt.text(labX, labY, da1Str,
                    fontsize=fntsz,
                    horizontalalignment="center",
@@ -61,7 +76,7 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
                               false_northing=None,
                           ),
                           )
-    cs2 = ax2.contourf(x, y, da2[0,],
+    cs2 = ax2.contourf(da1.lon, da1.lat, da2[0,],
                        lev1,
                        transform=ccrs.PlateCarree(),
                        cmap=cmap,
@@ -87,7 +102,7 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
     np.squeeze(denom).shape
     diffnew[inds] = diff.data[inds] / denom.data[inds]
 
-    cs3 = ax3.contourf(x, y, diffnew,
+    cs3 = ax3.contourf(da1.lon, da1.lat, diffnew,
                        lev2,
                        transform=ccrs.PlateCarree(),
                        cmap=cmap,
@@ -182,8 +197,8 @@ ds6 = open_dataset(f6)
 ds7 = open_dataset(f7)
 ds8 = open_dataset(f8)
 # https://scitools.org.uk/cartopy/docs/v0.18/crs/projections.html
-x = ds1.lon.data  # x[None, :]
-y = ds1.lat.data  # y[None, :]
+x = ds1.lon.data
+y = ds1.lat.data
 
 # %% Standard plot - actual and diff maps
 # Contour levels
@@ -208,8 +223,8 @@ if os.path.exists(tmpPath):
     shutil.rmtree(tmpPath)
 
 for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
-    for yr in np.arange(1870, ds1.time.data[-1].year):
-        for mn in np.arange(1, 13):
+    for yr in np.arange(2002, ds1.time.data[-1].year): # 1870
+        for mn in np.arange(10, 13):
             startTime = "-".join([str(yr), '{:02d}'.format(mn), "01"])
             endTime = "-".join([str(yr), '{:02d}'.format(mn), "28"])
             print("start:", startTime, "end:", endTime)
@@ -247,6 +262,7 @@ for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
                 s1.time.data[0].year, s1.time.data[0].month)
             titleString = "{}{:02d}{}{}".format(
                 s1.time.data[0].year, s1.time.data[0].month, " ", var)
+            pdb.set_trace()
 
             plotter(s1, s2, "v1.1.8", "v1.1.9", lev1, levs4, cmap, timeString,
                     titleString, varColStr, os.path.join(
