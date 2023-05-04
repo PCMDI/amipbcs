@@ -1,6 +1,6 @@
 {
     "institution_id":               "PCMDI",
-    "source_id":                    "PCMDI-AMIP-1-1-8",
+    "source_id":                    "PCMDI-AMIP-1-1-9",
 
     "outpath":                      "/p/user_pub/climate_work/durack1",
     "_history_template":            "%s; CMOR rewrote data to be consistent with <activity_id>, CMIP6, and <Conventions> standards",

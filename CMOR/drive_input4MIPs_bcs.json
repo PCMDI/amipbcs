@@ -1,6 +1,6 @@
 {
     "institution_id":               "PCMDI",
-    "source_id":                    "PCMDI-AMIP-1-1-8",
+    "source_id":                    "PCMDI-AMIP-1-1-9",
     "product":                      "derived",
 
     "outpath":                      "/p/user_pub/climate_work/durack1",

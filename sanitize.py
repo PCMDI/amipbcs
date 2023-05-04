@@ -101,6 +101,11 @@ PJD  1 Feb 2022     - Updated to reflect v1.1.7 data not v1.2.0 (CMIP6 not CMIP6
 PJD 14 Jun 2022     - Updated to reflect v1.1.8 data not v1.2.0 (CMIP6 not CMIP6Plus)
 PJD 14 Jun 2022     - Corrected license to reflect CC BY 4.0 (was garbled before)
 PJD 16 Aug 2022     - Updated to reflect latest amipbcs inputs; CMOR 3.7.0 pre-release
+"""
+# 2023
+"""
+PJD  3 May 2023     - Updated to reflect latest PCMDI-AMIP-1-1-9 release (CMIP6Plus)
+PJD  3 May 2023     - Added clunky code to work around the project=CMIP6 -> CMIP6Plus in the input tables
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -123,29 +128,29 @@ Saturday                 9th
 """
 
 # import gc
-import numpy as np
-import MV2 as mv
+import cdat_info as cdatInfo
+import cdms2 as cdm
+import cdutil as cdu
 import cmor
 import datetime
 import glob
+import json
+import MV2 as mv
+import numpy as np
 import os
+import pdb
 import pytz
 import sys
-import pdb
-import cdms2 as cdm
-import cdat_info as cdatInfo
-import cdutil as cdu
 from socket import gethostname
 sys.path.insert(0, "/home/durack1/git/durolib/durolib")
 from durolib import makeCalendar  # globalAttWrite, mkDirNoOSErr
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
 sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
-from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
-
+from input4MIPsFuncs import createPubFiles, jsonWriteFile  # , washPerms
 # %% Kludge for json/encoder warning
 # import warnings
-##warnings.filterwarnings('ignore', category=DeprecationWarning)
+# warnings.filterwarnings('ignore', category=DeprecationWarning)
 # with warnings.catch_warnings():
 #    warnings.filterwarnings('ignore', category=DeprecationWarning)
 #    import vcs
@@ -159,7 +164,7 @@ cdm.setNetcdfDeflateFlag(1)
 activity_id = "input4MIPs"
 # WILL REQUIRE UPDATING
 contact = "pcmdi-cmip@lists.llnl.gov"
-dataVerNum = "1.1.8"  # WILL REQUIRE UPDATING
+dataVerNum = "1.1.9"  # WILL REQUIRE UPDATING
 dataVer = "PCMDI-AMIP-XX".replace("XX", dataVerNum.replace(".", "-"))
 dataVerSht = "".join(["v", dataVerNum])
 data_structure = "grid"
@@ -168,9 +173,8 @@ frequency = "mon"
 further_info_url = "https://pcmdi.llnl.gov/mips/amip/"
 institution_id = "PCMDI"
 institution = "Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA"
-last_year = "2021"  # WILL REQUIRE UPDATING
+last_year = "2022"  # WILL REQUIRE UPDATING
 last_month = 12  # WILL REQUIRE UPDATING
-comment = "Based on Hurrell SST/sea ice consistency criteria applied to merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to 2021-06)"
 comment = "".join(["Based on Hurrell SST/sea ice consistency criteria applied to ",
                    "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
                    last_year, "-", "{:0>2}".format(last_month), ")"])
@@ -187,7 +191,7 @@ license_txt = " ".join(
         "are excluded to the fullest extent permitted by law.",
     ]
 )
-mip_era = "CMIP6"  # "CMIP6Plus"
+mip_era = "CMIP6Plus"  # "CMIP6"
 mip_specs = "AMIP CMIP5 CMIP6 CMIP6Plus"
 project_id = "AMIP"
 ref_obs = " ".join(
@@ -214,7 +218,7 @@ target_mip = "CMIP"
 time_period = "".join(["187001-", last_year, "{:0>2}".format(last_month)])
 destPath = "/p/user_pub/climate_work/durack1"
 # For CMOR this is set in the CMOR/drive_input4MIPs*.json files
-# destPath = '/work/durack1/Shared/150219_AMIPForcingData'  # USE FOR TESTING
+# destPath = '/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData'  # USE FOR TESTING
 
 # %% Get time/history info
 utcNow = datetime.datetime.utcnow()
@@ -250,15 +254,7 @@ homePath = os.path.join(destPath, "Shared/150219_AMIPForcingData/")
 sanPath = os.path.join(
     homePath, "".join(["SST_", dataVerNum.replace(".", "-")])
 )
-dataEnd = "202205"
-# sanPath = os.path.join(homePath, "SST_1-2-0_old4")
-# dataEnd = "202109"
-# sanPath = os.path.join(homePath, "SST_1-2-0_old3")
-# dataEnd = "202108"
-# sanPath = os.path.join(homePath, "SST_1-2-0_old2")
-# dataEnd = "202106"
-# sanPath = os.path.join(homePath, "SST_1-2-0-1-1-6")
-# dataEnd = "201903"
+dataEnd = "202301"
 print("sanPath:", sanPath)
 
 # %% Process each variable
@@ -395,9 +391,9 @@ for varId in ["siconc", "tos"]:
             cmorVarId = "".join([varId, "bcs"])
         # Start CMORising
         cmor.setup(
-            inpath="CMOR/input4MIPs-cmor-tables/Tables",
             netcdf_file_action=cmor.CMOR_REPLACE_4,
         )
+        # inpath="CMOR/input4MIPs-cmor-tables/Tables",
         cmor.dataset_json(dataSetJson)
         d = eval(dHandle)
         lat = d.getLatitude()
@@ -409,7 +405,27 @@ for varId in ["siconc", "tos"]:
             table = "input4MIPs_SImon.json"
         else:
             table = "input4MIPs_Omon.json"
-        cmor.load_table(table)
+
+        # Fudge table files to force project=CMIP6Plus
+        tablePath = "CMOR/input4MIPs-cmor-tables/Tables"
+        with open(os.path.join(tablePath, table)) as fh:
+            tmp = json.load(fh)
+        tmp["Header"]["mip_era"] = "CMIP6Plus"
+        oH = open("tmp.json", "w")
+        json.dump(
+            tmp,
+            oH,
+            ensure_ascii=True,
+            sort_keys=True,
+            indent=4,
+            separators=(
+                ',',
+                ':')
+        )
+        oH.close()
+        cmor.load_table("tmp.json")
+        os.remove("tmp.json")
+
         axes = [
             {"table_entry": dataSetTime, "units": "days since 1870-01-01"},
             {
@@ -506,7 +522,27 @@ for fxVar in fxFiles:
     cmor.set_cur_dataset_attribute("history", history)
     # cmor.set_cur_dataset_attribute('frequency', 'fx')  # <-- test? no good
     table = "input4MIPs_Ofx.json"  # <-- doesn't overwrite source_id value
-    cmor.load_table(table)
+  
+    # Fudge table files to force project=CMIP6Plus
+    tablePath = "CMOR/input4MIPs-cmor-tables/Tables"
+    with open(os.path.join(tablePath, table)) as fh:
+        tmp = json.load(fh)
+    tmp["Header"]["mip_era"] = "CMIP6Plus"
+    oH = open("tmp.json", "w")
+    json.dump(
+        tmp,
+        oH,
+        ensure_ascii=True,
+        sort_keys=True,
+        indent=4,
+        separators=(
+            ',',
+            ':')
+    )
+    oH.close()
+    cmor.load_table("tmp.json")
+    os.remove("tmp.json")
+    
     axes = [
         {
             "table_entry": "latitude",

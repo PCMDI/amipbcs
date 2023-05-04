@@ -1,0 +1,480 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Sep 20 13:21:49 2021
+
+PJD 20 Sep 2021     - Started
+PJD 30 Sep 2021     - Updated for v20210930 data
+PJD 27 Oct 2021     - Updated to generate diff as % maps
+PJD  2 Nov 2021     - Updated following tweaks in https://github.com/PCMDI/amipbcs/issues/23#issuecomment-958164331
+PJD  3 May 2023     - Updates for the v1.1.9 data
+PJD  3 May 2023     - Updated for cdms2 -> xcdat
+PJD  3 May 2023     - Added plotter function
+
+@author: durack1
+"""
+
+# %% imports
+import cartopy.crs as ccrs
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import matplotlib.pyplot as plt
+import glob
+import numpy as np
+import os
+import shutil
+from xcdat import open_dataset
+
+# %% function defs
+
+
+def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, varColStr, path, var, fileName):
+    # Open canvas
+    fig = plt.figure(figsize=(10, 15))
+    plt.axis("off")
+    plt.ioff()  # turn off interactive plots - background mode
+    plt.title(titleString)
+
+    # Start subplots
+    ax1 = fig.add_subplot(3, 1, 1,
+                          projection=ccrs.Robinson(
+                              central_longitude=centralLon,
+                              globe=None,
+                              false_easting=None,
+                              false_northing=None,
+                          ),
+                          )
+    cs1 = ax1.contourf(x, y, da1[0,],
+                       lev1,
+                       transform=ccrs.PlateCarree(),
+                       cmap=cmap,
+                       )
+    tx1 = plt.text(labX, labY, da1Str,
+                   fontsize=fntsz,
+                   horizontalalignment="center",
+                   transform=ccrs.Geodetic(),
+                   )
+    ax2 = fig.add_subplot(3, 1, 2,
+                          projection=ccrs.Robinson(
+                              central_longitude=centralLon,
+                              globe=None,
+                              false_easting=None,
+                              false_northing=None,
+                          ),
+                          )
+    cs2 = ax2.contourf(x, y, da2[0,],
+                       lev1,
+                       transform=ccrs.PlateCarree(),
+                       cmap=cmap,
+                       )
+    tx2 = plt.text(labX, labY, da2Str,
+                   fontsize=fntsz,
+                   horizontalalignment="center",
+                   transform=ccrs.Geodetic(),
+                   )
+    ax3 = fig.add_subplot(3, 1, 3,
+                          projection=ccrs.Robinson(
+                              central_longitude=centralLon,
+                              globe=None,
+                              false_easting=None,
+                              false_northing=None,
+                          ),
+                          )
+    # Generate % change
+    diff = (da1[0,] - da2[0,])
+    inds = np.nonzero(diff.data)
+    diffnew = np.ma.zeros(diff.shape)
+    denom = (np.abs(s1[0,]) + np.abs(s2[0,])) / 2
+    np.squeeze(denom).shape
+    diffnew[inds] = diff.data[inds] / denom.data[inds]
+
+    cs3 = ax3.contourf(x, y, diffnew,
+                       lev2,
+                       transform=ccrs.PlateCarree(),
+                       cmap=cmap,
+                       )
+
+    tx3 = plt.text(labX, labY, " ".join([da1Str, "-", da2Str]),
+                   fontsize=fntsz,
+                   horizontalalignment="center",
+                   transform=ccrs.Geodetic(),
+                   )
+
+    # make the map global rather than have it zoom in to the extents of
+    # any plotted data ax.set_global()
+    # ax1.stock_img()
+    ax1.coastlines()
+    ax2.coastlines()
+    ax3.coastlines()
+    # ax.plot(-0.08, 51.53, 'o', transform=ccrs.PlateCarree())
+    # ax.plot([-0.08, 132], [51.53, 43.17], transform=ccrs.Geodetic())
+
+    # https://matplotlib.org/stable/gallery/axes_grid1/demo_colorbar_with_inset_locator.html
+    axin1 = inset_axes(
+        ax1,
+        width="5%",  # width = 5% of parent_bbox width
+        height="50%",  # height : 50%
+        loc="lower left",
+        bbox_to_anchor=(1.05, -1.17, 1, 4.3),
+        bbox_transform=ax1.transAxes,
+        borderpad=0,
+    )
+
+    axin3 = inset_axes(
+        ax3,
+        width="5%",  # width = 5% of parent_bbox width
+        height="50%",  # height : 50%
+        loc="lower left",
+        bbox_to_anchor=(1.05, 0.0, 1, 2),
+        bbox_transform=ax3.transAxes,
+        borderpad=0,
+    )
+
+    # cax1 = plt.axes([0.1, 0.63, 0.75, 0.02])
+    # fig.colorbar(ax1, cax=cax2, orientation='horizontal', cmap='RdBu')
+    cax1 = fig.colorbar(cs1, cax=axin1)
+    cax1.ax.set_ylabel(varColStr, rotation=270)
+    cax2 = fig.colorbar(cs3, cax=axin3)
+    cax2.ax.set_ylabel("% difference", rotation=270)
+
+    # Resize plots
+    plt.subplots_adjust(
+        bottom=0.005, left=0.01, right=0.84, top=0.985, hspace=0.01, wspace=0.01
+    )
+
+    # plt.show()
+    if not os.path.exists(os.path.join(path)):
+        os.mkdir(os.path.join(path))
+    if not os.path.exists(os.path.join(path, var)):
+        os.mkdir(os.path.join(path, var))
+    fig.savefig(os.path.join(path, var, ".".join([fileName, "png"])), dpi=100)
+    plt.close()
+
+
+# %% Variables
+outPathVer = "pngs_v1.1.9"
+outPath = "/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData/"
+# New data
+verId = "-v1-1-9"
+verPath = "/p/user_pub/climate_work/durack1/"
+ver = "v20230503"  # Update for each run
+verPath = os.path.join(
+    verPath, "input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/")
+# tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-2-0_gn_187001-202108.nc
+# Old data
+verOld = "v20220622"  # Update for each run
+verOldPath = "/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-8/"
+
+f1 = glob.glob("".join([verOldPath, "*/mon/siconc/gn/", verOld, "/*.nc"]))[0]
+f2 = glob.glob("".join([verPath, "*/mon/siconc/gn/", ver, "/*.nc"]))[0]
+f3 = glob.glob(
+    "".join([verOldPath, "*/mon/siconcbcs/gn/", verOld, "/*.nc"]))[0]
+f4 = glob.glob("".join([verPath, "*/mon/siconcbcs/gn/", ver, "/*.nc"]))[0]
+f5 = glob.glob("".join([verOldPath, "*/mon/tos/gn/", verOld, "/*.nc"]))[0]
+f6 = glob.glob("".join([verPath, "*/mon/tos/gn/", ver, "/*.nc"]))[0]
+f7 = glob.glob("".join([verOldPath, "*/mon/tosbcs/gn/", verOld, "/*.nc"]))[0]
+f8 = glob.glob("".join([verPath, "*/mon/tosbcs/gn/", ver, "/*.nc"]))[0]
+ds1 = open_dataset(f1)
+ds2 = open_dataset(f2)
+ds3 = open_dataset(f3)
+ds4 = open_dataset(f4)
+ds5 = open_dataset(f5)
+ds6 = open_dataset(f6)
+ds7 = open_dataset(f7)
+ds8 = open_dataset(f8)
+# https://scitools.org.uk/cartopy/docs/v0.18/crs/projections.html
+x = ds1.lon.data  # x[None, :]
+y = ds1.lat.data  # y[None, :]
+
+# %% Standard plot - actual and diff maps
+# Contour levels
+levs1 = list(np.arange(-20, 121, 10))  # siconc
+levs2 = list(np.arange(-500, 501, 100))  # siconcbcs
+levs3 = list(np.arange(-5, 36, 2.5))  # tos diff
+# levs3 = list(np.arange(-0.15, 0.1501, 0.05))  # tos diff
+levs4 = list(np.arange(0, 11, 1))  # % change
+
+# Lab x, y
+labX = -140.0
+centralLon = 202
+labY = 0.0
+fntsz = "large"
+cmap = "cool"  # 'RdBu'
+# https://matplotlib.org/stable/tutorials/colors/colormaps.html
+
+# %% start looping
+# Do cleanup
+tmpPath = os.path.join(outPath, "pngs", outPathVer)
+if os.path.exists(tmpPath):
+    shutil.rmtree(tmpPath)
+
+for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
+    for yr in np.arange(1870, ds1.time.data[-1].year):
+        for mn in np.arange(1, 13):
+            startTime = "-".join([str(yr), '{:02d}'.format(mn), "01"])
+            endTime = "-".join([str(yr), '{:02d}'.format(mn), "28"])
+            print("start:", startTime, "end:", endTime)
+            # load into arrays
+            match var:
+                case "siconc":
+                    s1 = eval("ds1.siconc.sel(time=slice(startTime, endTime))")
+                    s2 = eval("ds2.siconc.sel(time=slice(startTime, endTime))")
+                    lev1 = levs1
+                    cmap = "RdBu_r"
+                    varColStr = "% coverage"
+                case "siconcbcs":
+                    s1 = eval(
+                        "ds3.siconcbcs.sel(time=slice(startTime, endTime))")
+                    s2 = eval(
+                        "ds4.siconcbcs.sel(time=slice(startTime, endTime))")
+                    lev1 = levs2
+                    cmap = "cool"
+                    varColStr = "% coverage"
+                case "tos":
+                    s1 = eval("ds5.tos.sel(time=slice(startTime, endTime))")
+                    s2 = eval("ds6.tos.sel(time=slice(startTime, endTime))")
+                    lev1 = levs3
+                    cmap = "RdBu_r"
+                    varColStr = "degree_C"
+                case "tosbcs":
+                    s1 = eval("ds7.tosbcs.sel(time=slice(startTime, endTime))")
+                    s2 = eval("ds8.tosbcs.sel(time=slice(startTime, endTime))")
+                    lev1 = levs3
+                    cmap = "cool"
+                    varColStr = "degree_C"
+
+            # get time from index
+            timeString = "{}{:02d}".format(
+                s1.time.data[0].year, s1.time.data[0].month)
+            titleString = "{}{:02d}{}{}".format(
+                s1.time.data[0].year, s1.time.data[0].month, " ", var)
+
+            plotter(s1, s2, "v1.1.8", "v1.1.9", lev1, levs4, cmap, timeString,
+                    titleString, varColStr, os.path.join(
+                        outPath, "pngs", outPathVer),
+                    var, timeString)
+
+"""
+        # Open canvas
+        fig = plt.figure(figsize=(10, 15))
+        plt.axis("off")
+        plt.ioff()  # turn off interactive plots - background mode
+        plt.title(timeString)
+        # Start subplots
+        ax1 = fig.add_subplot(
+            3,
+            1,
+            1,
+            projection=ccrs.Robinson(
+                central_longitude=centralLon,
+                globe=None,
+                false_easting=None,
+                false_northing=None,
+            ),
+        )
+        cs1 = ax1.contourf(
+            x,
+            y,
+            s1[
+                0,
+            ],
+            levs1,
+            transform=ccrs.PlateCarree(),
+            cmap=cmap,
+        )
+        tx1 = plt.text(
+            labX,
+            labY,
+            "v1.1.8",
+            fontsize=fntsz,
+            horizontalalignment="center",
+            transform=ccrs.Geodetic(),
+        )
+        ax2 = fig.add_subplot(
+            3,
+            1,
+            2,
+            projection=ccrs.Robinson(
+                central_longitude=centralLon,
+                globe=None,
+                false_easting=None,
+                false_northing=None,
+            ),
+        )
+        cs2 = ax2.contourf(
+            x,
+            y,
+            s2[
+                0,
+            ],
+            levs1,
+            transform=ccrs.PlateCarree(),
+            cmap=cmap,
+        )
+        tx2 = plt.text(
+            labX,
+            labY,
+            "v1.1.9",
+            fontsize=fntsz,
+            horizontalalignment="center",
+            transform=ccrs.Geodetic(),
+        )
+        ax3 = fig.add_subplot(
+            3,
+            1,
+            3,
+            projection=ccrs.Robinson(
+                central_longitude=centralLon,
+                globe=None,
+                false_easting=None,
+                false_northing=None,
+            ),
+        )
+        # Generate % change
+        diff = (
+            s1[0,]
+            - s2[0,]
+        )
+        inds = np.nonzero(diff.data)
+        diffnew = np.ma.zeros(diff.shape)
+        denom = (np.abs(s1[0,]) + np.abs(s2[0,])) / 2
+        np.squeeze(denom).shape
+        diffnew[inds] = diff.data[inds] / denom.data[inds]
+        cs3 = ax3.contourf(
+            x,
+            y,
+            diffnew,
+            levs3,
+            transform=ccrs.PlateCarree(),
+            cmap=cmap,
+        )
+        tx3 = plt.text(
+            labX,
+            labY,
+            "v1.1.8 - v1.1.9",
+            fontsize=fntsz,
+            horizontalalignment="center",
+            transform=ccrs.Geodetic(),
+        )
+        # make the map global rather than have it zoom in to the extents of
+        # any plotted data ax.set_global()
+        # ax1.stock_img()
+        ax1.coastlines()
+        ax2.coastlines()
+        ax3.coastlines()
+        # ax.plot(-0.08, 51.53, 'o', transform=ccrs.PlateCarree())
+        # ax.plot([-0.08, 132], [51.53, 43.17], transform=ccrs.PlateCarree())
+        # ax.plot([-0.08, 132], [51.53, 43.17], transform=ccrs.Geodetic())
+        # https://matplotlib.org/stable/gallery/axes_grid1/demo_colorbar_with_inset_locator.html
+        axin1 = inset_axes(
+            ax1,
+            width="5%",  # width = 5% of parent_bbox width
+            height="50%",  # height : 50%
+            loc="lower left",
+            bbox_to_anchor=(1.05, -1.17, 1, 4.3),
+            bbox_transform=ax1.transAxes,
+            borderpad=0,
+        )
+        axin3 = inset_axes(
+            ax3,
+            width="5%",  # width = 5% of parent_bbox width
+            height="50%",  # height : 50%
+            loc="lower left",
+            bbox_to_anchor=(1.05, 0.0, 1, 2),
+            bbox_transform=ax3.transAxes,
+            borderpad=0,
+        )
+        # cax1 = plt.axes([0.1, 0.63, 0.75, 0.02])
+        # fig.colorbar(ax1, cax=cax2, orientation='horizontal', cmap='RdBu')
+        cax1 = fig.colorbar(cs1, cax=axin1)
+        cax1.ax.set_ylabel("% coverage", rotation=270)
+        cax2 = fig.colorbar(cs3, cax=axin3)
+        cax2.ax.set_ylabel("% difference", rotation=270)
+        # Resize plots
+        plt.subplots_adjust(
+            bottom=0.005, left=0.01, right=0.84, top=0.985, hspace=0.01, wspace=0.01
+        )
+        # plt.show()
+        fig.savefig(
+            "".join(["/home/durack1/git/amipbcs/", timeString, ".png"]), dpi=100)
+"""
+
+"""
+# %% Tweaked plot - % errors
+
+# First ascertain differences as a %
+oldMinusNew = s1 - s2
+# Mask all exact matches = 0.0 and 100.
+oldMinusNew = np.where(oldMinusNew == 0.0, 1e20, oldMinusNew)
+oldMinusNew = np.where(oldMinusNew == 100.0, 1e20, oldMinusNew)
+# Now convert missing values to mask
+oldMinusNew = np.ma.masked_where(oldMinusNew == 1e20, oldMinusNew, copy=False)
+# Generate absolute difference as %
+diffPercent = np.ma.abs(oldMinusNew) / np.ma.abs(s2)
+# Now mask regions where x < 0.2%, .2/100 or 0.002
+diffPercentMasked = np.ma.where(diffPercent < 0.002, 1e20, diffPercent)
+# Now convert missing values to mask
+diffPercentMasked = np.ma.masked_where(
+    diffPercentMasked == 1e20, diffPercentMasked, copy=False
+)
+# Generate index of nonzeros
+ind = diffPercentMasked.nonzero()
+# Contour levels
+levs4 = list(np.arange(-1, 1.0000001, 0.1) * 0.1)
+# Lab x, y
+labX = -140.0
+centralLon = 202
+labY = 0.0
+fntsz = "large"
+cmap = "cool"  # 'RdBu'
+# https://matplotlib.org/stable/tutorials/colors/colormaps.html
+fig2 = plt.figure(figsize=(10, 10))
+plt.axis("off")
+plt.title("1871-1-1")
+# Start subplots
+ax21 = fig2.add_subplot(
+    1,
+    1,
+    1,
+    projection=ccrs.Robinson(
+        central_longitude=centralLon,
+        globe=None,
+        false_easting=None,
+        false_northing=None,
+    ),
+)
+cs1 = ax21.contourf(
+    x,
+    y,
+    diffPercentMasked[
+        0,
+    ],
+    levs4,
+    transform=ccrs.PlateCarree(),
+    cmap=cmap,
+)
+tx1 = plt.text(
+    labX,
+    labY,
+    "v1.1.6 - v1.2.0 %",
+    fontsize=fntsz,
+    horizontalalignment="right",
+    transform=ccrs.Geodetic(),
+)
+axin4 = inset_axes(
+    ax21,
+    width="5%",  # width = 5% of parent_bbox width
+    height="50%",  # height : 50%
+    loc="lower left",
+    borderpad=0,
+    bbox_transform=ax21.transAxes,
+    bbox_to_anchor=(0, -0.2, 20, 0.2),
+)
+fig2.colorbar(cs1, cax=axin4, orientation="horizontal")
+plt.show()
+fig2.savefig("/home/durack1/git/amipbcs/matPlotTmpDiff.png", dpi=300)
+# %% Generate stat differences
+# In [93]: s1.data[ind]  # absolute original number
+# In [94]: s2.data[ind]  # absolute new numbers
+# In [95]: s1.data[ind]-s2.data[ind]  # absolute differences
+# In [98]: ((s1.data[ind]-s2.data[ind])/s2.data[ind])*100.  # % differences
+"""
