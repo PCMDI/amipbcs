@@ -12,6 +12,8 @@ PJD  3 May 2023     - Updated for cdms2 -> xcdat
 PJD  3 May 2023     - Added plotter function
 PJD  4 May 2023     - Hitting issue with 2002-11 timestep and xarray DataArray plotting
 PJD  9 May 2023     - Add transform_first=True to contourf call
+PJD  9 May 2023     - Added +1 for last year, off by one PCMDI-AMIP-1-1-8 finishes in 2021-12
+PJD  9 May 2023     - Added ffmpeg call - installed ffmpeg-python
 
 @author: durack1
 """
@@ -20,12 +22,13 @@ PJD  9 May 2023     - Add transform_first=True to contourf call
 import cartopy.crs as ccrs
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib.pyplot as plt
+import ffmpeg
 import glob
 import numpy as np
 import os
 import shutil
 from xcdat import open_dataset
-# import pdb
+import pdb
 
 # %% function defs
 
@@ -232,7 +235,7 @@ if os.path.exists(tmpPath):
     shutil.rmtree(tmpPath)
 
 for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
-    for yr in np.arange(1870, ds1.time.data[-1].year):  # 1870
+    for yr in np.arange(1870, ds1.time.data[-1].year+1):  # 1870
         for mn in np.arange(1, 13):
             startTime = "-".join([str(yr), '{:02d}'.format(mn), "01"])
             endTime = "-".join([str(yr), '{:02d}'.format(mn), "28"])
@@ -276,6 +279,20 @@ for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
                     titleString, varColStr, os.path.join(
                         outPath, "pngs", outPathVer),
                     var, timeString)
+            #pdb.set_trace()
+    # end of var - plot video
+    out, err = (
+        ffmpeg
+        .input(os.path.join(outPath, "pngs", outPathVer, var, "*.png"),
+               pattern_type='glob', framerate=25)
+        .output(os.path.join(outPath, "pngs", "_".join(["AMIPBCS_newVsOld", var, "v1-1-9.mp4"])),
+                crf=20, preset='slower', movflags='faststart', pix_fmt='yuv420p')
+        .run()
+    )
+    # .view(filename='filter_graph')
+    # .filter('deflicker', mode='pm', size=10)
+    # .filter('scale', size='hd1080', force_original_aspect_ratio='increase')
+    # ffmpeg -framerate 48 -i %04d_ESGF-PubStatsPB-MSSans.png 230117_output_48.mp4
 
 """
         # Open canvas
