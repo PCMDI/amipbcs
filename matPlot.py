@@ -14,6 +14,8 @@ PJD  4 May 2023     - Hitting issue with 2002-11 timestep and xarray DataArray p
 PJD  9 May 2023     - Add transform_first=True to contourf call
 PJD  9 May 2023     - Added +1 for last year, off by one PCMDI-AMIP-1-1-8 finishes in 2021-12
 PJD  9 May 2023     - Added ffmpeg call - installed ffmpeg-python
+PJD 10 May 2023     - Added statsStr to diff plot; updated diff scale <2%; corrected denom da1 vs s1 ref
+PJD 10 May 2023     - Add statsStr; update contour levels to target data
 
 @author: durack1
 """
@@ -33,7 +35,26 @@ import pdb
 # %% function defs
 
 
+def statsStr(da):
+    """
+    Create stats string to add to plot text box
+
+    """
+    fmtStr = "{:7.4f}"
+    statsStr = " ".join(["min:", fmtStr.format(da.min()),
+                         "\n1pc:", fmtStr.format(np.percentile(da, 1)),
+                         "\nmean:", fmtStr.format(da.mean()),
+                         "\n99pc:", fmtStr.format(np.percentile(da, 99)),
+                         "\nmax:", fmtStr.format(da.max())
+                         ])
+
+    return statsStr
+
+
 def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, varColStr, path, var, fileName):
+    """
+    Generate generic plotting function
+    """
     # Open canvas
     fig = plt.figure(figsize=(10, 15))
     plt.axis("off")
@@ -77,6 +98,13 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
                    horizontalalignment="center",
                    transform=ccrs.Geodetic(),
                    )
+    # create da1 dob variables
+    tx2 = plt.text(labX, labY-20, statsStr(da1),
+                   fontsize=fntsz,
+                   horizontalalignment="center",
+                   verticalalignment="center",
+                   transform=ccrs.Geodetic(),
+                   )
     ax2 = fig.add_subplot(3, 1, 2,
                           projection=ccrs.Robinson(
                               central_longitude=centralLon,
@@ -92,9 +120,16 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
                        transform_first=True,
                        cmap=cmap,
                        )
-    tx2 = plt.text(labX, labY, da2Str,
+    tx3 = plt.text(labX, labY, da2Str,
                    fontsize=fntsz,
                    horizontalalignment="center",
+                   transform=ccrs.Geodetic(),
+                   )
+    # create da2 dob variables
+    tx4 = plt.text(labX, labY-20, statsStr(da2),
+                   fontsize=fntsz,
+                   horizontalalignment="center",
+                   verticalalignment="center",
                    transform=ccrs.Geodetic(),
                    )
     ax3 = fig.add_subplot(3, 1, 3,
@@ -109,7 +144,7 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
     diff = (da1[0,] - da2[0,])
     inds = np.nonzero(diff.data)
     diffnew = np.ma.zeros(diff.shape)
-    denom = (np.abs(s1[0,]) + np.abs(s2[0,])) / 2
+    denom = (np.abs(da1[0,]) + np.abs(da2[0,])) / 2
     np.squeeze(denom).shape
     diffnew[inds] = diff.data[inds] / denom.data[inds]
 
@@ -119,10 +154,16 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
                        transform_first=True,
                        cmap=cmap,
                        )
-
-    tx3 = plt.text(labX, labY, " ".join([da1Str, "-", da2Str]),
+    tx5 = plt.text(labX, labY, " ".join([da1Str, "-", da2Str]),
                    fontsize=fntsz,
                    horizontalalignment="center",
+                   transform=ccrs.Geodetic(),
+                   )
+    # create diff dob variables
+    tx6 = plt.text(labX, labY-20, statsStr(diffnew),
+                   fontsize=fntsz,
+                   horizontalalignment="center",
+                   verticalalignment="center",
                    transform=ccrs.Geodetic(),
                    )
 
@@ -158,17 +199,20 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
 
     # cax1 = plt.axes([0.1, 0.63, 0.75, 0.02])
     # fig.colorbar(ax1, cax=cax2, orientation='horizontal', cmap='RdBu')
+    rot = 270
+    lblpd = 15
     cax1 = fig.colorbar(cs1, cax=axin1)
-    cax1.ax.set_ylabel(varColStr, rotation=270)
+    cax1.ax.set_ylabel(varColStr, rotation=rot, labelpad=lblpd)
     cax2 = fig.colorbar(cs3, cax=axin3)
-    cax2.ax.set_ylabel("% difference", rotation=270)
+    cax2.ax.set_ylabel("% difference", rotation=rot, labelpad=lblpd)
 
     # Resize plots
     plt.subplots_adjust(
         bottom=0.005, left=0.01, right=0.84, top=0.985, hspace=0.01, wspace=0.01
     )
 
-    # plt.show()
+    pdb.set_trace()
+    plt.show()
     if not os.path.exists(os.path.join(path)):
         os.mkdir(os.path.join(path))
     if not os.path.exists(os.path.join(path, var)):
@@ -178,6 +222,7 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
 
 
 # %% Variables
+
 outPathVer = "pngs_v1.1.9"
 outPath = "/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData/"
 # New data
@@ -213,12 +258,13 @@ x = ds1.lon.data
 y = ds1.lat.data
 
 # %% Standard plot - actual and diff maps
+
 # Contour levels
-levs1 = list(np.arange(-20, 121, 10))  # siconc
-levs2 = list(np.arange(-500, 501, 100))  # siconcbcs
+levs1 = list(np.arange(-10, 111, 10))  # siconc
+levs2 = list(np.arange(-150, 151, 10))  # siconcbcs
 levs3 = list(np.arange(-5, 36, 2.5))  # tos diff
 # levs3 = list(np.arange(-0.15, 0.1501, 0.05))  # tos diff
-levs4 = list(np.arange(0, 11, 1))  # % change
+levs4 = list(np.arange(0, 2.1, .1))  # % change
 
 # Lab x, y
 labX = -140.0
@@ -279,7 +325,7 @@ for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
                     titleString, varColStr, os.path.join(
                         outPath, "pngs", outPathVer),
                     var, timeString)
-            #pdb.set_trace()
+            # pdb.set_trace()
     # end of var - plot video
     out, err = (
         ffmpeg
