@@ -16,6 +16,7 @@ PJD  9 May 2023     - Added +1 for last year, off by one PCMDI-AMIP-1-1-8 finish
 PJD  9 May 2023     - Added ffmpeg call - installed ffmpeg-python
 PJD 10 May 2023     - Added statsStr to diff plot; updated diff scale <2%; corrected denom da1 vs s1 ref
 PJD 10 May 2023     - Add statsStr; update contour levels to target data
+PJD 12 May 2023     - Updated for latest v1.1.9 data run
 
 @author: durack1
 """
@@ -30,7 +31,7 @@ import numpy as np
 import os
 import shutil
 from xcdat import open_dataset
-import pdb
+# import pdb
 
 # %% function defs
 
@@ -211,8 +212,8 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
         bottom=0.005, left=0.01, right=0.84, top=0.985, hspace=0.01, wspace=0.01
     )
 
-    pdb.set_trace()
-    plt.show()
+    # pdb.set_trace()
+    # plt.show()
     if not os.path.exists(os.path.join(path)):
         os.mkdir(os.path.join(path))
     if not os.path.exists(os.path.join(path, var)):
@@ -228,7 +229,7 @@ outPath = "/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData/"
 # New data
 verId = "-v1-1-9"
 verPath = "/p/user_pub/climate_work/durack1/"
-ver = "v20230503"  # Update for each run
+ver = "v20230512"  # Update for each run
 verPath = os.path.join(
     verPath, "input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/")
 # tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-2-0_gn_187001-202108.nc
