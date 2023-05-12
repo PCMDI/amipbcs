@@ -147,7 +147,7 @@ from durolib import makeCalendar  # globalAttWrite, mkDirNoOSErr
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
 sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
-from input4MIPsFuncs import createPubFiles, jsonWriteFile  # , washPerms
+from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
 # %% Kludge for json/encoder warning
 # import warnings
 # warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -687,18 +687,18 @@ for filePath in files:
     )
     jsonFilePaths.append(jsonFilePath)
 
-# Clean up permissions - hardcoded to /p/
-# washPerms(
-#     destPath,
-#     activityId,
-#     mipEra,
-#     targetMip,
-#     institutionId,
-#     sourceId,
-#     realm,
-#     frequency,
-#     gridLabel,
-#     dataVersion,
-# )
+# Clean up permissions
+washPerms(
+    destPath,
+    activityId,
+    mipEra,
+    targetMip,
+    institutionId,
+    sourceId,
+    realm,
+    frequency,
+    gridLabel,
+    dataVersion,
+)
 # Create output files for publication
 createPubFiles(destPath, jsonId, jsonFilePaths, variableFilePaths)
