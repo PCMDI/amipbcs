@@ -17,6 +17,7 @@ PJD  9 May 2023     - Added ffmpeg call - installed ffmpeg-python
 PJD 10 May 2023     - Added statsStr to diff plot; updated diff scale <2%; corrected denom da1 vs s1 ref
 PJD 10 May 2023     - Add statsStr; update contour levels to target data
 PJD 12 May 2023     - Updated for latest v1.1.9 data run
+PJD 18 May 2023     - Compare v1.1.9 versions (released 20230512, and new mamba env 20230518)
 
 @author: durack1
 """
@@ -227,15 +228,16 @@ def plotter(da1, da2, da1Str, da2Str, lev1, lev2, cmap, timeStr, titleString, va
 outPathVer = "pngs_v1.1.9"
 outPath = "/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData/"
 # New data
-verId = "-v1-1-9"
+verId = "v1.1.9"
 verPath = "/p/user_pub/climate_work/durack1/"
-ver = "v20230512"  # Update for each run
+ver = "v20230518"  # Update for each run
 verPath = os.path.join(
     verPath, "input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/")
 # tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-2-0_gn_187001-202108.nc
 # Old data
-verOld = "v20220622"  # Update for each run
-verOldPath = "/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/PCMDI-AMIP-1-1-8/"
+verOldId = "v1.1.9-release"
+verOld = "v20230512"  # Update for each run
+verOldPath = "/p/user_pub/work/input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/"
 
 f1 = glob.glob("".join([verOldPath, "*/mon/siconc/gn/", verOld, "/*.nc"]))[0]
 f2 = glob.glob("".join([verPath, "*/mon/siconc/gn/", ver, "/*.nc"]))[0]
@@ -322,7 +324,7 @@ for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
             titleString = "{}{:02d}{}{}".format(
                 s1.time.data[0].year, s1.time.data[0].month, " ", var)
 
-            plotter(s1, s2, "v1.1.8", "v1.1.9", lev1, levs4, cmap, timeString,
+            plotter(s1, s2, verOldId, verId, lev1, levs4, cmap, timeString,
                     titleString, varColStr, os.path.join(
                         outPath, "pngs", outPathVer),
                     var, timeString)

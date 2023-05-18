@@ -106,6 +106,7 @@ PJD 16 Aug 2022     - Updated to reflect latest amipbcs inputs; CMOR 3.7.0 pre-r
 """
 PJD  3 May 2023     - Updated to reflect latest PCMDI-AMIP-1-1-9 release (CMIP6Plus)
 PJD  3 May 2023     - Added clunky code to work around the project=CMIP6 -> CMIP6Plus in the input tables
+PJD 18 May 2023     - Rerunning to ensure new mamba env works as expected - v1.1.9, release moved to *1.1.9-release
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
 
@@ -148,6 +149,7 @@ sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
 sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
 from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
+
 # %% Kludge for json/encoder warning
 # import warnings
 # warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -522,7 +524,7 @@ for fxVar in fxFiles:
     cmor.set_cur_dataset_attribute("history", history)
     # cmor.set_cur_dataset_attribute('frequency', 'fx')  # <-- test? no good
     table = "input4MIPs_Ofx.json"  # <-- doesn't overwrite source_id value
-  
+
     # Fudge table files to force project=CMIP6Plus
     tablePath = "CMOR/input4MIPs-cmor-tables/Tables"
     with open(os.path.join(tablePath, table)) as fh:
@@ -542,7 +544,7 @@ for fxVar in fxFiles:
     oH.close()
     cmor.load_table("tmp.json")
     os.remove("tmp.json")
-    
+
     axes = [
         {
             "table_entry": "latitude",

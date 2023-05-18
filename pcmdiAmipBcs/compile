@@ -17,7 +17,6 @@ echo
 
 # Cleanup old files
 rm pcmdiAmipBcs.*.so
-rm pcmdiAmipBcs.so
 rm sgnFile.pyf
 
 # Compile
