@@ -1,8 +1,8 @@
 # amipbcs - AMIP dataset prepared for input4MIPs
 
-Code to generate boundary condition data for the AMIP (Atmospheric Model Intercomparison Project) experiment as part of CMIP6 and CMIP6Plus phases and the input4MIPs project
+Code to generate boundary condition data for the AMIP (Atmospheric Model Intercomparison Project) experiment as part of CMIP6, CMIP6Plus and CMIP7 phases and the input4MIPs project
 
-The latest generated data can be obtained from the [PCMDI ESGF data portal](https://esgf-node.llnl.gov/search/input4mips/?source_id=PCMDI-AMIP-1-1-9)
+The latest generated data can be obtained from the [ESGF2-US data portal](https://esgf-node.ornl.gov/search?project=input4MIPs&activeFacets={%22mip_era%22:%22CMIP7%22})
 
 The code depends upon the following packages:
 - [**CDMS2 3.1.5**](https://github.com/CDAT/cdms) (Available through [conda](https://anaconda.org/conda-forge/cdms2/files))
@@ -19,7 +19,7 @@ Thanks to our contributors!
 
 ## Acknowledgement
 
-Content in this repository is developed by climate and computer scientists from the Program for Climate Model Diagnosis and Intercomparison ([PCMDI][PCMDI]) at Lawrence Livermore National Laboratory ([LLNL][LLNL]). This work is sponsored by the Regional and Global Model Analysis ([RGMA][RGMA]) program, of the Earth and Environmental Systems Sciences Division ([EESSD][EESSD]) in the Office of Biological and Environmental Research ([BER][BER]) within the [Department of Energy][DOE]'s [Office of Science][OS]. The work is performed under the auspices of the U.S. Department of Energy by Lawrence Livermore National Laboratory under Contract DE-AC52-07NA27344.
+Content in this repository is developed by climate and computer scientists from the Program for Climate Model Diagnosis and Intercomparison ([PCMDI][PCMDI]) at Lawrence Livermore National Laboratory ([LLNL][LLNL]). This work is sponsored by the Regional and Global Model Analysis ([RGMA][RGMA]) program, of the Earth and Environmental Systems Modeling Division ([EESM][EESM]) in the Office of Biological and Environmental Research ([BER][BER]) within the [Department of Energy][DOE]'s [Office of Science][OS]. The work is performed under the auspices of the U.S. Department of Energy by Lawrence Livermore National Laboratory under Contract DE-AC52-07NA27344.
 
 <p>
     <img src="https://pcmdi.github.io/assets/PCMDI/100px-PCMDI-Logo-NoText-square-png8.png"
@@ -41,3 +41,12 @@ Content in this repository is developed by climate and computer scientists from 
          alt="Lawrence Livermore National Laboratory"
     >
 </p>
+
+
+[PCMDI]: https://pcmdi.llnl.gov
+[LLNL]: https://www.llnl.gov
+[RGMA]: https://eesm.science.energy.gov/program-area/regional-global-model-analysis
+[EESM]: https://eesm.science.energy.gov
+[BER]: https://www.energy.gov/science/ber/biological-and-environmental-research
+[DOE]: https://www.energy.gov
+[OS]: https://www.energy.gov/science/office-science
