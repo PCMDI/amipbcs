@@ -17,8 +17,6 @@ TODO: remap makeCalendar to https://docs.xarray.dev/en/latest/generated/xarray.d
 import cftime
 import cmor
 import datetime
-
-# import json
 import numpy as np
 import os
 import pdb
@@ -27,11 +25,6 @@ import sys
 import xcdat as xc
 import xarray as xr
 
-print(os.getcwd())
-os.chdir("/Users/durack1/sync/git/amipbcs")
-print(os.getcwd())
-
-# import xarray as xr
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
 
