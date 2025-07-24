@@ -114,7 +114,8 @@ PJD 18 May 2023     - Rerunning to ensure new mamba env works as expected - v1.1
 """
 PJD 23 Jul 2025     - Updated for PCMDI-AMIP-1-1-10, quickest path rather than xcdatifying; no arm64 support
                       so linux-64 or osx-64 (emulated) only
-
+PJD 24 Jul 2025     - mamba create --dry-run -n amipbs250724 -c conda-forge cdms2 cdutil cmor gfortran python=3.10
+                      can be solved currently, but numpy 2.2.6 is likely to cause issues with cdms2
 
 
 OIv2 info
