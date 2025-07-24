@@ -8,6 +8,7 @@ The code depends upon the following packages:
 - [**xCDAT 0.9.1+**](https://github.com/xCDAT/xcdat) (Available through [conda-forge](https://anaconda.org/conda-forge/xcdat/files))
 - [**CMOR 3.11.0+**](https://github.com/PCMDI/cmor) (Available through [conda-forge](https://anaconda.org/conda-forge/cmor/files))
 - [**gfortran 14.2.0+**](https://gcc.gnu.org/wiki/GFortran) (Available through [conda-forge](https://anaconda.org/conda-forge/gfortran/files))
+- [**Python 3.11.13**](https://www.python.org/) (Available through [conda-forge](https://anaconda.org/conda-forge/python/files); Not latest due to unsolved Meson dependency with Python 3.12+, see [mesonbuild/meson/issues#14830](https://github.com/mesonbuild/meson/issues/14830))
 
 These packages and libraries are available for linux-64, osx-64 and osx-arm64 (x86_64) architectures
 
