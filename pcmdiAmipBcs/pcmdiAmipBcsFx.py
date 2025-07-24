@@ -6,25 +6,26 @@ Stephen Po-Chedley 15 November 2018
 
 Routines used to calculate the monthly midpoint values for AMIP boundary conditions.
 
-PJD 15 Jul 2019     - Updated createMonthlyMidpoints with varOut argument
-PJD 16 Jul 2019     - Updated units assignment outside of grid if block (createMonthlyMidpoints)
-PJD  8 Aug 2019     - Further updates to deal with merge conflicts
-PJD 23 Sep 2021     - Add NaNf output debug
-PJD 28 Sep 2021     - Working with @taylor13 on debugging
-PJD 30 Sep 2021     - Update to run through complete grid
-PJD 15 Nov 2021     - Update addClimo to ensure last trailing month is December/12
-                    - See discussion in https://github.com/PCMDI/amipbcs/issues/23#issuecomment-966610924
-PJD 15 Nov 2021     - Update createMonthlyMidpoints with edaysl argument from addClimo
-PJD 17 Nov 2021     - Update notconverg reporting - debug non-convergence
-PJD 18 Nov 2021     - Update createMonthlyMidpoints with padded/tosip evaluation
-PJD  2 Dec 2021     - Update addClimo with vmax/vmin arguments
-PJD  2 Dec 2021     - Code and print diagnostic cleanup
-PJD  2 Dec 2021     - Renamed hurrellfx.py -> pcmdiAmipBcsFx.py
+PJD 15 Jul 2019 - Updated createMonthlyMidpoints with varOut argument
+PJD 16 Jul 2019 - Updated units assignment outside of grid if block (createMonthlyMidpoints)
+PJD  8 Aug 2019 - Further updates to deal with merge conflicts
+PJD 23 Sep 2021 - Add NaNf output debug
+PJD 28 Sep 2021 - Working with @taylor13 on debugging
+PJD 30 Sep 2021 - Update to run through complete grid
+PJD 15 Nov 2021 - Update addClimo to ensure last trailing month is December/12
+                - See discussion in https://github.com/PCMDI/amipbcs/issues/23#issuecomment-966610924
+PJD 15 Nov 2021 - Update createMonthlyMidpoints with edaysl argument from addClimo
+PJD 17 Nov 2021 - Update notconverg reporting - debug non-convergence
+PJD 18 Nov 2021 - Update createMonthlyMidpoints with padded/tosip evaluation
+PJD  2 Dec 2021 - Update addClimo with vmax/vmin arguments
+PJD  2 Dec 2021 - Code and print diagnostic cleanup
+PJD  2 Dec 2021 - Renamed hurrellfx.py -> pcmdiAmipBcsFx.py
+PJD 25 Jul 2025 - Started remapping cdms2 to xcdat
 
 @author: pochedls and durack1
 """
 
-import cdms2
+### import cdms2
 import pcmdiAmipBcs  # pcmdiAmipBcs.cpython-39-x86_64-linux-gnu - see files in __pycache__ subdir
 import numpy as np
 
@@ -41,12 +42,18 @@ def getNumDays(time):
 
     Function to calculate a time series of the number of days in each month
     based off a cdms2 time vector
+
+    PJD 25 Jul 2025 - Remapped cdms2 calls to xcdat
     """
     ndays = np.zeros(len(time), dtype=int)
-    timeComponent = time.asComponentTime()
+    ### timeComponent = time.asComponentTime()
     for i in range(len(time)):
-        y = timeComponent[i].year
-        m = timeComponent[i].month
+        ### y = timeComponent[i].year
+        y = time.dt.year[i].data
+        print("getNumDays: y", y)
+        ### m = timeComponent[i].month
+        m = time.dt.month[i].data
+        print("getNumDays: m", m)
         fdays = monthrange(y, m)[1]
         ndays[i] = fdays
     return ndays
@@ -80,9 +87,10 @@ def addClimo(tosi, nyears, ndays, ftype, vmax, vmin):
     validation of quantities from the data provided to the function would be a
     useful test
 
-    PJD 15 Nov 2021     - Added edaysl; updated pad to 24 months from start and
-                          up to 23 months (if January) to end
-    PJD  2 Dec 2021     - Added vmax/vmin and reset if pad data out of bounds
+    PJD 15 Nov 2021 - Added edaysl; updated pad to 24 months from start and
+                      up to 23 months (if January) to end
+    PJD  2 Dec 2021 - Added vmax/vmin and reset if pad data out of bounds
+    PJD 25 Jul 2025 - Remapped cdms2 calls to xcdat
     """
 
     # Create decorrel vectors that are 24-months long
@@ -93,9 +101,12 @@ def addClimo(tosi, nyears, ndays, ftype, vmax, vmin):
     else:
         decorrel = [0.0] * 24
 
-    time = tosi.getTime()
-    lat = tosi.getLatitude()
-    lon = tosi.getLongitude()
+    ### time = tosi.getTime()
+    time = tosi.cf["time"]
+    ### lat = tosi.getLatitude()
+    lat = tosi.cf["latitude"]
+    ### lon = tosi.getLongitude()
+    lon = tosi.cf["longitude"]
 
     # code to test end indexes
     # lastMonth = time.asComponentTime()[-1].month
@@ -155,8 +166,10 @@ def addClimo(tosi, nyears, ndays, ftype, vmax, vmin):
     tosi = np.concatenate((sclimo, tosi, eclimo), axis=0)
 
     # get the first and last month (e.g., January = 1 and June = 6)
-    smonth = time.asComponentTime()[0].month
-    emonth = time.asComponentTime()[-1].month
+    ### smonth = time.asComponentTime()[0].month
+    smonth = time.dt.month[0]
+    ### emonth = time.asComponentTime()[-1].month
+    emonth = time.dt.month[-1]
 
     # create ndays vector with climatological length values (* 2 = 24 months)
     ndaysclimo = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] * 2)
@@ -229,44 +242,48 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
           AMIP II simulations. PCMDI Report No. 60 and UCRL-MI-125597,
           Lawrence Livermore National Laboratory, Livermore, CA, 25 pp.
 
-    PJD 16 Jul 2019     - Update units assignment outside of if 'grid' block
-    PJD  8 Aug 2019     - Update for merged conflicts
-    PJD  2 Nov 2021     - Update bbmin .1 -> 0.01 (consistent with conv)
-    PJD  2 Nov 2021     - Correct nitertot counter
-    PJD  3 Nov 2021     - Comment solvmid debug statements
-    PJD 15 Nov 2021     - Added edaysl from addClimo
-    PJD 18 Nov 2021     - Added padding evaluation code
-    PJD 22 Nov 2021     - Updated jcnt np.array -> int type and back -> np.array
-    PJD  2 Dec 2021     - Updated addClimo call with t/vmax and vmin args
+    PJD 16 Jul 2019 - Update units assignment outside of if 'grid' block
+    PJD  8 Aug 2019 - Update for merged conflicts
+    PJD  2 Nov 2021 - Update bbmin .1 -> 0.01 (consistent with conv)
+    PJD  2 Nov 2021 - Correct nitertot counter
+    PJD  3 Nov 2021 - Comment solvmid debug statements
+    PJD 15 Nov 2021 - Added edaysl from addClimo
+    PJD 18 Nov 2021 - Added padding evaluation code
+    PJD 22 Nov 2021 - Updated jcnt np.array -> int type and back -> np.array
+    PJD  2 Dec 2021 - Updated addClimo call with t/vmax and vmin args
+    PJD 25 Jul 2025 - Remapped cdms2 calls to xcdat
 
     """
     # regrid data if needed
-    # cdms2
-    if "grid" in kargs:
-        targetGrid = kargs["grid"]
-        diag = {}
-        tosi = tosi.regrid(
-            targetGrid,
-            regridTool="esmf",
-            regridMethod="linear",
-            missing=np.nan,
-            coordSys="deg",
-            diag=diag,
-            periodicity=1,
-        )
-
-    # get axis information
-    lat = tosi.getLatitude()
-    lon = tosi.getLongitude()
-    time = tosi.getTime()
-    units = tosi.units
+    ### cdms2
+    # if "grid" in kargs:
+    #    targetGrid = kargs["grid"]
+    #    diag = {}
+    #    tosi = tosi.regrid(
+    #        targetGrid,
+    #        regridTool="esmf",
+    #        regridMethod="linear",
+    #        missing=np.nan,
+    #        coordSys="deg",
+    #        diag=diag,
+    #        periodicity=1,
+    #    )
 
     # xcdat
     if "grid" in kargs:
         targetGrid = kargs["grid"]
         tosi = tosi.regridder.horizontal(
-            "ts", targetGrid, tool="xesmf", method="bilinear"
+            tosi, targetGrid, tool="xesmf", method="bilinear"
         )
+
+    # get axis information
+    ### time = tosi.getTime()
+    time = tosi.cf["time"]
+    ### lat = tosi.getLatitude()
+    lat = tosi.cf["latitude"]
+    ### lon = tosi.getLongitude()
+    lon = tosi.cf["longitude"]
+    units = tosi.units
 
     # deal with optional arguments
     if "mask" in kargs:
@@ -307,6 +324,11 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     # construct jacobian for solver
     ndays = getNumDays(time)
+
+    print("HERE")
+    print(tosi.shape)
+    print(tosi)
+
     tosip, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype, vmax, vmin)
     aa, cc = getJacobian(ndaysp)
 
@@ -318,7 +340,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     else:
         print("timeLen:", timeLen)
 
-    # evaluate padding - check January 1868 and December 2022 for discontinuity
+    # evaluate padding - check January 1870-2 and December timeEnd+2 for discontinuity
     aCount = 0
     padPlot = 0
     print("Check padded timeseries for start/end >96% discontinuities")
@@ -573,18 +595,18 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     print()
 
     # create cdms transient variable
-    tosimp = cdms2.createVariable(tosimp)
-    tosimp.id = varOut
-    if varOut == "sst":
-        tosimp.standard_name = "sea_surface_temperature"
-        tosimp.long_name = "Constructed mid-month Sea Surface Temperature"
-    elif varOut == "ice":
-        tosimp.standard_name = "sea_ice_concentration"
-        tosimp.long_name = "Constructed mid-month Sea-ice concentration"
-    tosimp.units = units
-    tosimp.setAxis(0, time)
-    tosimp.setAxis(1, lat)
-    tosimp.setAxis(2, lon)
+    # tosimp = cdms2.createVariable(tosimp)
+    # tosimp.id = varOut
+    # if varOut == "sst":
+    #    tosimp.standard_name = "sea_surface_temperature"
+    #    tosimp.long_name = "Constructed mid-month Sea Surface Temperature"
+    # elif varOut == "ice":
+    #    tosimp.standard_name = "sea_ice_concentration"
+    #    tosimp.long_name = "Constructed mid-month Sea-ice concentration"
+    # tosimp.units = units
+    # tosimp.setAxis(0, time)
+    # tosimp.setAxis(1, lat)
+    # tosimp.setAxis(2, lon)
 
     return tosimp
 
@@ -597,15 +619,23 @@ def fillVoid(data):
 
     This is not meant to be completely physical, but at least some GCMs
     crash if there is no valid data in a given grid.
+
+    PJD 25 Jul 2025 - Remapped cdms2 calls to xcdat
+
     """
     # from:
     # https://stackoverflow.com/questions/5551286/filling-gaps-in-a-numpy-array
 
-    lat = data.getLatitude()
-    lon = data.getLongitude()
-    time = data.getTime()
-    varId = data.id
-    missing = data.missing
+    ### time = data.getTime()
+    time = data.cf["time"]
+    ### lat = data.getLatitude()
+    lat = data.cf["latitude"]
+    ### lon = data.getLongitude()
+    lon = data.cf["longitude"]
+
+    ### varId = data.id
+    ### missing = data.missing
+    missing = data.encoding["missing_value"]
     data = np.array(data)
     data[data == missing] = np.nan
 
@@ -652,10 +682,10 @@ def fillVoid(data):
 
         data[i] = dataSlice
 
-    data = cdms2.createVariable(data)
-    data.id = varId
-    data.setAxis(0, time)
-    data.setAxis(1, lat)
-    data.setAxis(2, lon)
+    # data = cdms2.createVariable(data)
+    # data.id = varId
+    # data.setAxis(0, time)
+    # data.setAxis(1, lat)
+    # data.setAxis(2, lon)
 
     return data
