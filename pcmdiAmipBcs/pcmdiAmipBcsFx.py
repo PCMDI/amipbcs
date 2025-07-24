@@ -21,11 +21,12 @@ PJD  2 Dec 2021 - Update addClimo with vmax/vmin arguments
 PJD  2 Dec 2021 - Code and print diagnostic cleanup
 PJD  2 Dec 2021 - Renamed hurrellfx.py -> pcmdiAmipBcsFx.py
 PJD 25 Jul 2025 - Started remapping cdms2 to xcdat
+PJD 25 Jul 2025 - Completed remapping cdms2 -> xcdat/xarray
 
 @author: pochedls and durack1
 """
 
-### import cdms2
+# %% imports
 import pcmdiAmipBcs  # pcmdiAmipBcs.cpython-39-x86_64-linux-gnu - see files in __pycache__ subdir
 import numpy as np
 
@@ -34,6 +35,8 @@ np.set_printoptions(formatter={"float": lambda x: "{:8.3f}".format(x)})
 from calendar import monthrange
 from matplotlib import pyplot as plt
 import pdb
+
+# %% functions
 
 
 def getNumDays(time):
@@ -46,12 +49,9 @@ def getNumDays(time):
     PJD 25 Jul 2025 - Remapped cdms2 calls to xcdat
     """
     ndays = np.zeros(len(time), dtype=int)
-    ### timeComponent = time.asComponentTime()
     for i in range(len(time)):
-        ### y = timeComponent[i].year
         y = time.dt.year[i].data
         print("getNumDays: y", y)
-        ### m = timeComponent[i].month
         m = time.dt.month[i].data
         print("getNumDays: m", m)
         fdays = monthrange(y, m)[1]
@@ -101,11 +101,8 @@ def addClimo(tosi, nyears, ndays, ftype, vmax, vmin):
     else:
         decorrel = [0.0] * 24
 
-    ### time = tosi.getTime()
     time = tosi.cf["time"]
-    ### lat = tosi.getLatitude()
     lat = tosi.cf["latitude"]
-    ### lon = tosi.getLongitude()
     lon = tosi.cf["longitude"]
 
     # code to test end indexes
@@ -163,10 +160,8 @@ def addClimo(tosi, nyears, ndays, ftype, vmax, vmin):
     tosi = np.concatenate((sclimo, tosi, eclimo), axis=0)
 
     # get the first and last month (e.g., January = 1 and June = 6)
-    ### smonth = time.asComponentTime()[0].month
     smonth = time.dt.month[0].data
     print("smonth:", smonth)
-    ### emonth = time.asComponentTime()[-1].month
     emonth = time.dt.month[-1].data
     print("emonth:", emonth)
 
@@ -254,21 +249,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     """
     # regrid data if needed
-    ### cdms2
-    # if "grid" in kargs:
-    #    targetGrid = kargs["grid"]
-    #    diag = {}
-    #    tosi = tosi.regrid(
-    #        targetGrid,
-    #        regridTool="esmf",
-    #        regridMethod="linear",
-    #        missing=np.nan,
-    #        coordSys="deg",
-    #        diag=diag,
-    #        periodicity=1,
-    #    )
-
-    # xcdat
     if "grid" in kargs:
         targetGrid = kargs["grid"]
         tosi = tosi.regridder.horizontal(
@@ -276,11 +256,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
         )
 
     # get axis information
-    ### time = tosi.getTime()
     time = tosi.cf["time"]
-    ### lat = tosi.getLatitude()
     lat = tosi.cf["latitude"]
-    ### lon = tosi.getLongitude()
     lon = tosi.cf["longitude"]
     units = tosi.units
 
@@ -588,20 +565,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     print("maximum residual across all cells and months: ", allresidmax)
     print()
 
-    # create cdms transient variable
-    # tosimp = cdms2.createVariable(tosimp)
-    # tosimp.id = varOut
-    # if varOut == "sst":
-    #    tosimp.standard_name = "sea_surface_temperature"
-    #    tosimp.long_name = "Constructed mid-month Sea Surface Temperature"
-    # elif varOut == "ice":
-    #    tosimp.standard_name = "sea_ice_concentration"
-    #    tosimp.long_name = "Constructed mid-month Sea-ice concentration"
-    # tosimp.units = units
-    # tosimp.setAxis(0, time)
-    # tosimp.setAxis(1, lat)
-    # tosimp.setAxis(2, lon)
-
     return tosimp
 
 
@@ -620,15 +583,7 @@ def fillVoid(data):
     # from:
     # https://stackoverflow.com/questions/5551286/filling-gaps-in-a-numpy-array
 
-    ### time = data.getTime()
     time = data.cf["time"]
-    ### lat = data.getLatitude()
-    lat = data.cf["latitude"]
-    ### lon = data.getLongitude()
-    lon = data.cf["longitude"]
-
-    ### varId = data.id
-    ### missing = data.missing
     missing = data.encoding["missing_value"]
     data = np.array(data)
     data[data == missing] = np.nan
@@ -650,7 +605,7 @@ def fillVoid(data):
         while np.any(~flag):  # as long as there are any False's in flag
             nflags = np.sum(flag)
 
-            # if working zonally doesn't reduce the number of Falses, infill meridionally
+            # if working zonally doesn't reduce False numbers, infill meridionally
             if nlflags == nflags:
                 dim = 0
             else:
@@ -675,11 +630,5 @@ def fillVoid(data):
             nlflags = nflags
 
         data[i] = dataSlice
-
-    # data = cdms2.createVariable(data)
-    # data.id = varId
-    # data.setAxis(0, time)
-    # data.setAxis(1, lat)
-    # data.setAxis(2, lon)
 
     return data
