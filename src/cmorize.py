@@ -8,12 +8,11 @@ Paul J. Durack 21st Jul 2025
 This script cmorizes nc files
 
 PJD 23 Jul 25 - updates to map xr functions to replace durolib
-TODO: remap all cdms2 dependencies to xcdat
-TODO: remap makeCalendar to https://docs.xarray.dev/en/latest/generated/xarray.date_range.html
+PJD 24 Jul 25 - remapped all dependencies to xcdat/array (remove cdms2 dependence)
+NOTNEEDED: remap makeCalendar to https://docs.xarray.dev/en/latest/generated/xarray.date_range.html
 """
 
 # %% imports
-##%%time
 import cftime
 import cmor
 import datetime
@@ -30,7 +29,6 @@ import pcmdiAmipBcsFx
 
 
 # %% set data version info
-##%%time
 activity_id = "input4MIPs"
 contact = "pcmdi-cmip@llnl.gov"
 dataVerNum = "1.1.10"  # WILL REQUIRE UPDATING
@@ -101,7 +99,6 @@ destPath = "/p/user_pub/climate_work/durack1"
 # destPath = '/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData'  # USE FOR TESTING
 
 # %% get time/history/host info
-##%%time
 utcNow = datetime.datetime.now(datetime.timezone.utc)
 timeFormat = utcNow.strftime("%d-%m-%Y %H:%M:%S %p")
 xcVersion = xc.__version__
@@ -121,7 +118,6 @@ history = "".join([history, "; \n", host])
 print(history)
 
 # %% Set directories and input data
-##%%time
 homePath = os.path.join(destPath, "Shared/150219_AMIPForcingData/")
 homePath = "./"
 sanPath = os.path.join(homePath, "".join(["SST_", dataVerNum.replace(".", "-")]))
@@ -130,7 +126,6 @@ print("sanPath:", sanPath)
 print("os.getcwd():", os.getcwd())
 
 # %% preload data iterating over each variable, fix calendar, diddle and pass to CMOR
-##%%time
 varList = {}
 varList["tos"] = {
     "varName": "SST",
@@ -156,83 +151,20 @@ for varId in ["siconc", "tos"]:
     units = varList[varId]["units"]
     outVar = varList[varId]["outVar"]
     inFile = "".join(["MODEL.", fileVar, ".HAD187001-198110.OI198111-", dataEnd, ".nc"])
-    # fH = cdm.open(os.path.join(sanPath, inFile), "r")
     fH = xc.open_dataset(os.path.join(sanPath, inFile))
     fH = fH.bounds.add_time_bounds(method="midpoint")  # add time bounds
     xrVar = ".".join(["fH", varName])
     print("xrVar:", xrVar)
     var = eval(xrVar)
 
-    """
-    var = fH(varName)
-    print("var.shape", var.shape)
-    # print('var:', var)
-    # print('var.getTime():', var.getTime())
-    time = var.getTime().asComponentTime()
-    lastYr = time[-1].year
-    lastMn = time[-1].month
-    print("lastYr:", lastYr, "lastMn:", lastMn)
-    del time
-    # Create calendar
-    if lastMn == 6:
-        endYr = str(int(lastYr))  # Half year/Same year
-        time = makeCalendar("1870", endYr, monthEnd=(lastMn + 1), calendarStep="months")
-    elif lastMn == 12:
-        endYr = str(int(lastYr))  # Half year/Same year
-        time = makeCalendar("1870", endYr + 1, monthEnd=1, calendarStep="months")
-    else:  # Case of full year; last_month = 12
-        endYr = str(int(lastYr))  # Correct off by one, full year
-        if lastMn == 12:
-            # Dec (1) 2017 completion; June (6) 2016 completion
-            time = makeCalendar(
-                "1870", endYr, monthEnd=lastMn + 1, calendarStep="months"
-            )
-        else:
-            print("Some calendar error, passing to pdb")
-            # pdb.set_trace()
-            # Dec (1) 2017 completion; June (6) 2016 completion
-            time = makeCalendar(
-                "1870", endYr, monthEnd=(lastMn + 1), calendarStep="months"
-            )
-    print("first:", time.asComponentTime()[0])
-    print("last: ", time.asComponentTime()[-1])
-    print("time.units:", time.units)
-    print("time len:", len(time))
-    print("varName:", varName)
-    print("outVar:", outVar)
-    print("var.units:", var.units)
-    print("ftype:", ftype)
-
-    # Reassign correct calendar/time axis to variable
-    var.setAxis(0, time)
-
-    # Get target grid
-    #targetGrid = var.getGrid()
-    #print("grid generated..")
-
-    # Add mask as input
-    fn_mask = "".join(
-        [
-            "/p/user_pub/work/input4MIPs/CMIP6/CMIP/PCMDI/",
-            "PCMDI-AMIP-1-1-6/ocean/fx/sftof/gn/v20191121/",
-            "sftof_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-6",
-            "_gn.nc",
-        ]
-    )
-    f = cdm.open(fn_mask)
-    sftof = f("sftof")
-    f.close()
-    print("sftof read..")
-"""
-
     # run pcmdiAmipBcs/compile to refresh binaries (ensure conda env is consistent!)
     # create tos midpoint values
 
     print("Entering createMonthlyMidpoints function..")
     nyears = 10  # Buffer ~24-month climatology calculated over nyears
-    # varBcs = pcmdiAmipBcsFx.createMonthlyMidpoints(
-    #    var, ftype, units, nyears, outVar
-    # )  # , grid=targetGrid, mask=sftof)
+    varBcs = pcmdiAmipBcsFx.createMonthlyMidpoints(
+        var, ftype, units, nyears, outVar
+    )  # , grid=targetGrid, mask=sftof)
     varBcs = var
     print("Exiting createMonthlyMidpoints function..")
 
@@ -240,21 +172,15 @@ for varId in ["siconc", "tos"]:
     print("inputFile:", dataEnd)
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
-    # time = var.getTime()
-    # print(time.asComponentTime()[-1])
     print(fH.time)
 
     # Cleanup partial year data - always end on full or half years (12/6)
-    ###endInd = np.mod(time.asComponentTime()[-1].month, 6)
     endInd = np.mod(fH.time.dt.month[-1].data, 6)
     var = var[:-endInd,]
     varBcs = varBcs[:-endInd,]
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
-    ###time = var.getTime()
-    ###print(time.asComponentTime()[-1])
     print(var.time[-1])
-    ###if time.asComponentTime()[-1].month not in (6, 12):
     if var.time.dt.month[-1] not in (6, 12):
         pdb.set_trace()
 
@@ -277,12 +203,8 @@ for varId in ["siconc", "tos"]:
         )
         # inpath="CMOR/input4MIPs-cmor-tables/Tables",
         cmor.dataset_json(dataSetJson)
-        ###d = eval(dHandle)
-        ###lat = d.getLatitude()
         lat = var.cf["latitude"]
-        ###lon = d.getLongitude()
         lon = var.cf["longitude"]
-        ###time = d.getTime()
         time = var.cf["time"]
         # Force local file attribute as history
         cmor.set_cur_dataset_attribute("history", history)
@@ -293,21 +215,9 @@ for varId in ["siconc", "tos"]:
 
         # Fudge table files to force project=CMIP6Plus
         tablePath = "Tables"
-        # with open(os.path.join(tablePath, table)) as fh:
-        #    tmp = json.load(fh)
-        # tmp["Header"]["mip_era"] = "CMIP6Plus"
-        # oH = open(os.path.join(tablePath, table)
-        # json.dump(
-        #    tmp, oH, ensure_ascii=True, sort_keys=True, indent=4, separators=(",", ":")
-        # )
-        # oH.close()
-        # cmor.load_table("tmp.json")
         tablePath = os.path.join(tablePath, table)
         print("tablePath:", tablePath)
         cmor.load_table(tablePath)
-        # os.remove("tmp.json")
-
-        ###pdb.set_trace()
 
         axes = [
             {"table_entry": dataSetTime, "units": "days since 1870-01-01 0:0:0.0"},
@@ -344,29 +254,20 @@ for varId in ["siconc", "tos"]:
 # 2. Create areacello and sftof and write
 
 # areacello
-###areacello = cdu.area_weights(var[0,])
 areacello = fH.spatial.get_weights(axis="Y")
 areacello, _ = xr.broadcast(areacello, var[0])
-
 # areacello.sum() = 1.0
 earthSurfaceArea = 510.1
 # million km2
 earthSurfaceAreaM2 = earthSurfaceArea * 1e12
 # m2
 areacelloM2 = areacello * earthSurfaceAreaM2
-###areacelloM2.standard_name = "cell_area"
-###areacelloM2.long_name = "Ocean Grid-Cell Area"
-###areacelloM2.units = "m2"
-###areacelloM2.id = "areacello"
 areacello = areacelloM2
 del areacelloM2
 
 # sftof
-###maskFile = os.path.join(destPath, "Shared/obs_data/WOD13/170425_WOD13_masks_1deg.nc")
 maskFile = os.path.join(sanPath, "170425_WOD13_masks_1deg.nc")
-###fMask = cdm.open(maskFile)
 fM = xc.open_dataset(maskFile)
-###landSea1deg = fMask("landsea")
 landSea1deg = fM["landsea"]
 # Fix longitude
 aMat = landSea1deg[:, 0:180]
@@ -382,9 +283,6 @@ landSea1degTmp = xr.DataArray(
 )
 del cMat
 
-# landSea1degTmp.setAxis(0, areacello.getAxis(0))
-# Impose identical axes to areacello
-# landSea1degTmp.setAxis(1, areacello.getAxis(1))
 landSea1deg = landSea1degTmp
 del landSea1degTmp
 landSea1deg = np.where(landSea1deg > 1.0, 0.0, landSea1deg)
@@ -395,12 +293,6 @@ landSea1deg = np.where(landSea1deg == 0.0, 100.0, landSea1deg)
 # Change sea > 100.
 landSea1deg = np.where(landSea1deg == 2.0, 0.0, landSea1deg)
 # Change land > 0.
-# Need to tweak some cells
-###sftof = cdm.createVariable(landSea1deg)
-###sftof.standard_name = "sea_area_fraction"
-###sftof.long_name = "Sea Area Fraction"
-###sftof.units = "%"
-###sftof.id = "sftof"
 sftof = landSea1deg
 del landSea1deg
 
@@ -417,11 +309,8 @@ for fxVar in fxFiles:
     )
     cmor.dataset_json("CMOR/drive_input4MIPs_obs.json")
     d = eval(fxVar)
-    ###lat = d.getLatitude()
     lat = var.cf["latitude"]
-    ###lon = d.getLongitude()
     lon = var.cf["longitude"]
-    ###time = d.getTime()
     # Force local file attribute as history
     cmor.set_cur_dataset_attribute("history", history)
     # cmor.set_cur_dataset_attribute('frequency', 'fx')  # <-- test? no good

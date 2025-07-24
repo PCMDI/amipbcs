@@ -323,11 +323,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     # construct jacobian for solver
     ndays = getNumDays(time)
-
-    print("HERE")
-    print(tosi.shape)
-    print(tosi)
-
     tosip, ndaysp, edaysl = addClimo(tosi, nyears, ndays, ftype, vmax, vmin)
     aa, cc = getJacobian(ndaysp)
 
@@ -339,7 +334,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     else:
         print("timeLen:", timeLen)
 
-    # evaluate padding - check January 1870-2 and December timeEnd+2 for discontinuity
+    # evaluate padding - check Jan 1870-2, Dec timeEnd+2 for discontinuity
     aCount = 0
     padPlot = 0
     print("Check padded timeseries for start/end >96% discontinuities")
