@@ -25,10 +25,16 @@ import pdb
 import socket
 import sys
 import xcdat as xc
+import xarray as xr
+
+print(os.getcwd())
+os.chdir("/Users/durack1/sync/git/amipbcs")
+print(os.getcwd())
 
 # import xarray as xr
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
+
 
 # %% set data version info
 ##%%time
@@ -231,9 +237,10 @@ for varId in ["siconc", "tos"]:
 
     print("Entering createMonthlyMidpoints function..")
     nyears = 10  # Buffer ~24-month climatology calculated over nyears
-    varBcs = pcmdiAmipBcsFx.createMonthlyMidpoints(
-        var, ftype, units, nyears, outVar
-    )  # , grid=targetGrid, mask=sftof)
+    # varBcs = pcmdiAmipBcsFx.createMonthlyMidpoints(
+    #    var, ftype, units, nyears, outVar
+    # )  # , grid=targetGrid, mask=sftof)
+    varBcs = var
     print("Exiting createMonthlyMidpoints function..")
 
     # check input file and and output times
@@ -341,4 +348,117 @@ for varId in ["siconc", "tos"]:
         )
         cmor.close()
 
-# %%
+# 2. Create areacello and sftof and write
+
+# areacello
+###areacello = cdu.area_weights(var[0,])
+areacello = fH.spatial.get_weights(axis="Y")
+areacello, _ = xr.broadcast(areacello, var[0])
+
+# areacello.sum() = 1.0
+earthSurfaceArea = 510.1
+# million km2
+earthSurfaceAreaM2 = earthSurfaceArea * 1e12
+# m2
+areacelloM2 = areacello * earthSurfaceAreaM2
+###areacelloM2.standard_name = "cell_area"
+###areacelloM2.long_name = "Ocean Grid-Cell Area"
+###areacelloM2.units = "m2"
+###areacelloM2.id = "areacello"
+areacello = areacelloM2
+del areacelloM2
+
+# sftof
+###maskFile = os.path.join(destPath, "Shared/obs_data/WOD13/170425_WOD13_masks_1deg.nc")
+maskFile = os.path.join(sanPath, "170425_WOD13_masks_1deg.nc")
+###fMask = cdm.open(maskFile)
+fM = xc.open_dataset(maskFile)
+###landSea1deg = fMask("landsea")
+landSea1deg = fM["landsea"]
+# Fix longitude
+aMat = landSea1deg[:, 0:180]
+bMat = landSea1deg[:, 180:]
+cMat = np.concatenate((bMat, aMat), axis=1)
+del (aMat, bMat)
+
+###landSea1degTmp = cdm.createVariable(cMat, type="int16")
+landSea1degTmp = xr.DataArray(
+    cMat.astype(np.int16),
+    dims=("lat", "lon"),
+    coords={k: var.coords[k] for k in ["lat", "lon"]},
+)
+del cMat
+
+# landSea1degTmp.setAxis(0, areacello.getAxis(0))
+# Impose identical axes to areacello
+# landSea1degTmp.setAxis(1, areacello.getAxis(1))
+landSea1deg = landSea1degTmp
+del landSea1degTmp
+landSea1deg = np.where(landSea1deg > 1.0, 0.0, landSea1deg)
+# sea=0, land=1
+landSea1deg = np.where(landSea1deg == 1.0, 2.0, landSea1deg)
+# Change land > 2.
+landSea1deg = np.where(landSea1deg == 0.0, 100.0, landSea1deg)
+# Change sea > 100.
+landSea1deg = np.where(landSea1deg == 2.0, 0.0, landSea1deg)
+# Change land > 0.
+# Need to tweak some cells
+###sftof = cdm.createVariable(landSea1deg)
+###sftof.standard_name = "sea_area_fraction"
+###sftof.long_name = "Sea Area Fraction"
+###sftof.units = "%"
+###sftof.id = "sftof"
+sftof = landSea1deg
+del landSea1deg
+
+fxFiles = ["areacello", "sftof"]
+for fxVar in fxFiles:
+    if fxVar == "areacello":
+        units = "m2"
+    elif fxVar == "sftof":
+        units = "%"
+
+    cmor.setup(
+        inpath="Tables",
+        netcdf_file_action=cmor.CMOR_REPLACE_4,
+    )
+    cmor.dataset_json("CMOR/drive_input4MIPs_obs.json")
+    d = eval(fxVar)
+    ###lat = d.getLatitude()
+    lat = var.cf["latitude"]
+    ###lon = d.getLongitude()
+    lon = var.cf["longitude"]
+    ###time = d.getTime()
+    # Force local file attribute as history
+    cmor.set_cur_dataset_attribute("history", history)
+    # cmor.set_cur_dataset_attribute('frequency', 'fx')  # <-- test? no good
+    table = "input4MIPs_Ofx.json"  # <-- doesn't overwrite source_id value
+
+    # Fudge table files to force project=CMIP6Plus
+    tablePath = "Tables"
+    cmor.load_table(os.path.join(tablePath, table))
+
+    axes = [
+        {
+            "table_entry": "latitude",
+            "units": "degrees_north",
+            "coord_vals": lat.data,
+            "cell_bounds": fH["lat_bnds"].data,
+        },
+        {
+            "table_entry": "longitude",
+            "units": "degrees_east",
+            "coord_vals": lon.data,
+            "cell_bounds": fH["lon_bnds"].data,
+        },
+    ]
+    axis_ids = list()
+    for axis in axes:
+        axis_id = cmor.axis(**axis)
+        axis_ids.append(axis_id)
+    varid = cmor.variable(fxVar, units, axis_ids, missing_value=1e20)
+    values = np.array(d[:], np.float32)
+    # shuffle=1,deflate=1,deflate_level=1 ; CMOR 3.0.6+
+    cmor.set_deflate(varid, 1, 1, 1)
+    cmor.write(varid, values)
+    cmor.close()
