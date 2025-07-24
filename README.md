@@ -1,15 +1,15 @@
 # amipbcs - AMIP dataset prepared for input4MIPs
 
-Code to generate boundary condition data for the AMIP (Atmospheric Model Intercomparison Project) experiment as part of CMIP6, CMIP6Plus and CMIP7 phases and the input4MIPs project
+Code to generate sea surface temperature (SST/tos) and sea ice concentration (siconc) boundary condition data for the AMIP (Atmospheric Model Intercomparison Project) experiment as part of CMIP6, CMIP6Plus and CMIP7 phases and the input4MIPs project.
 
 The latest generated data can be obtained from the [ESGF2-US data portal](https://esgf-node.ornl.gov/search?project=input4MIPs&activeFacets={%22mip_era%22:%22CMIP7%22})
 
 The code depends upon the following packages:
-- [**CDMS2 3.1.5**](https://github.com/CDAT/cdms) (Available through [conda](https://anaconda.org/conda-forge/cdms2/files))
-- [**CMOR 3.7.1+**](https://github.com/PCMDI/cmor) (Available through [conda](https://anaconda.org/conda-forge/cmor/files))
-- [**gfortran 12.2.0+**](https://gcc.gnu.org/wiki/GFortran) (Available through [conda](https://anaconda.org/conda-forge/gfortran/files))
+- [**xCDAT 0.9.1+**](https://github.com/xCDAT/xcdat) (Available through [conda-forge](https://anaconda.org/conda-forge/xcdat/files))
+- [**CMOR 3.11.0+**](https://github.com/PCMDI/cmor) (Available through [conda-forge](https://anaconda.org/conda-forge/cmor/files))
+- [**gfortran 14.2.0+**](https://gcc.gnu.org/wiki/GFortran) (Available through [conda-forge](https://anaconda.org/conda-forge/gfortran/files))
 
-These packages and libraries are available for linux-64 and osx-64 (x86_64) architectures
+These packages and libraries are available for linux-64, osx-64 and osx-arm64 (x86_64) architectures
 
 ## Contributors
 
