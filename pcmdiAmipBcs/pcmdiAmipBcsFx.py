@@ -27,6 +27,7 @@ PJD  2 Dec 2021     - Renamed hurrellfx.py -> pcmdiAmipBcsFx.py
 import cdms2
 import pcmdiAmipBcs  # pcmdiAmipBcs.cpython-39-x86_64-linux-gnu - see files in __pycache__ subdir
 import numpy as np
+
 # Control debug output format
 np.set_printoptions(formatter={"float": lambda x: "{:8.3f}".format(x)})
 from calendar import monthrange
@@ -240,6 +241,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     """
     # regrid data if needed
+    # cdms2
     if "grid" in kargs:
         targetGrid = kargs["grid"]
         diag = {}
@@ -258,6 +260,13 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     lon = tosi.getLongitude()
     time = tosi.getTime()
     units = tosi.units
+
+    # xcdat
+    if "grid" in kargs:
+        targetGrid = kargs["grid"]
+        tosi = tosi.regridder.horizontal(
+            "ts", targetGrid, tool="xesmf", method="bilinear"
+        )
 
     # deal with optional arguments
     if "mask" in kargs:
@@ -375,7 +384,12 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                     # Write diagnostics to the terminal
                     print(" ".join([ftype, "lat:", str(lat[i]), "lon:", str(lon[j])]))
                     print("input start:")
-                    print(np.zeros(24,), tosi[0:36, i, j])
+                    print(
+                        np.zeros(
+                            24,
+                        ),
+                        tosi[0:36, i, j],
+                    )
                     print("output start:")
                     print(tosip[0:24, i, j], tosip[24:60, i, j])
                     print("input end:")
@@ -460,13 +474,39 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
             # if i=icheck and j=jcheck:
             if notconverg > 0:
-                print("Not converged - ", "j:", j, "alon:", alon, "i:", i,
-                      "alat:", alat, "conv:", conv, "dt:", dt, "vmin:", vmin,
-                      "vmax:", vmax, "bbmin:", bbmin, "maxiter:", maxiter,
-                      "jcnt:", jcnt)
-                print("len(aa):     ", len(aa),
-                      "len(cc):     ", len(cc),
-                      "len(obsmean):", len(obsmean))
+                print(
+                    "Not converged - ",
+                    "j:",
+                    j,
+                    "alon:",
+                    alon,
+                    "i:",
+                    i,
+                    "alat:",
+                    alat,
+                    "conv:",
+                    conv,
+                    "dt:",
+                    dt,
+                    "vmin:",
+                    vmin,
+                    "vmax:",
+                    vmax,
+                    "bbmin:",
+                    bbmin,
+                    "maxiter:",
+                    maxiter,
+                    "jcnt:",
+                    jcnt,
+                )
+                print(
+                    "len(aa):     ",
+                    len(aa),
+                    "len(cc):     ",
+                    len(cc),
+                    "len(obsmean):",
+                    len(obsmean),
+                )
                 print("aa:     ", aa)
                 print("cc:     ", cc)
                 print("obsmean:", obsmean)
@@ -505,16 +545,28 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     nontriv = ncells - minall - maxall
     print()
     print("ftype:", ftype)
-    print("bbmin:", bbmin, "maxiter:", maxiter, "conv:", conv, "vmin:", vmin,
-          "vmax:", vmax)
+    print(
+        "bbmin:",
+        bbmin,
+        "maxiter:",
+        maxiter,
+        "conv:",
+        conv,
+        "vmin:",
+        vmin,
+        "vmax:",
+        vmax,
+    )
     print("number of grid cells: ", ncells)
     print("number of cells with non-trivial solutions: ", ncells - minall - maxall)
     print("number of cells with values all = tmax: ", maxall)
     print("number of cells with values all = tmin: ", minall)
     print("number of jumps from tmin to tmax or from tmax to tmin: ", icnttot)
     print("number of cells where observations were smoothed: ", jcnt)
-    print("mean number of iterations required (non-trivial cells): ",
-          float(nitertot) / float(nontriv))
+    print(
+        "mean number of iterations required (non-trivial cells): ",
+        float(nitertot) / float(nontriv),
+    )
     print("total number of independent samples: ", jjall)
     print("number of cells where calculation failed to converge: ", sumnotconverg)
     print("maximum residual across all cells and months: ", allresidmax)

@@ -109,6 +109,11 @@ PJD  3 May 2023     - Added clunky code to work around the project=CMIP6 -> CMIP
 PJD 18 May 2023     - Rerunning to ensure new mamba env works as expected - v1.1.9, release moved to *1.1.9-release
                     - TODO:
                     - Always check for group membership to climatew before running this, otherwise problems occur
+"""
+# 2025
+"""
+PJD 23 Jul 2025     - Updated for PCMDI-AMIP-1-1-10, quickest path rather than xcdatifying; no arm64 support
+                      so linux-64 or osx-64 (emulated) only
 
 
 
@@ -129,24 +134,27 @@ Saturday                 9th
 """
 
 # import gc
-import cdat_info as cdatInfo
+# import cdat_info as cdatInfo
 import cdms2 as cdm
 import cdutil as cdu
 import cmor
 import datetime
-import glob
-import json
+
+# import glob
+# import json
 import MV2 as mv
 import numpy as np
 import os
 import pdb
-import pytz
 import sys
 from socket import gethostname
+
 sys.path.insert(0, "/home/durack1/git/durolib/durolib")
 from durolib import makeCalendar  # globalAttWrite, mkDirNoOSErr
+
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
+
 sys.path.append("/home/durack1/git/input4MIPs-cmor-tables/src/")
 from input4MIPsFuncs import createPubFiles, jsonWriteFile, washPerms
 
@@ -165,8 +173,8 @@ cdm.setNetcdfDeflateFlag(1)
 # %% Set version info
 activity_id = "input4MIPs"
 # WILL REQUIRE UPDATING
-contact = "pcmdi-cmip@lists.llnl.gov"
-dataVerNum = "1.1.9"  # WILL REQUIRE UPDATING
+contact = "pcmdi-cmip@llnl.gov"
+dataVerNum = "1.1.10"  # WILL REQUIRE UPDATING
 dataVer = "PCMDI-AMIP-XX".replace("XX", dataVerNum.replace(".", "-"))
 dataVerSht = "".join(["v", dataVerNum])
 data_structure = "grid"
@@ -174,12 +182,25 @@ frequency = "mon"
 # WILL REQUIRE UPDATING - point to GMD paper when available
 further_info_url = "https://pcmdi.llnl.gov/mips/amip/"
 institution_id = "PCMDI"
-institution = "Program for Climate Model Diagnosis and Intercomparison, Lawrence Livermore National Laboratory, Livermore, CA 94550, USA"
+institution = " ".join(
+    [
+        "Program for Climate Model Diagnosis and Intercomparison,",
+        "Lawrence Livermore National Laboratory, Livermore, CA",
+        "94550, USA",
+    ]
+)
 last_year = "2022"  # WILL REQUIRE UPDATING
 last_month = 12  # WILL REQUIRE UPDATING
-comment = "".join(["Based on Hurrell SST/sea ice consistency criteria applied to ",
-                   "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
-                   last_year, "-", "{:0>2}".format(last_month), ")"])
+comment = "".join(
+    [
+        "Based on Hurrell SST/sea ice consistency criteria applied to ",
+        "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
+        last_year,
+        "-",
+        "{:0>2}".format(last_month),
+        ")",
+    ]
+)
 license_txt = " ".join(
     [
         "AMIP boundary condition data produced by PCMDI is licensed",
@@ -193,8 +214,8 @@ license_txt = " ".join(
         "are excluded to the fullest extent permitted by law.",
     ]
 )
-mip_era = "CMIP6Plus"  # "CMIP6"
-mip_specs = "AMIP CMIP5 CMIP6 CMIP6Plus"
+mip_era = "CMIP7"  # "CMIP6Plus" "CMIP6"
+mip_specs = "AMIP CMIP5 CMIP6 CMIP6Plus CMIP7"
 project_id = "AMIP"
 ref_obs = " ".join(
     [
@@ -210,7 +231,7 @@ ref_bcs = " ".join(
         "temperature and sea ice concentration boundary conditions for",
         "AMIP II simulations. PCMDI Report 60, Program for Climate Model",
         "Diagnosis and Intercomparison, Lawrence Livermore National",
-        "Laboratory, 25 pp. Available online: http://www-pcmdi.llnl.gov/publications/pdf/60.pdf",
+        "Laboratory, 25 pp. Available online: https://pcmdi.llnl.gov/report/pdf/60.pdf",
     ]
 )
 source = "PCMDI-AMIP XX: Merged SST based on UK MetOffice HadISST and NCEP OI2".replace(
@@ -218,44 +239,35 @@ source = "PCMDI-AMIP XX: Merged SST based on UK MetOffice HadISST and NCEP OI2".
 )
 target_mip = "CMIP"
 time_period = "".join(["187001-", last_year, "{:0>2}".format(last_month)])
-destPath = "/p/user_pub/climate_work/durack1"
+###destPath = "/p/user_pub/climate_work/durack1"
+destPath = "."
 # For CMOR this is set in the CMOR/drive_input4MIPs*.json files
 # destPath = '/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData'  # USE FOR TESTING
 
 # %% Get time/history info
-utcNow = datetime.datetime.utcnow()
-utcNow = utcNow.replace(tzinfo=pytz.utc)
+utcNow = datetime.datetime.now(datetime.timezone.utc)
 timeFormat = utcNow.strftime("%d-%m-%Y %H:%M:%S %p")
-localTz = pytz.timezone("America/Los_Angeles")
-localNow = utcNow.astimezone(localTz)
-cdatVerInfo = cdatInfo.version()
-# Deal with quirky formats
-if len(cdatVerInfo) > 2:
-    cdatVerInfo = ".".join(["%s" % el for el in cdatInfo.version()])
-else:
-    cdatVerInfo = cdatInfo.version()[-1].strip("v")
-    # Trim off the v
-history = "".join(["File processed: ", timeFormat,
-                  " UTC; San Francisco, CA, USA"])
+xcVersion = xc.__version__
+history = " ".join(["File processed:", timeFormat, "UTC; San Francisco, CA, USA"])
 host = "".join(
     [
         "Host: ",
-        gethostname(),
-        "; CDAT version: ",
-        cdatVerInfo,
+        socket.gethostname(),
+        "; xCDAT version: ",
+        xcVersion,
         "; Python version: ",
-        sys.version.replace("\n", "; ").replace(") ;", ");"),
+        sys.version.split(" |")[0],
+        ";",
     ]
 )
 history = "".join([history, "; \n", host])
 print(history)
 
 # %% Set directories and input data
-homePath = os.path.join(destPath, "Shared/150219_AMIPForcingData/")
+###homePath = os.path.join(destPath, "Shared/150219_AMIPForcingData/")
+homePath = "../"
 # sanPath     = os.path.join(homePath,'_'.join(['360x180',dataVerSht,'san']))
-sanPath = os.path.join(
-    homePath, "".join(["SST_", dataVerNum.replace(".", "-")])
-)
+sanPath = os.path.join(homePath, "".join(["SST_", dataVerNum.replace(".", "-")]))
 dataEnd = "202301"
 print("sanPath:", sanPath)
 
@@ -283,8 +295,7 @@ for varId in ["siconc", "tos"]:
     ftype = varList[varId]["ftype"]
     units = varList[varId]["units"]
     outVar = varList[varId]["outVar"]
-    inFile = "".join(
-        ["MODEL.", fileVar, ".HAD187001-198110.OI198111-", dataEnd, ".nc"])
+    inFile = "".join(["MODEL.", fileVar, ".HAD187001-198110.OI198111-", dataEnd, ".nc"])
     fH = cdm.open(os.path.join(sanPath, inFile), "r")
     var = fH(varName)
     print("var.shape", var.shape)
@@ -298,12 +309,10 @@ for varId in ["siconc", "tos"]:
     # Create calendar
     if lastMn == 6:
         endYr = str(int(lastYr))  # Half year/Same year
-        time = makeCalendar("1870", endYr, monthEnd=(
-            lastMn + 1), calendarStep="months")
+        time = makeCalendar("1870", endYr, monthEnd=(lastMn + 1), calendarStep="months")
     elif lastMn == 12:
         endYr = str(int(lastYr))  # Half year/Same year
-        time = makeCalendar("1870", endYr + 1, monthEnd=1,
-                            calendarStep="months")
+        time = makeCalendar("1870", endYr + 1, monthEnd=1, calendarStep="months")
     else:  # Case of full year; last_month = 12
         endYr = str(int(lastYr))  # Correct off by one, full year
         if lastMn == 12:
@@ -366,12 +375,8 @@ for varId in ["siconc", "tos"]:
 
     # Cleanup partial year data - always end on full or half years (12/6)
     endInd = np.mod(time.asComponentTime()[-1].month, 6)
-    var = var[
-        :-endInd,
-    ]
-    varBcs = varBcs[
-        :-endInd,
-    ]
+    var = var[:-endInd,]
+    varBcs = varBcs[:-endInd,]
     print("".join([varId, ".shape:"]), var.shape)
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
     time = var.getTime()
@@ -379,6 +384,7 @@ for varId in ["siconc", "tos"]:
     if time.asComponentTime()[-1].month not in (6, 12):
         pdb.set_trace()
 
+    # %% CMORize
     # 1. Write siconc/tos and siconcBcs/tosBcs
     for varToCMOR in ["obs", "obsBcs"]:
         if varToCMOR == "obs":
@@ -410,23 +416,7 @@ for varId in ["siconc", "tos"]:
 
         # Fudge table files to force project=CMIP6Plus
         tablePath = "CMOR/input4MIPs-cmor-tables/Tables"
-        with open(os.path.join(tablePath, table)) as fh:
-            tmp = json.load(fh)
-        tmp["Header"]["mip_era"] = "CMIP6Plus"
-        oH = open("tmp.json", "w")
-        json.dump(
-            tmp,
-            oH,
-            ensure_ascii=True,
-            sort_keys=True,
-            indent=4,
-            separators=(
-                ',',
-                ':')
-        )
-        oH.close()
-        cmor.load_table("tmp.json")
-        os.remove("tmp.json")
+        cmor.load_table(os.path.join(tablePath, table))
 
         axes = [
             {"table_entry": dataSetTime, "units": "days since 1870-01-01"},
@@ -452,19 +442,14 @@ for varId in ["siconc", "tos"]:
         values = np.array(d[:], np.float32)
         # shuffle=1,deflate=1,deflate_level=1 ; CMOR 3.0.6+
         cmor.set_deflate(varid, 1, 1, 1)
-        cmor.write(varid, values,
-                   time_vals=time[:], time_bnds=time.getBounds())
+        cmor.write(varid, values, time_vals=time[:], time_bnds=time.getBounds())
         f.close()
         cmor.close()
 
 # 2. Create areacello and sftof and write
 
 # areacello
-areacello = cdu.area_weights(
-    var[
-        0,
-    ]
-)
+areacello = cdu.area_weights(var[0,])
 # areacello.sum() = 1.0
 earthSurfaceArea = 510.1
 # million km2
@@ -478,8 +463,8 @@ areacelloM2.id = "areacello"
 areacello = areacelloM2
 del areacelloM2
 # sftof
-maskFile = os.path.join(
-    destPath, "Shared/obs_data/WOD13/170425_WOD13_masks_1deg.nc")
+###maskFile = os.path.join(destPath, "Shared/obs_data/WOD13/170425_WOD13_masks_1deg.nc")
+maskFile = os.path.join(sanPath, "170425_WOD13_masks_1deg.nc")
 fMask = cdm.open(maskFile)
 landSea1deg = fMask("landsea")
 # Fix longitude
@@ -527,23 +512,7 @@ for fxVar in fxFiles:
 
     # Fudge table files to force project=CMIP6Plus
     tablePath = "CMOR/input4MIPs-cmor-tables/Tables"
-    with open(os.path.join(tablePath, table)) as fh:
-        tmp = json.load(fh)
-    tmp["Header"]["mip_era"] = "CMIP6Plus"
-    oH = open("tmp.json", "w")
-    json.dump(
-        tmp,
-        oH,
-        ensure_ascii=True,
-        sort_keys=True,
-        indent=4,
-        separators=(
-            ',',
-            ':')
-    )
-    oH.close()
-    cmor.load_table("tmp.json")
-    os.remove("tmp.json")
+    cmor.load_table(os.path.join(tablePath, table))
 
     axes = [
         {
@@ -571,6 +540,7 @@ for fxVar in fxFiles:
     cmor.close()
 
 # %% Generate json files for publication step
+"""
 jsonFilePaths, variableFilePaths = [[] for _ in range(2)]
 
 # Get list of new files
@@ -663,8 +633,7 @@ for filePath in files:
         dataVersion,
         fileName,
     )
-    variableFilePaths.append(os.path.join(
-        destPath, destFilePath.replace(fileName, "")))
+    variableFilePaths.append(os.path.join(destPath, destFilePath.replace(fileName, "")))
     jsonFilePath = os.path.join(
         destPath,
         activityId,
@@ -704,3 +673,4 @@ washPerms(
 )
 # Create output files for publication
 createPubFiles(destPath, jsonId, jsonFilePaths, variableFilePaths)
+"""
