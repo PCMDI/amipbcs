@@ -119,13 +119,10 @@ def addClimo(tosi, nyears, ndays, ftype, vmax, vmin):
     # )
 
     # get nyear average climo [12 x lat x lon] - start/end month not relevant
-    sclimo = np.mean(
-        np.reshape(tosi[0 : nyears * 12, :, :], (nyears, 12, len(lat), len(lon))),
-        axis=0,
-    )
-    eclimo = np.mean(
-        np.reshape(tosi[-nyears * 12 :, :, :], (nyears, 12, len(lat), len(lon))), axis=0
-    )
+    tmp = tosi[0 : nyears * 12, :, :].data
+    sclimo = np.mean(np.reshape(tmp, (nyears, 12, len(lat), len(lon))), axis=0)
+    tmp = tosi[-nyears * 12 :, :, :].data
+    eclimo = np.mean(np.reshape(tmp, (nyears, 12, len(lat), len(lon))), axis=0)
 
     # duplicate climatology, extending to 24-months long
     sclimo = np.tile(sclimo, (2, 1, 1))
@@ -167,9 +164,11 @@ def addClimo(tosi, nyears, ndays, ftype, vmax, vmin):
 
     # get the first and last month (e.g., January = 1 and June = 6)
     ### smonth = time.asComponentTime()[0].month
-    smonth = time.dt.month[0]
+    smonth = time.dt.month[0].data
+    print("smonth:", smonth)
     ### emonth = time.asComponentTime()[-1].month
-    emonth = time.dt.month[-1]
+    emonth = time.dt.month[-1].data
+    print("emonth:", emonth)
 
     # create ndays vector with climatological length values (* 2 = 24 months)
     ndaysclimo = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] * 2)
