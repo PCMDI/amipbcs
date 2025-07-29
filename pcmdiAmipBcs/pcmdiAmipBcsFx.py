@@ -23,6 +23,7 @@ PJD  2 Dec 2021 - Renamed hurrellfx.py -> pcmdiAmipBcsFx.py
 PJD 25 Jul 2025 - Started remapping cdms2 to xcdat
 PJD 25 Jul 2025 - Completed remapping cdms2 -> xcdat/xarray
 PJD 29 Jul 2025 - Reformatted getNumDays prints
+PJD 29 Jul 2025 - Cleaned up createMonthlyMidpoints; debugs rewritten to xcdat
 
 @author: pochedls and durack1
 """
