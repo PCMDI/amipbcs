@@ -22,6 +22,7 @@ PJD  2 Dec 2021 - Code and print diagnostic cleanup
 PJD  2 Dec 2021 - Renamed hurrellfx.py -> pcmdiAmipBcsFx.py
 PJD 25 Jul 2025 - Started remapping cdms2 to xcdat
 PJD 25 Jul 2025 - Completed remapping cdms2 -> xcdat/xarray
+PJD 29 Jul 2025 - Reformatted getNumDays prints
 
 @author: pochedls and durack1
 """
@@ -51,10 +52,9 @@ def getNumDays(time):
     ndays = np.zeros(len(time), dtype=int)
     for i in range(len(time)):
         y = time.dt.year[i].data
-        print("getNumDays: y", y)
         m = time.dt.month[i].data
-        print("getNumDays: m", m)
         fdays = monthrange(y, m)[1]
+        print("getNumDays: y", y, "m", m, "fdays", fdays)
         ndays[i] = fdays
     return ndays
 
@@ -246,6 +246,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD 22 Nov 2021 - Updated jcnt np.array -> int type and back -> np.array
     PJD  2 Dec 2021 - Updated addClimo call with t/vmax and vmin args
     PJD 25 Jul 2025 - Remapped cdms2 calls to xcdat
+    PJD 29 Jul 2025 - Further cleanups, syntactic
 
     """
     # regrid data if needed
@@ -313,10 +314,10 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     # evaluate padding - check Jan 1870-2, Dec timeEnd+2 for discontinuity
     aCount = 0
-    padPlot = 0
+    padPlot = 0  # turn off = 0
     print("Check padded timeseries for start/end >96% discontinuities")
-    for i in range(len(lat)):
-        for j in range(len(lon)):
+    for i, _ in enumerate(lat):
+        for j, _ in enumerate(lon):
             if lat[i] > -91:  # 80
                 # Calculate discontinuities >96%
                 tosipDiff = tosip[0, i, j] - tosip[-1, i, j]
@@ -338,7 +339,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                     )
                     plt.plot(
                         np.arange(0, 60),
-                        tosip[0:60, i, j].data + 5,
+                        tosip[0:60, i, j] + 5,
                         label="start tosip+5",
                     )
                     ax1.legend()
@@ -352,7 +353,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                     )
                     plt.plot(
                         np.arange(0, 60),
-                        tosip[-60:, i, j].data + 5,
+                        tosip[-60:, i, j] + 5,
                         label="end tosip+5",
                     )
                     ax2.legend()
@@ -398,8 +399,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     # loop over each grid cell and create midpoint values
     sumnotconverg, allresidmax = [0.0 for _ in range(2)]
     icnttot, nitertot, minall, maxall, jjall = [0 for _ in range(5)]
-    for i in range(len(lat)):
-        for j in range(len(lon)):
+    for i, _ in enumerate(lat):
+        for j, _ in enumerate(lon):
             obsmean = np.array(tosip[:, i, j])  # extract gridpoint time series
             # lat / lon for diagnostics - not needed?
             alat = lat[i]
@@ -469,27 +470,27 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             if notconverg > 0:
                 print(
                     "Not converged - ",
-                    "j:",
+                    "j:      ",
                     j,
-                    "alon:",
+                    "alon:   ",
                     alon,
-                    "i:",
+                    "i:      ",
                     i,
-                    "alat:",
+                    "alat:   ",
                     alat,
-                    "conv:",
+                    "conv:   ",
                     conv,
-                    "dt:",
+                    "dt:     ",
                     dt,
-                    "vmin:",
+                    "vmin:   ",
                     vmin,
-                    "vmax:",
+                    "vmax:   ",
                     vmax,
-                    "bbmin:",
+                    "bbmin:  ",
                     bbmin,
                     "maxiter:",
                     maxiter,
-                    "jcnt:",
+                    "jcnt:   ",
                     jcnt,
                 )
                 print(
@@ -599,7 +600,6 @@ def fillVoid(data):
     for i in range(len(time)):
         flag = flagAll[i, :, :]
         dataSlice = data[i, :, :]
-        # iterCount = 0
         nlflags = 0
         iterCount = 0
         while np.any(~flag):  # as long as there are any False's in flag

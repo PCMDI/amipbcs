@@ -8,12 +8,16 @@ Paul J. Durack 21st Jul 2025
 This script cmorizes nc files
 
 PJD 23 Jul 25 - updates to map xr functions to replace durolib
-PJD 24 Jul 25 - remapped all dependencies to xcdat/array (remove cdms2 dependence)
+PJD 24 Jul 25 - remapped all dependencies to xcdat/array (remove
+                cdms2 dependence)
+PJD 28 Jul 25 - updated CMOR time_units to remove HH:MM:SS.x does
+                this fix the ~6 hrs temporal offset
+PJD 28 Jul 25 - update to xc.open_dataset($file, decode_times=False)
 NOTNEEDED: remap makeCalendar to https://docs.xarray.dev/en/latest/generated/xarray.date_range.html
 """
 
 # %% imports
-import cftime
+import cftime as cft
 import cmor
 import datetime
 import numpy as np
@@ -152,12 +156,13 @@ for varId in ["siconc", "tos"]:
     outVar = varList[varId]["outVar"]
     inFile = "".join(["MODEL.", fileVar, ".HAD187001-198110.OI198111-", dataEnd, ".nc"])
     fH = xc.open_dataset(os.path.join(sanPath, inFile))
+    # , decode_times=False)
     fH = fH.bounds.add_time_bounds(method="midpoint")  # add time bounds
     xrVar = ".".join(["fH", varName])
     print("xrVar:", xrVar)
     var = eval(xrVar)
 
-    # run pcmdiAmipBcs/compile to refresh binaries (ensure conda env is consistent!)
+    # run pcmdiAmipBcs/compile - refresh binaries (ensure env consistent!)
     # create tos midpoint values
 
     print("Entering createMonthlyMidpoints function..")
@@ -165,8 +170,9 @@ for varId in ["siconc", "tos"]:
     varBcs = pcmdiAmipBcsFx.createMonthlyMidpoints(
         var, ftype, units, nyears, outVar
     )  # , grid=targetGrid, mask=sftof)
-    varBcs = var
     print("Exiting createMonthlyMidpoints function..")
+
+    pdb.set_trace()
 
     # check input file and and output times
     print("inputFile:", dataEnd)
@@ -203,9 +209,7 @@ for varId in ["siconc", "tos"]:
         )
         # inpath="CMOR/input4MIPs-cmor-tables/Tables",
         cmor.dataset_json(dataSetJson)
-        lat = var.cf["latitude"]
-        lon = var.cf["longitude"]
-        time = var.cf["time"]
+        time = var.cf["time"]  # catch trimmed time axis - xc object
         # Force local file attribute as history
         cmor.set_cur_dataset_attribute("history", history)
         if "sic" in varId:
@@ -220,17 +224,17 @@ for varId in ["siconc", "tos"]:
         cmor.load_table(tablePath)
 
         axes = [
-            {"table_entry": dataSetTime, "units": "days since 1870-01-01 0:0:0.0"},
+            {"table_entry": dataSetTime, "units": "days since 1870-01-01"},
             {
                 "table_entry": "latitude",
                 "units": "degrees_north",
-                "coord_vals": lat.data,
+                "coord_vals": fH.lat.data,
                 "cell_bounds": fH["lat_bnds"].data,
             },
             {
                 "table_entry": "longitude",
                 "units": "degrees_east",
-                "coord_vals": lon.data,
+                "coord_vals": fH.lon.data,
                 "cell_bounds": fH["lon_bnds"].data,
             },
         ]
@@ -243,12 +247,14 @@ for varId in ["siconc", "tos"]:
         values = np.array(var[:], np.float32)
         # shuffle=1,deflate=1,deflate_level=1 ; CMOR 3.0.6+
         cmor.set_deflate(varid, 1, 1, 1)
+
         cmor.write(
             varid,
             values,
-            time_vals=cftime.date2num(time, "days since 1870-1-1 0:0:0.0"),
-            time_bnds=cftime.date2num(fH["time_bnds"], "days since 1870-1-1 0:0:0.0"),
+            time_vals=cft.date2num(time, "days since 1870-1-1"),
+            time_bnds=cft.date2num(fH["time_bnds"], "days since 1870-1-1"),
         )
+
         cmor.close()
 
 # 2. Create areacello and sftof and write
@@ -275,7 +281,6 @@ bMat = landSea1deg[:, 180:]
 cMat = np.concatenate((bMat, aMat), axis=1)
 del (aMat, bMat)
 
-###landSea1degTmp = cdm.createVariable(cMat, type="int16")
 landSea1degTmp = xr.DataArray(
     cMat.astype(np.int16),
     dims=("lat", "lon"),
@@ -309,11 +314,8 @@ for fxVar in fxFiles:
     )
     cmor.dataset_json("CMOR/drive_input4MIPs_obs.json")
     d = eval(fxVar)
-    lat = var.cf["latitude"]
-    lon = var.cf["longitude"]
     # Force local file attribute as history
     cmor.set_cur_dataset_attribute("history", history)
-    # cmor.set_cur_dataset_attribute('frequency', 'fx')  # <-- test? no good
     table = "input4MIPs_Ofx.json"  # <-- doesn't overwrite source_id value
 
     # Fudge table files to force project=CMIP6Plus
@@ -324,13 +326,13 @@ for fxVar in fxFiles:
         {
             "table_entry": "latitude",
             "units": "degrees_north",
-            "coord_vals": lat.data,
+            "coord_vals": fH.lat.data,
             "cell_bounds": fH["lat_bnds"].data,
         },
         {
             "table_entry": "longitude",
             "units": "degrees_east",
-            "coord_vals": lon.data,
+            "coord_vals": fH.lon.data,
             "cell_bounds": fH["lon_bnds"].data,
         },
     ]
