@@ -28,7 +28,7 @@ PJD 29 Jul 2025 - Reformatted getNumDays prints
 """
 
 # %% imports
-import pcmdiAmipBcs  # pcmdiAmipBcs.cpython-39-x86_64-linux-gnu - see files in __pycache__ subdir
+import pcmdiAmipBcs  # pcmdiAmipBcs.cpython-39-x86_64-linux-gnu/pcmdiAmipBcs.cpython-311-darwin.so - see files in __pycache__ subdir
 import numpy as np
 
 # Control debug output format
@@ -54,7 +54,14 @@ def getNumDays(time):
         y = time.dt.year[i].data
         m = time.dt.month[i].data
         fdays = monthrange(y, m)[1]
-        print("getNumDays: y", y, "m", m, "fdays", fdays)
+        print(
+            "getNumDays: y",
+            "{:04d}".format(y),
+            "m",
+            "{:02d}".format(m),
+            "fdays",
+            "{:02d}".format(fdays),
+        )
         ndays[i] = fdays
     return ndays
 
@@ -411,15 +418,45 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
                 # Debug for example issues
                 # if alat == -77.5 and alon == 182.5:
-                # # call solver
-                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                #     = pcmdiAmipBcs.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                #                         maxiter, aa, cc, obsmean, jcnt)
+                #     # call solver
+                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps) = (
+                #         pcmdiAmipBcs.solvmid(
+                #             alon,
+                #             alat,
+                #             conv,
+                #             dt,
+                #             vmin,
+                #             vmax,
+                #             bbmin,
+                #             maxiter,
+                #             aa,
+                #             cc,
+                #             obsmean,
+                #             jcnt,
+                #         )
+                #     )
+                #     print("alat == -77.5 and alon == 182.5")
+                #     pdb.set_trace()
                 # elif alat == -76.5 and alon == 186.5:
-                # # call solver
-                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                #     = pcmdiAmipBcs.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                #                         maxiter, aa, cc, obsmean, jcnt)
+                #     # call solver
+                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps) = (
+                #         pcmdiAmipBcs.solvmid(
+                #             alon,
+                #             alat,
+                #             conv,
+                #             dt,
+                #             vmin,
+                #             vmax,
+                #             bbmin,
+                #             maxiter,
+                #             aa,
+                #             cc,
+                #             obsmean,
+                #             jcnt,
+                #         )
+                #     )
+                #     print("alat == -76.5 and alon == 186.5")
+                #     pdb.set_trace()
                 # else:
                 #     continue
 
@@ -450,19 +487,19 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 # Debug solver output
                 # inds = np.where(np.isnan(ss))[0]
                 # if len(inds) > 0:
-                #    plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
-                #    plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
-                #    print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                #    print('input:')
-                #    print(obsmean[inds[0] - 12 : inds[0] + 12])
-                #    print('output:')
-                #    print(ss[inds[0] - 12 : inds[0] + 12])
-                #    plt.title(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                #    plt.legend()
-                #    plt.show()
-                #    print("stepping..")
+                #     plt.plot(ss[inds[0] - 12 : inds[0] + 12] - 10, label="output-10")
+                #     plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
+                #     print(" ".join(["lat:", str(alat), "lon:", str(alon)]))
+                #     print("input:")
+                #     print(obsmean[inds[0] - 12 : inds[0] + 12])
+                #     print("output:")
+                #     print(ss[inds[0] - 12 : inds[0] + 12])
+                #     plt.title(" ".join(["lat:", str(alat), "lon:", str(alon)]))
+                #     plt.legend()
+                #     plt.show()
+                #     print("stepping..")
 
-            # subset time series (remove padded months) and add to array
+            # subset time series (remove padded months) and add to output array
             # assumes start is padded with 24 months, end padded by edaysl = len(edays)
             tosimp[:, i, j] = ss[24:-edaysl]
 

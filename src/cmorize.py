@@ -13,6 +13,8 @@ PJD 24 Jul 25 - remapped all dependencies to xcdat/array (remove
 PJD 28 Jul 25 - updated CMOR time_units to remove HH:MM:SS.x does
                 this fix the ~6 hrs temporal offset
 PJD 28 Jul 25 - update to xc.open_dataset($file, decode_times=False)
+PJD 29 Jul 25 - further updates further cleaning up redundant code and correctly
+                indexing variables across the obs and bcs variants
 NOTNEEDED: remap makeCalendar to https://docs.xarray.dev/en/latest/generated/xarray.date_range.html
 """
 
@@ -129,7 +131,7 @@ dataEnd = "202301"
 print("sanPath:", sanPath)
 print("os.getcwd():", os.getcwd())
 
-# %% preload data iterating over each variable, fix calendar, diddle and pass to CMOR
+# %% preload data, iterate over variables, diddle, and pass to CMOR
 varList = {}
 varList["tos"] = {
     "varName": "SST",
@@ -171,8 +173,7 @@ for varId in ["siconc", "tos"]:
         var, ftype, units, nyears, outVar
     )  # , grid=targetGrid, mask=sftof)
     print("Exiting createMonthlyMidpoints function..")
-
-    pdb.set_trace()
+    ###pdb.set_trace()
 
     # check input file and and output times
     print("inputFile:", dataEnd)
@@ -188,6 +189,7 @@ for varId in ["siconc", "tos"]:
     print("".join([varId, "bcs.shape:"]), varBcs.shape)
     print(var.time[-1])
     if var.time.dt.month[-1] not in (6, 12):
+        print("Catch case of bad data..")
         pdb.set_trace()
 
     # %% CMORize
@@ -203,13 +205,15 @@ for varId in ["siconc", "tos"]:
             dataSetTime = "time1"
             dHandle = "varBcs"
             cmorVarId = "".join([varId, "bcs"])
+
         # Start CMORising
         cmor.setup(
+            inpath="Tables",
+            set_verbosity=cmor.CMOR_NORMAL,
             netcdf_file_action=cmor.CMOR_REPLACE_4,
         )
-        # inpath="CMOR/input4MIPs-cmor-tables/Tables",
         cmor.dataset_json(dataSetJson)
-        time = var.cf["time"]  # catch trimmed time axis - xc object
+
         # Force local file attribute as history
         cmor.set_cur_dataset_attribute("history", history)
         if "sic" in varId:
@@ -217,7 +221,7 @@ for varId in ["siconc", "tos"]:
         else:
             table = "input4MIPs_Omon.json"
 
-        # Fudge table files to force project=CMIP6Plus
+        # Load relevant table file
         tablePath = "Tables"
         tablePath = os.path.join(tablePath, table)
         print("tablePath:", tablePath)
@@ -244,16 +248,18 @@ for varId in ["siconc", "tos"]:
             axis_ids.append(axis_id)
         print("varName:", cmorVarId, "units:", units, "axis_ids:", axis_ids)
         varid = cmor.variable(cmorVarId, units, axis_ids)
-        values = np.array(var[:], np.float32)
+        values = np.array(eval(dHandle), np.float32)  # output either obs/bcs
         # shuffle=1,deflate=1,deflate_level=1 ; CMOR 3.0.6+
+        ###pdb.set_trace()  # test values.min/max against var/varBcs
         cmor.set_deflate(varid, 1, 1, 1)
 
         cmor.write(
             varid,
             values,
-            time_vals=cft.date2num(time, "days since 1870-1-1"),
+            time_vals=cft.date2num(var.cf["time"], "days since 1870-1-1"),
             time_bnds=cft.date2num(fH["time_bnds"], "days since 1870-1-1"),
         )
+        del values  # explicitly purge so a new copy is generated
 
         cmor.close()
 
@@ -308,18 +314,23 @@ for fxVar in fxFiles:
     elif fxVar == "sftof":
         units = "%"
 
+    # load relevant variable
+    d = eval(fxVar)
+
+    # setup cmor
     cmor.setup(
         inpath="Tables",
+        set_verbosity=cmor.CMOR_NORMAL,
         netcdf_file_action=cmor.CMOR_REPLACE_4,
     )
     cmor.dataset_json("CMOR/drive_input4MIPs_obs.json")
-    d = eval(fxVar)
+
     # Force local file attribute as history
     cmor.set_cur_dataset_attribute("history", history)
-    table = "input4MIPs_Ofx.json"  # <-- doesn't overwrite source_id value
 
-    # Fudge table files to force project=CMIP6Plus
+    # Load relevant table file
     tablePath = "Tables"
+    table = "input4MIPs_Ofx.json"  # <-- doesn't overwrite source_id value
     cmor.load_table(os.path.join(tablePath, table))
 
     axes = [
