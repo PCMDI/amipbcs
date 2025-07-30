@@ -13,9 +13,11 @@ PJD 24 Jul 25 - remapped all dependencies to xcdat/array (remove
 PJD 28 Jul 25 - updated CMOR time_units to remove HH:MM:SS.x does
                 this fix the ~6 hrs temporal offset
 PJD 28 Jul 25 - update to xc.open_dataset($file, decode_times=False)
-PJD 29 Jul 25 - further updates further cleaning up redundant code and correctly
+PJD 29 Jul 25 - further updates further cleaning up redundant code
+                and correctly assigns obs/bcs vars for CMOR writes
                 indexing variables across the obs and bcs variants
-NOTNEEDED: remap makeCalendar to https://docs.xarray.dev/en/latest/generated/xarray.date_range.html
+PJD 29 Jul 25 - updated to replace time_bnds with generated calendar
+                xarray.date_range
 """
 
 # %% imports
@@ -130,6 +132,13 @@ sanPath = os.path.join(homePath, "".join(["SST_", dataVerNum.replace(".", "-")])
 dataEnd = "202301"
 print("sanPath:", sanPath)
 print("os.getcwd():", os.getcwd())
+
+# %% create replacement calendar/time_bnds
+newCal = xr.date_range(
+    start="1870", end="2024", freq="MS", calendar="gregorian", use_cftime=True
+)
+newCal187001to202301 = newCal[:-12]  # trim to end of 2023-01
+time_bnds = np.stack((newCal187001to202301[:-1], newCal187001to202301[1:]), axis=1)
 
 # %% preload data, iterate over variables, diddle, and pass to CMOR
 varList = {}
@@ -257,7 +266,7 @@ for varId in ["siconc", "tos"]:
             varid,
             values,
             time_vals=cft.date2num(var.cf["time"], "days since 1870-1-1"),
-            time_bnds=cft.date2num(fH["time_bnds"], "days since 1870-1-1"),
+            time_bnds=cft.date2num(time_bnds, "days since 1870-1-1"),
         )
         del values  # explicitly purge so a new copy is generated
 
