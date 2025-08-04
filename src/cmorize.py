@@ -18,6 +18,7 @@ PJD 29 Jul 25 - further updates further cleaning up redundant code
                 indexing variables across the obs and bcs variants
 PJD 29 Jul 25 - updated to replace time_bnds with generated calendar
                 xarray.date_range
+PJD  4 Aug 25 - updated for perlmutter and paths
 """
 
 # %% imports
@@ -26,7 +27,6 @@ import cmor
 import datetime
 import numpy as np
 import os
-import pdb
 import socket
 import sys
 import xcdat as xc
@@ -102,9 +102,6 @@ source = "PCMDI-AMIP XX: Merged SST based on UK MetOffice HadISST and NCEP OI2".
 )
 target_mip = "CMIP"
 time_period = "".join(["187001-", last_year, "{:0>2}".format(last_month)])
-destPath = "/p/user_pub/climate_work/durack1"
-# For CMOR this is set in the CMOR/drive_input4MIPs*.json files
-# destPath = '/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData'  # USE FOR TESTING
 
 # %% get time/history/host info
 utcNow = datetime.datetime.now(datetime.timezone.utc)
@@ -126,8 +123,10 @@ history = "".join([history, "; \n", host])
 print(history)
 
 # %% Set directories and input data
+# destPath = "/p/user_pub/climate_work/durack1"  ## LLNL/detect
+destPath = "/pscratch/sd/d/durack1/"
+
 homePath = os.path.join(destPath, "Shared/150219_AMIPForcingData/")
-homePath = "./"
 sanPath = os.path.join(homePath, "".join(["SST_", dataVerNum.replace(".", "-")]))
 dataEnd = "202301"
 print("sanPath:", sanPath)
@@ -182,7 +181,6 @@ for varId in ["siconc", "tos"]:
         var, ftype, units, nyears, outVar
     )  # , grid=targetGrid, mask=sftof)
     print("Exiting createMonthlyMidpoints function..")
-    ###pdb.set_trace()
 
     # check input file and and output times
     print("inputFile:", dataEnd)
@@ -259,7 +257,6 @@ for varId in ["siconc", "tos"]:
         varid = cmor.variable(cmorVarId, units, axis_ids)
         values = np.array(eval(dHandle), np.float32)  # output either obs/bcs
         # shuffle=1,deflate=1,deflate_level=1 ; CMOR 3.0.6+
-        ###pdb.set_trace()  # test values.min/max against var/varBcs
         cmor.set_deflate(varid, 1, 1, 1)
 
         cmor.write(
@@ -277,9 +274,8 @@ for varId in ["siconc", "tos"]:
 # areacello
 areacello = fH.spatial.get_weights(axis="Y")
 areacello, _ = xr.broadcast(areacello, var[0])
-areacello = areacello / 720.0  #
-pdb.set_trace()
-# areacello.sum() = 1.0
+areacello = areacello / 720.0  # need to remap back to cdutil values
+# areacello.sum() = 1.0  # validated
 earthSurfaceArea = 510.1
 # million km2
 earthSurfaceAreaM2 = earthSurfaceArea * 1e12
@@ -289,7 +285,8 @@ areacello = areacelloM2
 del areacelloM2
 
 # sftof
-maskFile = os.path.join(sanPath, "170425_WOD13_masks_1deg.nc")
+maskPath = os.path.join(destPath, "Shared/obs_data/WOD13")
+maskFile = os.path.join(maskPath, "170425_WOD13_masks_1deg.nc")
 fM = xc.open_dataset(maskFile)
 landSea1deg = fM["landsea"]
 # Fix longitude

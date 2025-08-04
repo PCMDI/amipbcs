@@ -287,22 +287,24 @@ def plotter(
 
 # %% Variables
 
-outPathVer = "pngs_v1.1.9"
-outPath = "/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData/"
-outPath = "."
+outPathVer = "pngs_v1.1.10"
+# outPath = "/p/user_pub/climate_work/durack1/Shared/150219_AMIPForcingData/"  # LLNL/detect
+outPath = "/global/homes/d/durack1/git/amipbcs"
 # New data
 verId = "v1.1.10"
-verPath = "/p/user_pub/climate_work/durack1/"
-verPath = "../"
-ver = "v20250729"  # Update for each run
+# verPath = "/p/user_pub/climate_work/durack1/"  # LLNL/detect
+# verPath = "../"
+verPath = "/global/homes/d/durack1/git/amipbcs"
+ver = "v20250804"  # Update for each run
 verPath = os.path.join(verPath, "input4MIPs/CMIP7/CMIP/PCMDI/PCMDI-AMIP-1-1-10/")
 print("verPath:", verPath)
 # tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-2-0_gn_187001-202108.nc
 # Old data
 verOldId = "v1.1.9"
 verOld = "v20230512"  # Update for each run
-verOldPath = "/p/user_pub/work/input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/"
-verOldPath = "../"
+# verOldPath = "/p/user_pub/work/input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/"  # LLNL/detect
+# verOldPath = "../"
+verOldPath = "/global/cfs/projectdirs/m4931/gsharing/user_pub_work"
 verOldPath = os.path.join(
     verOldPath, "input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/"
 )

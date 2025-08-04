@@ -24,6 +24,7 @@ PJD 25 Jul 2025 - Started remapping cdms2 to xcdat
 PJD 25 Jul 2025 - Completed remapping cdms2 -> xcdat/xarray
 PJD 29 Jul 2025 - Reformatted getNumDays prints
 PJD 29 Jul 2025 - Cleaned up createMonthlyMidpoints; debugs rewritten to xcdat
+PJD  4 Aug 2025 - Update to createMonthlyMidpoints to use passed units
 
 @author: pochedls and durack1
 """
@@ -255,6 +256,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD  2 Dec 2021 - Updated addClimo call with t/vmax and vmin args
     PJD 25 Jul 2025 - Remapped cdms2 calls to xcdat
     PJD 29 Jul 2025 - Further cleanups, syntactic
+    PJD  4 Aug 2025 - updated to remove tosi.units reference, passed arg
 
     """
     # regrid data if needed
@@ -268,7 +270,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     time = tosi.cf["time"]
     lat = tosi.cf["latitude"]
     lon = tosi.cf["longitude"]
-    units = tosi.units
 
     # deal with optional arguments
     if "mask" in kargs:
