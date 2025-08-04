@@ -277,6 +277,8 @@ for varId in ["siconc", "tos"]:
 # areacello
 areacello = fH.spatial.get_weights(axis="Y")
 areacello, _ = xr.broadcast(areacello, var[0])
+areacello = areacello / 720.0  #
+pdb.set_trace()
 # areacello.sum() = 1.0
 earthSurfaceArea = 510.1
 # million km2
