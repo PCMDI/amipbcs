@@ -20,6 +20,8 @@ PJD 12 May 2023 - Updated for latest v1.1.9 data run
 PJD 18 May 2023 - Compare v1.1.9 versions (released 20230512, and new mamba env 20230518)
 PJD 24 Jul 2025 - Updating for mac-local v1.1.10 vs v1.1.9
 PJD 29 Jul 2025 - Updating for mac-local v1.1.10 v20250724 -> 20250729
+PJD  4 Aug 2025 - Updating for perlmutter v1.1.10
+PJD  4 Aug 2025 - Updated output *mp4 to take verId as filename arg
 
 @author: durack1
 """
@@ -34,8 +36,6 @@ import numpy as np
 import os
 import shutil
 from xcdat import open_dataset
-
-# import pdb
 
 # %% function defs
 
@@ -303,7 +303,6 @@ print("verPath:", verPath)
 verOldId = "v1.1.9"
 verOld = "v20230512"  # Update for each run
 # verOldPath = "/p/user_pub/work/input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/"  # LLNL/detect
-# verOldPath = "../"
 verOldPath = "/global/cfs/projectdirs/m4931/gsharing/user_pub_work"
 verOldPath = os.path.join(
     verOldPath, "input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/"
@@ -421,7 +420,7 @@ for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
             os.path.join(
                 outPath,
                 "pngs",
-                "_".join(["AMIPBCS_newVsOld", var, "v1-1-9", "".join([ver, ".mp4"])]),
+                "_".join(["AMIPBCS_newVsOld", var, verId, "".join([ver, ".mp4"])]),
             ),
             crf=20,
             preset="slower",
@@ -434,229 +433,3 @@ for var in ["siconc", "siconcbcs", "tos", "tosbcs"]:
     # .filter('deflicker', mode='pm', size=10)
     # .filter('scale', size='hd1080', force_original_aspect_ratio='increase')
     # ffmpeg -framerate 48 -i %04d_ESGF-PubStatsPB-MSSans.png 230117_output_48.mp4
-
-"""
-        # Open canvas
-        fig = plt.figure(figsize=(10, 15))
-        plt.axis("off")
-        plt.ioff()  # turn off interactive plots - background mode
-        plt.title(timeString)
-        # Start subplots
-        ax1 = fig.add_subplot(
-            3,
-            1,
-            1,
-            projection=ccrs.Robinson(
-                central_longitude=centralLon,
-                globe=None,
-                false_easting=None,
-                false_northing=None,
-            ),
-        )
-        cs1 = ax1.contourf(
-            x,
-            y,
-            s1[
-                0,
-            ],
-            levs1,
-            transform=ccrs.PlateCarree(),
-            cmap=cmap,
-        )
-        tx1 = plt.text(
-            labX,
-            labY,
-            "v1.1.8",
-            fontsize=fntsz,
-            horizontalalignment="center",
-            transform=ccrs.Geodetic(),
-        )
-        ax2 = fig.add_subplot(
-            3,
-            1,
-            2,
-            projection=ccrs.Robinson(
-                central_longitude=centralLon,
-                globe=None,
-                false_easting=None,
-                false_northing=None,
-            ),
-        )
-        cs2 = ax2.contourf(
-            x,
-            y,
-            s2[
-                0,
-            ],
-            levs1,
-            transform=ccrs.PlateCarree(),
-            cmap=cmap,
-        )
-        tx2 = plt.text(
-            labX,
-            labY,
-            "v1.1.9",
-            fontsize=fntsz,
-            horizontalalignment="center",
-            transform=ccrs.Geodetic(),
-        )
-        ax3 = fig.add_subplot(
-            3,
-            1,
-            3,
-            projection=ccrs.Robinson(
-                central_longitude=centralLon,
-                globe=None,
-                false_easting=None,
-                false_northing=None,
-            ),
-        )
-        # Generate % change
-        diff = (
-            s1[0,]
-            - s2[0,]
-        )
-        inds = np.nonzero(diff.data)
-        diffnew = np.ma.zeros(diff.shape)
-        denom = (np.abs(s1[0,]) + np.abs(s2[0,])) / 2
-        np.squeeze(denom).shape
-        diffnew[inds] = diff.data[inds] / denom.data[inds]
-        cs3 = ax3.contourf(
-            x,
-            y,
-            diffnew,
-            levs3,
-            transform=ccrs.PlateCarree(),
-            cmap=cmap,
-        )
-        tx3 = plt.text(
-            labX,
-            labY,
-            "v1.1.8 - v1.1.9",
-            fontsize=fntsz,
-            horizontalalignment="center",
-            transform=ccrs.Geodetic(),
-        )
-        # make the map global rather than have it zoom in to the extents of
-        # any plotted data ax.set_global()
-        # ax1.stock_img()
-        ax1.coastlines()
-        ax2.coastlines()
-        ax3.coastlines()
-        # ax.plot(-0.08, 51.53, 'o', transform=ccrs.PlateCarree())
-        # ax.plot([-0.08, 132], [51.53, 43.17], transform=ccrs.PlateCarree())
-        # ax.plot([-0.08, 132], [51.53, 43.17], transform=ccrs.Geodetic())
-        # https://matplotlib.org/stable/gallery/axes_grid1/demo_colorbar_with_inset_locator.html
-        axin1 = inset_axes(
-            ax1,
-            width="5%",  # width = 5% of parent_bbox width
-            height="50%",  # height : 50%
-            loc="lower left",
-            bbox_to_anchor=(1.05, -1.17, 1, 4.3),
-            bbox_transform=ax1.transAxes,
-            borderpad=0,
-        )
-        axin3 = inset_axes(
-            ax3,
-            width="5%",  # width = 5% of parent_bbox width
-            height="50%",  # height : 50%
-            loc="lower left",
-            bbox_to_anchor=(1.05, 0.0, 1, 2),
-            bbox_transform=ax3.transAxes,
-            borderpad=0,
-        )
-        # cax1 = plt.axes([0.1, 0.63, 0.75, 0.02])
-        # fig.colorbar(ax1, cax=cax2, orientation='horizontal', cmap='RdBu')
-        cax1 = fig.colorbar(cs1, cax=axin1)
-        cax1.ax.set_ylabel("% coverage", rotation=270)
-        cax2 = fig.colorbar(cs3, cax=axin3)
-        cax2.ax.set_ylabel("% difference", rotation=270)
-        # Resize plots
-        plt.subplots_adjust(
-            bottom=0.005, left=0.01, right=0.84, top=0.985, hspace=0.01, wspace=0.01
-        )
-        # plt.show()
-        fig.savefig(
-            "".join(["/home/durack1/git/amipbcs/", timeString, ".png"]), dpi=100)
-"""
-
-"""
-# %% Tweaked plot - % errors
-
-# First ascertain differences as a %
-oldMinusNew = s1 - s2
-# Mask all exact matches = 0.0 and 100.
-oldMinusNew = np.where(oldMinusNew == 0.0, 1e20, oldMinusNew)
-oldMinusNew = np.where(oldMinusNew == 100.0, 1e20, oldMinusNew)
-# Now convert missing values to mask
-oldMinusNew = np.ma.masked_where(oldMinusNew == 1e20, oldMinusNew, copy=False)
-# Generate absolute difference as %
-diffPercent = np.ma.abs(oldMinusNew) / np.ma.abs(s2)
-# Now mask regions where x < 0.2%, .2/100 or 0.002
-diffPercentMasked = np.ma.where(diffPercent < 0.002, 1e20, diffPercent)
-# Now convert missing values to mask
-diffPercentMasked = np.ma.masked_where(
-    diffPercentMasked == 1e20, diffPercentMasked, copy=False
-)
-# Generate index of nonzeros
-ind = diffPercentMasked.nonzero()
-# Contour levels
-levs4 = list(np.arange(-1, 1.0000001, 0.1) * 0.1)
-# Lab x, y
-labX = -140.0
-centralLon = 202
-labY = 0.0
-fntsz = "large"
-cmap = "cool"  # 'RdBu'
-# https://matplotlib.org/stable/tutorials/colors/colormaps.html
-fig2 = plt.figure(figsize=(10, 10))
-plt.axis("off")
-plt.title("1871-1-1")
-# Start subplots
-ax21 = fig2.add_subplot(
-    1,
-    1,
-    1,
-    projection=ccrs.Robinson(
-        central_longitude=centralLon,
-        globe=None,
-        false_easting=None,
-        false_northing=None,
-    ),
-)
-cs1 = ax21.contourf(
-    x,
-    y,
-    diffPercentMasked[
-        0,
-    ],
-    levs4,
-    transform=ccrs.PlateCarree(),
-    cmap=cmap,
-)
-tx1 = plt.text(
-    labX,
-    labY,
-    "v1.1.6 - v1.2.0 %",
-    fontsize=fntsz,
-    horizontalalignment="right",
-    transform=ccrs.Geodetic(),
-)
-axin4 = inset_axes(
-    ax21,
-    width="5%",  # width = 5% of parent_bbox width
-    height="50%",  # height : 50%
-    loc="lower left",
-    borderpad=0,
-    bbox_transform=ax21.transAxes,
-    bbox_to_anchor=(0, -0.2, 20, 0.2),
-)
-fig2.colorbar(cs1, cax=axin4, orientation="horizontal")
-plt.show()
-fig2.savefig("/home/durack1/git/amipbcs/matPlotTmpDiff.png", dpi=300)
-# %% Generate stat differences
-# In [93]: s1.data[ind]  # absolute original number
-# In [94]: s2.data[ind]  # absolute new numbers
-# In [95]: s1.data[ind]-s2.data[ind]  # absolute differences
-# In [98]: ((s1.data[ind]-s2.data[ind])/s2.data[ind])*100.  # % differences
-"""
