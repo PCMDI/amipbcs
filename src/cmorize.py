@@ -19,6 +19,7 @@ PJD 29 Jul 25 - further updates further cleaning up redundant code
 PJD 29 Jul 25 - updated to replace time_bnds with generated calendar
                 xarray.date_range
 PJD  4 Aug 25 - updated for perlmutter and paths
+PJD  5 Aug 25 - added data_update_notes and doi global_atts
 """
 
 # %% imports
@@ -27,7 +28,7 @@ import cmor
 import datetime
 import numpy as np
 import os
-import socket
+import subprocess
 import sys
 import xcdat as xc
 import xarray as xr
@@ -111,7 +112,7 @@ history = " ".join(["File processed:", timeFormat, "UTC; San Francisco, CA, USA"
 host = "".join(
     [
         "Host: ",
-        socket.gethostname(),
+        subprocess.check_output(["hostname", "-f"], text=True).strip(),
         "; xCDAT version: ",
         xcVersion,
         "; Python version: ",
@@ -223,6 +224,40 @@ for varId in ["siconc", "tos"]:
 
         # Force local file attribute as history
         cmor.set_cur_dataset_attribute("history", history)
+        cmor.set_cur_dataset_attribute(
+            "data_update_notes",
+            "".join(
+                [
+                    "v1.1.9 and v1.1.10 differences: this ",
+                    "update changes a single month (Dec-22) ",
+                    "erroneous sea ice concentration ",
+                    "(siconc). Due to the tapering affect ",
+                    'of the "diddling" method, some very ',
+                    "small changes (<1 percent) can be seen ",
+                    "starting in August 2022 in diddled ",
+                    "fields (siconcbcs). For v1.1.10 a ",
+                    "climatology-anomaly infill was ",
+                    "undertaken, replacing the problem ",
+                    "Dec-22 values. For more details, see ",
+                    "https://nbviewer.org/github/durack1/",
+                    "notebooks/blob/main/jlnbs/PCMDI-AMIP-",
+                    "queryOISST2-0Data.ipynb; There are no ",
+                    "changes to either the SST (tos) or ",
+                    "diddled SST (tosbcs) fields; NOAA OISST ",
+                    "v2.0 data was deprecated in February ",
+                    "2023, and no further updates will ",
+                    "be produced. Ongoing discussions ",
+                    "focused on a v2.0 product continue ",
+                    "see https://github.com/PCMDI/amipbcs/",
+                    "issues/6.",
+                ]
+            ),
+        )
+        cmor.set_cur_dataset_attribute(
+            "doi", "https://doi.org/10.25981/ESGF.input4MIPs.CMIP7/xxx"
+        )
+
+        # Toggle data and appropriate table
         if "sic" in varId:
             table = "input4MIPs_SImon.json"
         else:
