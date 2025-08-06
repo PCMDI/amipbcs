@@ -20,6 +20,7 @@ PJD 29 Jul 25 - updated to replace time_bnds with generated calendar
                 xarray.date_range
 PJD  4 Aug 25 - updated for perlmutter and paths
 PJD  5 Aug 25 - added data_update_notes and doi global_atts
+PJD  6 Aug 25 - added dataRepo, dataUpdateNotes and doi across files
 """
 
 # %% imports
@@ -40,17 +41,50 @@ import pcmdiAmipBcsFx
 # %% set data version info
 activity_id = "input4MIPs"
 contact = "pcmdi-cmip@llnl.gov"
-dataVerNum = "1.1.10"  # WILL REQUIRE UPDATING
+dataUpdateNotes = (
+    "".join(
+        [
+            "v1.1.9 and v1.1.10 differences: this ",
+            "update changes a single month (Dec-22) ",
+            "erroneous sea ice concentration ",
+            "(siconc). Due to the tapering affect ",
+            "of the 'diddling' method, some very ",
+            "small changes (<1 percent) can be seen ",
+            "starting in August 2022 in diddled ",
+            "fields (siconcbcs). For v1.1.10 a ",
+            "climatology-anomaly infill was ",
+            "undertaken, replacing the Dec-22 ",
+            "problem values. For more details, see ",
+            "https://nbviewer.org/github/durack1/",
+            "notebooks/blob/main/jlnbs/PCMDI-AMIP-",
+            "queryOISST2-0Data.ipynb; There are no ",
+            "changes to either the SST (tos) or ",
+            "diddled SST (tosbcs) fields; NOAA OISST ",
+            "v2.0 data was deprecated in February ",
+            "2023, and no further PCMDI-AMIP-1-x-y ",
+            "updates will be produced. Ongoing ",
+            "discussions focused on a v2.0 product ",
+            "continue see https://github.com/PCMDI/",
+            "amipbcs/issues/6.",
+        ]
+    ),
+)
+dataRepo = "https://github.com/PCMDI/amipbcs"
+# WILL REQUIRE UPDATING
+dataVerNum = "1.1.10"
 dataVer = "PCMDI-AMIP-XX".replace("XX", dataVerNum.replace(".", "-"))
 dataVerSht = "".join(["v", dataVerNum])
 data_structure = "grid"
+doi = "https://doi.org/10.25981/ESGF.input4MIPs.CMIP7/2575015"
 frequency = "mon"
-further_info_url = "https://pcmdi.llnl.gov/mips/amip/"  # WILL REQUIRE UPDATING - point to GMD paper when available
+# WILL REQUIRE UPDATING - point to GMD paper when available
+further_info_url = "https://pcmdi.llnl.gov/mips/amip/"
 institution_id = "PCMDI"
 institution = " ".join(
     [
         "Program for Climate Model Diagnosis and Intercomparison,",
-        "Lawrence Livermore National Laboratory, Livermore, CA 94550, USA",
+        "Lawrence Livermore National Laboratory, Livermore, CA",
+        "94550, USA (ROR: https://ror.org/02k3nmd98)",
     ]
 )
 last_year = "2022"  # WILL REQUIRE UPDATING
@@ -58,7 +92,8 @@ last_month = 12  # WILL REQUIRE UPDATING
 comment = "".join(
     [
         "Based on Hurrell SST/sea ice consistency criteria applied to ",
-        "merged HadISST (1870-01 to 1981-10) & NCEP-0I2 (1981-11 to ",
+        "merged HadISST v1.0 (1870-01 to 1981-10) & NCEP-0ISST v2.0 ",
+        "(1981-11 to ",
         last_year,
         "-",
         "{:0>2}".format(last_month),
@@ -95,12 +130,17 @@ ref_bcs = " ".join(
         "temperature and sea ice concentration boundary conditions for",
         "AMIP II simulations. PCMDI Report 60, Program for Climate Model",
         "Diagnosis and Intercomparison, Lawrence Livermore National",
-        "Laboratory, 25 pp. Available online: https://pcmdi.llnl.gov/report/pdf/60.pdf",
+        "Laboratory, 25 pp. Available online:",
+        "https://pcmdi.llnl.gov/report/pdf/60.pdf",
     ]
 )
-source = "PCMDI-AMIP XX: Merged SST based on UK MetOffice HadISST and NCEP OI2".replace(
-    "XX", dataVerNum
+source = " ".join(
+    [
+        "PCMDI-AMIP XX: Merged SST based on UK MetOffice HadISST v1.0",
+        "and NCEP OISST v2.0",
+    ]
 )
+source.replace("XX", dataVerNum)
 target_mip = "CMIP"
 time_period = "".join(["187001-", last_year, "{:0>2}".format(last_month)])
 
@@ -224,38 +264,9 @@ for varId in ["siconc", "tos"]:
 
         # Force local file attribute as history
         cmor.set_cur_dataset_attribute("history", history)
-        cmor.set_cur_dataset_attribute(
-            "data_update_notes",
-            "".join(
-                [
-                    "v1.1.9 and v1.1.10 differences: this ",
-                    "update changes a single month (Dec-22) ",
-                    "erroneous sea ice concentration ",
-                    "(siconc). Due to the tapering affect ",
-                    'of the "diddling" method, some very ',
-                    "small changes (<1 percent) can be seen ",
-                    "starting in August 2022 in diddled ",
-                    "fields (siconcbcs). For v1.1.10 a ",
-                    "climatology-anomaly infill was ",
-                    "undertaken, replacing the problem ",
-                    "Dec-22 values. For more details, see ",
-                    "https://nbviewer.org/github/durack1/",
-                    "notebooks/blob/main/jlnbs/PCMDI-AMIP-",
-                    "queryOISST2-0Data.ipynb; There are no ",
-                    "changes to either the SST (tos) or ",
-                    "diddled SST (tosbcs) fields; NOAA OISST ",
-                    "v2.0 data was deprecated in February ",
-                    "2023, and no further updates will ",
-                    "be produced. Ongoing discussions ",
-                    "focused on a v2.0 product continue ",
-                    "see https://github.com/PCMDI/amipbcs/",
-                    "issues/6.",
-                ]
-            ),
-        )
-        cmor.set_cur_dataset_attribute(
-            "doi", "https://doi.org/10.25981/ESGF.input4MIPs.CMIP7/xxx"
-        )
+        cmor.set_cur_dataset_attribute("data_repo", dataRepo)
+        cmor.set_cur_dataset_attribute("data_update_notes", dataUpdateNotes)
+        cmor.set_cur_dataset_attribute("doi", doi)
 
         # Toggle data and appropriate table
         if "sic" in varId:
@@ -370,6 +381,9 @@ for fxVar in fxFiles:
 
     # Force local file attribute as history
     cmor.set_cur_dataset_attribute("history", history)
+    cmor.set_cur_dataset_attribute("data_repo", dataRepo)
+    cmor.set_cur_dataset_attribute("data_update_notes", dataUpdateNotes)
+    cmor.set_cur_dataset_attribute("doi", doi)
 
     # Load relevant table file
     tablePath = "Tables"
