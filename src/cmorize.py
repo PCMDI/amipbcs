@@ -21,6 +21,7 @@ PJD 29 Jul 25 - updated to replace time_bnds with generated calendar
 PJD  4 Aug 25 - updated for perlmutter and paths
 PJD  5 Aug 25 - added data_update_notes and doi global_atts
 PJD  6 Aug 25 - added dataRepo, dataUpdateNotes and doi across files
+PJD  7 Aug 25 - dataUpdateNotes formatting tweak
 """
 
 # %% imports
@@ -41,33 +42,31 @@ import pcmdiAmipBcsFx
 # %% set data version info
 activity_id = "input4MIPs"
 contact = "pcmdi-cmip@llnl.gov"
-dataUpdateNotes = (
-    "".join(
-        [
-            "v1.1.9 and v1.1.10 differences: this ",
-            "update changes a single month (Dec-22) ",
-            "erroneous sea ice concentration ",
-            "(siconc). Due to the tapering affect ",
-            "of the 'diddling' method, some very ",
-            "small changes (<1 percent) can be seen ",
-            "starting in August 2022 in diddled ",
-            "fields (siconcbcs). For v1.1.10 a ",
-            "climatology-anomaly infill was ",
-            "undertaken, replacing the Dec-22 ",
-            "problem values. For more details, see ",
-            "https://nbviewer.org/github/durack1/",
-            "notebooks/blob/main/jlnbs/PCMDI-AMIP-",
-            "queryOISST2-0Data.ipynb; There are no ",
-            "changes to either the SST (tos) or ",
-            "diddled SST (tosbcs) fields; NOAA OISST ",
-            "v2.0 data was deprecated in February ",
-            "2023, and no further PCMDI-AMIP-1-x-y ",
-            "updates will be produced. Ongoing ",
-            "discussions focused on a v2.0 product ",
-            "continue see https://github.com/PCMDI/",
-            "amipbcs/issues/6.",
-        ]
-    ),
+dataUpdateNotes = "".join(
+    [
+        "v1.1.9 and v1.1.10 differences: this ",
+        "update changes a single month (Dec-22) ",
+        "erroneous sea ice concentration ",
+        "(siconc). Due to the tapering affect ",
+        "of the 'diddling' method, some very ",
+        "small changes (<1 percent) can be seen ",
+        "starting in August 2022 in diddled ",
+        "fields (siconcbcs). For v1.1.10 a ",
+        "climatology-anomaly infill was ",
+        "undertaken, replacing the Dec-22 ",
+        "problem values. For more details, see ",
+        "https://nbviewer.org/github/durack1/",
+        "notebooks/blob/main/jlnbs/PCMDI-AMIP-",
+        "queryOISST2-0Data.ipynb; There are no ",
+        "changes to either the SST (tos) or ",
+        "diddled SST (tosbcs) fields; NOAA OISST ",
+        "v2.0 data was deprecated in February ",
+        "2023, and no further PCMDI-AMIP-1-x-y ",
+        "updates will be produced. Ongoing ",
+        "discussions focused on a v2.0 product ",
+        "continue, see https://github.com/PCMDI/",
+        "amipbcs/issues/6.",
+    ]
 )
 dataRepo = "https://github.com/PCMDI/amipbcs"
 # WILL REQUIRE UPDATING
