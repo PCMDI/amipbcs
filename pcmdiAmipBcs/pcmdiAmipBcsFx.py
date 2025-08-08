@@ -22,12 +22,15 @@ PJD  2 Dec 2021 - Code and print diagnostic cleanup
 PJD  2 Dec 2021 - Renamed hurrellfx.py -> pcmdiAmipBcsFx.py
 PJD 25 Jul 2025 - Started remapping cdms2 to xcdat
 PJD 25 Jul 2025 - Completed remapping cdms2 -> xcdat/xarray
+PJD 29 Jul 2025 - Reformatted getNumDays prints
+PJD 29 Jul 2025 - Cleaned up createMonthlyMidpoints; debugs rewritten to xcdat
+PJD  4 Aug 2025 - Update to createMonthlyMidpoints to use passed units
 
 @author: pochedls and durack1
 """
 
 # %% imports
-import pcmdiAmipBcs  # pcmdiAmipBcs.cpython-39-x86_64-linux-gnu - see files in __pycache__ subdir
+import pcmdiAmipBcs  # pcmdiAmipBcs.cpython-39-x86_64-linux-gnu/pcmdiAmipBcs.cpython-311-darwin.so - see files in __pycache__ subdir
 import numpy as np
 
 # Control debug output format
@@ -51,10 +54,16 @@ def getNumDays(time):
     ndays = np.zeros(len(time), dtype=int)
     for i in range(len(time)):
         y = time.dt.year[i].data
-        print("getNumDays: y", y)
         m = time.dt.month[i].data
-        print("getNumDays: m", m)
         fdays = monthrange(y, m)[1]
+        print(
+            "getNumDays: y",
+            "{:04d}".format(y),
+            "m",
+            "{:02d}".format(m),
+            "fdays",
+            "{:02d}".format(fdays),
+        )
         ndays[i] = fdays
     return ndays
 
@@ -246,6 +255,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     PJD 22 Nov 2021 - Updated jcnt np.array -> int type and back -> np.array
     PJD  2 Dec 2021 - Updated addClimo call with t/vmax and vmin args
     PJD 25 Jul 2025 - Remapped cdms2 calls to xcdat
+    PJD 29 Jul 2025 - Further cleanups, syntactic
+    PJD  4 Aug 2025 - updated to remove tosi.units reference, passed arg
 
     """
     # regrid data if needed
@@ -259,7 +270,6 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     time = tosi.cf["time"]
     lat = tosi.cf["latitude"]
     lon = tosi.cf["longitude"]
-    units = tosi.units
 
     # deal with optional arguments
     if "mask" in kargs:
@@ -313,10 +323,10 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
     # evaluate padding - check Jan 1870-2, Dec timeEnd+2 for discontinuity
     aCount = 0
-    padPlot = 0
+    padPlot = 0  # turn off = 0
     print("Check padded timeseries for start/end >96% discontinuities")
-    for i in range(len(lat)):
-        for j in range(len(lon)):
+    for i, _ in enumerate(lat):
+        for j, _ in enumerate(lon):
             if lat[i] > -91:  # 80
                 # Calculate discontinuities >96%
                 tosipDiff = tosip[0, i, j] - tosip[-1, i, j]
@@ -338,7 +348,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                     )
                     plt.plot(
                         np.arange(0, 60),
-                        tosip[0:60, i, j].data + 5,
+                        tosip[0:60, i, j] + 5,
                         label="start tosip+5",
                     )
                     ax1.legend()
@@ -352,7 +362,7 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                     )
                     plt.plot(
                         np.arange(0, 60),
-                        tosip[-60:, i, j].data + 5,
+                        tosip[-60:, i, j] + 5,
                         label="end tosip+5",
                     )
                     ax2.legend()
@@ -398,8 +408,8 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
     # loop over each grid cell and create midpoint values
     sumnotconverg, allresidmax = [0.0 for _ in range(2)]
     icnttot, nitertot, minall, maxall, jjall = [0 for _ in range(5)]
-    for i in range(len(lat)):
-        for j in range(len(lon)):
+    for i, _ in enumerate(lat):
+        for j, _ in enumerate(lon):
             obsmean = np.array(tosip[:, i, j])  # extract gridpoint time series
             # lat / lon for diagnostics - not needed?
             alat = lat[i]
@@ -410,15 +420,45 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
 
                 # Debug for example issues
                 # if alat == -77.5 and alon == 182.5:
-                # # call solver
-                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                #     = pcmdiAmipBcs.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                #                         maxiter, aa, cc, obsmean, jcnt)
+                #     # call solver
+                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps) = (
+                #         pcmdiAmipBcs.solvmid(
+                #             alon,
+                #             alat,
+                #             conv,
+                #             dt,
+                #             vmin,
+                #             vmax,
+                #             bbmin,
+                #             maxiter,
+                #             aa,
+                #             cc,
+                #             obsmean,
+                #             jcnt,
+                #         )
+                #     )
+                #     print("alat == -77.5 and alon == 182.5")
+                #     pdb.set_trace()
                 # elif alat == -76.5 and alon == 186.5:
-                # # call solver
-                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps)\
-                #     = pcmdiAmipBcs.solvmid(alon, alat, conv, dt, tmin, tmax, bbmin,
-                #                         maxiter, aa, cc, obsmean, jcnt)
+                #     # call solver
+                #     (ss, icnt, niter, notconverg, jj, resid, residmax, jumps) = (
+                #         pcmdiAmipBcs.solvmid(
+                #             alon,
+                #             alat,
+                #             conv,
+                #             dt,
+                #             vmin,
+                #             vmax,
+                #             bbmin,
+                #             maxiter,
+                #             aa,
+                #             cc,
+                #             obsmean,
+                #             jcnt,
+                #         )
+                #     )
+                #     print("alat == -76.5 and alon == 186.5")
+                #     pdb.set_trace()
                 # else:
                 #     continue
 
@@ -449,19 +489,19 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
                 # Debug solver output
                 # inds = np.where(np.isnan(ss))[0]
                 # if len(inds) > 0:
-                #    plt.plot(ss[inds[0] - 12 : inds[0] + 12]-10, label="output-10")
-                #    plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
-                #    print(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                #    print('input:')
-                #    print(obsmean[inds[0] - 12 : inds[0] + 12])
-                #    print('output:')
-                #    print(ss[inds[0] - 12 : inds[0] + 12])
-                #    plt.title(' '.join(["lat:", str(alat), "lon:", str(alon)]))
-                #    plt.legend()
-                #    plt.show()
-                #    print("stepping..")
+                #     plt.plot(ss[inds[0] - 12 : inds[0] + 12] - 10, label="output-10")
+                #     plt.plot(obsmean[inds[0] - 12 : inds[0] + 12], label="input")
+                #     print(" ".join(["lat:", str(alat), "lon:", str(alon)]))
+                #     print("input:")
+                #     print(obsmean[inds[0] - 12 : inds[0] + 12])
+                #     print("output:")
+                #     print(ss[inds[0] - 12 : inds[0] + 12])
+                #     plt.title(" ".join(["lat:", str(alat), "lon:", str(alon)]))
+                #     plt.legend()
+                #     plt.show()
+                #     print("stepping..")
 
-            # subset time series (remove padded months) and add to array
+            # subset time series (remove padded months) and add to output array
             # assumes start is padded with 24 months, end padded by edaysl = len(edays)
             tosimp[:, i, j] = ss[24:-edaysl]
 
@@ -469,27 +509,27 @@ def createMonthlyMidpoints(tosi, ftype, units, nyears, varOut, **kargs):
             if notconverg > 0:
                 print(
                     "Not converged - ",
-                    "j:",
+                    "j:      ",
                     j,
-                    "alon:",
+                    "alon:   ",
                     alon,
-                    "i:",
+                    "i:      ",
                     i,
-                    "alat:",
+                    "alat:   ",
                     alat,
-                    "conv:",
+                    "conv:   ",
                     conv,
-                    "dt:",
+                    "dt:     ",
                     dt,
-                    "vmin:",
+                    "vmin:   ",
                     vmin,
-                    "vmax:",
+                    "vmax:   ",
                     vmax,
-                    "bbmin:",
+                    "bbmin:  ",
                     bbmin,
                     "maxiter:",
                     maxiter,
-                    "jcnt:",
+                    "jcnt:   ",
                     jcnt,
                 )
                 print(
@@ -599,7 +639,6 @@ def fillVoid(data):
     for i in range(len(time)):
         flag = flagAll[i, :, :]
         dataSlice = data[i, :, :]
-        # iterCount = 0
         nlflags = 0
         iterCount = 0
         while np.any(~flag):  # as long as there are any False's in flag

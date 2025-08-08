@@ -1,5 +1,7 @@
 # amipbcs - AMIP dataset prepared for input4MIPs
 
+[![stable version](https://img.shields.io/badge/Current_version-1.1.10-brightgreen.svg)](https://github.com/PCMDI/amipbcs/releases/tag/1.1.10) <!--[![Zenodo DOI](https://zenodo.org/badge/984989836.svg)](https://doi.org/10.5281/zenodo.15446796)-->
+
 Code to generate sea surface temperature (SST/tos) and sea ice concentration (siconc) boundary condition data for the AMIP (Atmospheric Model Intercomparison Project) experiment as part of CMIP6, CMIP6Plus and CMIP7 phases and the input4MIPs project.
 
 The latest generated data can be obtained from the [ESGF2-US data portal](https://esgf-node.ornl.gov/search?project=input4MIPs&activeFacets={%22mip_era%22:%22CMIP7%22})
@@ -7,7 +9,7 @@ The latest generated data can be obtained from the [ESGF2-US data portal](https:
 The code depends upon the following packages:
 - [**xCDAT 0.9.1+**](https://github.com/xCDAT/xcdat) (Available through [conda-forge](https://anaconda.org/conda-forge/xcdat/files))
 - [**CMOR 3.11.0+**](https://github.com/PCMDI/cmor) (Available through [conda-forge](https://anaconda.org/conda-forge/cmor/files))
-- [**gfortran 14.2.0+**](https://gcc.gnu.org/wiki/GFortran) (Available through [conda-forge](https://anaconda.org/conda-forge/gfortran/files))
+- [**gfortran 15.1.0+**](https://gcc.gnu.org/wiki/GFortran) (Available through [conda-forge](https://anaconda.org/conda-forge/gfortran/files))
 - [**Python 3.11.13**](https://www.python.org/) (Available through [conda-forge](https://anaconda.org/conda-forge/python/files); Not latest due to unsolved Meson dependency with Python 3.12+, see [mesonbuild/meson/issues#14830](https://github.com/mesonbuild/meson/issues/14830))
 
 These packages and libraries are available for linux-64, osx-64 and osx-arm64 (x86_64) architectures
