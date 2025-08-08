@@ -1,6 +1,6 @@
 # amipbcs - AMIP dataset prepared for input4MIPs
 
-[![stable version](https://img.shields.io/badge/Current_version-1.1.9-brightgreen.svg)](https://github.com/PCMDI/amipbcs/releases/tag/1.1.9) <!--[![Zenodo DOI](https://zenodo.org/badge/984989836.svg)](https://doi.org/10.5281/zenodo.15446796)-->
+[![stable version](https://img.shields.io/badge/Current_version-1.1.10-brightgreen.svg)](https://github.com/PCMDI/amipbcs/releases/tag/1.1.10) <!--[![Zenodo DOI](https://zenodo.org/badge/984989836.svg)](https://doi.org/10.5281/zenodo.15446796)-->
 
 Code to generate sea surface temperature (SST/tos) and sea ice concentration (siconc) boundary condition data for the AMIP (Atmospheric Model Intercomparison Project) experiment as part of CMIP6, CMIP6Plus and CMIP7 phases and the input4MIPs project.
 
