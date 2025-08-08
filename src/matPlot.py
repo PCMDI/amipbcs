@@ -23,6 +23,7 @@ PJD 29 Jul 2025 - Updating for mac-local v1.1.10 v20250724 -> 20250729
 PJD  4 Aug 2025 - Updating for perlmutter v1.1.10
 PJD  4 Aug 2025 - Updated output *mp4 to take verId as filename arg
 PJD  6 Aug 2025 - Updated for latest/final 250806 data
+PJD  7 Aug 2025 - Updated for final 250807 data
 
 @author: durack1
 """
@@ -295,7 +296,7 @@ outPath = "/global/homes/d/durack1/git/amipbcs"
 verId = "v1.1.10"
 # verPath = "/p/user_pub/climate_work/durack1/"  # LLNL/detect
 verPath = "/global/homes/d/durack1/git/amipbcs"
-ver = "v20250806"  # Update for each run
+ver = "v20250807"  # Update for each run
 verPath = os.path.join(verPath, "input4MIPs/CMIP7/CMIP/PCMDI/PCMDI-AMIP-1-1-10/")
 print("verPath:", verPath)
 # tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-2-0_gn_187001-202108.nc
