@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this data and software, please cite it as Durack et al. (2025; DOI: 10.5281/zenodo.16777488)"
+title: "Durack et al. 2025: PCMDI AMIP SSTs and sea ice concentration for CMIP7 (PCMDI-AMIP-1-1-10)"
+authors:
+- family-names: "Durack"
+  given-names: "Paul J."
+  orcid: "https://orcid.org/0000-0003-2835-1438"
+- family-names: "Taylor"
+  given-names: "Karl E."
+  orcid: "https://orcid.org/0000-0002-6491-2135"
+- family-names: "Ames"
+  given-names: "Sasha K."
+  orcid: "https://orcid.org/0000-0001-9981-2997"
+- family-names: "Po-Chedley"
+  given-names: "Stephen"
+  orcid: "https://orcid.org/0000-0002-0390-238X"
+- family-names: "Mauzey"
+  given-names: "Chris F."
+  orcid: "https://orcid.org/0000-0003-1156-6774"
+version: 1.1.10
+date-released: 2025-08-07
+identifiers:
+- description: "Durack et al., 2025 (PCMDI/amipbcs) Data and software"
+  type: doi
+  value: "10.5281/zenodo.16777488"
+license: CC-BY-4.0
+repository-code: "https://github.com/PCMDI/amipbcs"
+url: "https://pcmdi.llnl.gov/mips/amip"
