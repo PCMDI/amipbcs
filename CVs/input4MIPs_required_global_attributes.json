@@ -11,6 +11,7 @@
         "institution",
         "institution_id",
         "license",
+        "license_id",
         "mip_era",
         "nominal_resolution",
         "realm",
