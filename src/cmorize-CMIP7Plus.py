@@ -3,9 +3,9 @@
 """
 Created on Fri Aug 15 09:46:03 2025
 
-Paul J. Durack 15st Aug 2025
+Paul J. Durack 15th Aug 2025
 
-This script cmorizes nc files
+This script cmorizes CMIP7Plus nc files
 
 PJD 15 Aug 25 - copied from cmorize.py and updated input
 """
@@ -25,113 +25,6 @@ import xarray as xr
 
 sys.path.insert(0, "pcmdiAmipBcs")
 import pcmdiAmipBcsFx
-
-
-# %% set data version info
-"""
-activity_id = "input4MIPs"
-contact = "pcmdi-cmip@llnl.gov"
-dataUpdateNotes = "".join(
-    [
-        "v1.1.9 and v1.1.10 differences: this ",
-        "update changes a single month (Dec-22) ",
-        "erroneous sea ice concentration ",
-        "(siconc). Due to the tapering affect ",
-        "of the 'diddling' method, some very ",
-        "small changes (<1 percent) can be seen ",
-        "starting in August 2022 in diddled ",
-        "fields (siconcbcs). For v1.1.10 a ",
-        "climatology-anomaly infill was ",
-        "undertaken, replacing the Dec-22 ",
-        "problem values. For more details, see ",
-        "https://nbviewer.org/github/durack1/",
-        "notebooks/blob/main/jlnbs/PCMDI-AMIP-",
-        "queryOISST2-0Data.ipynb; There are no ",
-        "changes to either the SST (tos) or ",
-        "diddled SST (tosbcs) fields; NOAA OISST ",
-        "v2.0 data was deprecated in February ",
-        "2023, and no further PCMDI-AMIP-1-x-y ",
-        "updates will be produced. Ongoing ",
-        "discussions focused on a v2.0 product ",
-        "continue, see https://github.com/PCMDI/",
-        "amipbcs/issues/6.",
-    ]
-)
-dataRepo = "https://github.com/PCMDI/amipbcs"
-# WILL REQUIRE UPDATING
-dataVerNum = "1.1.10"
-dataVer = "PCMDI-AMIP-XX".replace("XX", dataVerNum.replace(".", "-"))
-dataVerSht = "".join(["v", dataVerNum])
-data_structure = "grid"
-doi = "https://doi.org/10.25981/ESGF.input4MIPs.CMIP7/2575015"
-frequency = "mon"
-# WILL REQUIRE UPDATING - point to GMD paper when available
-further_info_url = "https://pcmdi.llnl.gov/mips/amip/"
-institution_id = "PCMDI"
-institution = " ".join(
-    [
-        "Program for Climate Model Diagnosis and Intercomparison,",
-        "Lawrence Livermore National Laboratory, Livermore, CA",
-        "94550, USA (ROR: https://ror.org/02k3nmd98)",
-    ]
-)
-last_year = "2022"  # WILL REQUIRE UPDATING
-last_month = 12  # WILL REQUIRE UPDATING
-comment = "".join(
-    [
-        "Based on Hurrell SST/sea ice consistency criteria applied to ",
-        "merged HadISST v1.0 (1870-01 to 1981-10) & NCEP-0ISST v2.0 ",
-        "(1981-11 to ",
-        last_year,
-        "-",
-        "{:0>2}".format(last_month),
-        ")",
-    ]
-)
-license_txt = " ".join(
-    [
-        "AMIP boundary condition data produced by PCMDI is licensed",
-        "under a Creative Commons Attribution 4.0 International (CC BY 4.0;",
-        "https://creativecommons.org/licenses/by/4.0/) License.",
-        "The data producers and data providers make no warranty,",
-        "either express or implied, including but not limited to,",
-        "warranties of merchantability and fitness for a particular",
-        "purpose. All liabilities arising from the supply of the",
-        "information (including any liability arising in negligence)",
-        "are excluded to the fullest extent permitted by law.",
-    ]
-)
-mip_era = "CMIP7"  # "CMIP6Plus"  # "CMIP6"
-mip_specs = "AMIP CMIP5 CMIP6 CMIP6Plus CMIP7"
-project_id = "AMIP"
-ref_obs = " ".join(
-    [
-        "Hurrell, J. W., J. J. Hack, D. Shea, J. M. Caron, and J. Rosinski",
-        "(2008) A New Sea Surface Temperature and Sea Ice Boundary Dataset",
-        "for the Community Atmosphere Model. J. Climate, 22 (19), pp",
-        "5145-5153. doi: 10.1175/2008JCLI2292.1",
-    ]
-)
-ref_bcs = " ".join(
-    [
-        "Taylor, K.E., D. Williamson and F. Zwiers, 2000: The sea surface",
-        "temperature and sea ice concentration boundary conditions for",
-        "AMIP II simulations. PCMDI Report 60, Program for Climate Model",
-        "Diagnosis and Intercomparison, Lawrence Livermore National",
-        "Laboratory, 25 pp. Available online:",
-        "https://pcmdi.llnl.gov/report/pdf/60.pdf",
-    ]
-)
-source = " ".join(
-    [
-        "PCMDI-AMIP XX: Merged SST based on UK MetOffice HadISST v1.0",
-        "and NCEP OISST v2.0",
-    ]
-)
-source.replace("XX", dataVerNum)
-target_mip = "CMIP"
-time_period = "".join(["187001-", last_year, "{:0>2}".format(last_month)])
-"""
 
 # %% get time/history/host info
 utcNow = datetime.datetime.now(datetime.timezone.utc)
@@ -167,11 +60,12 @@ dataPaths = {
         "sourceId": "PCMDI-AMIP-OI2p1-1-0",
     },
 }
-for count, dataset in enumerate(dataPaths.keys()):
-    # destPath = "/p/user_pub/climate_work/durack1"  ## LLNL/detect
-    # destPath = "/pscratch/sd/d/durack1/"
-    destPath = "."
 
+# destPath = "/pscratch/sd/d/durack1/" # perlmutter
+destPath = "."
+
+for count, dataset in enumerate(dataPaths.keys()):
+    # set file paths
     # homePath = os.path.join(destPath, "Shared/150219_AMIPForcingData/")
     # sanPath = os.path.join(homePath, "".join(["SST_", dataVerNum.replace(".", "-")]))
     print(dataPaths[dataset]["filePath"])
@@ -195,10 +89,9 @@ for count, dataset in enumerate(dataPaths.keys()):
     ftype = "sst"
     units = "degC"
     outVar = "tosbcs"
-    # inFile = "".join(["MODEL.", fileVar, ".HAD187001-198110.OI198111-", dataEnd, ".nc"])
     fH = xc.open_dataset(sanPath)
     # , decode_times=False)
-    # add CF-required attributes back in
+    # add CF-required attributes back in - required by pcmdiAmipBcs
     fH["lat"].attrs["units"] = "degrees_north"
     fH["lat"].attrs["long_name"] = "latitude"
     fH["lon"].attrs["units"] = "degrees_east"
