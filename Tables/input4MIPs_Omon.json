@@ -6,11 +6,11 @@
         "data_specs_version":"01.00.33",
         "generic_levels":"",
         "int_missing_value":"-999",
-        "mip_era":"CMIP7",
+        "mip_era":"CMIP7Plus",
         "missing_value":"1e20",
         "product":"input4MIPs",
         "realm":"seaIce",
-        "table_date":"2025-07-21",
+        "table_date":"2025-08-15",
         "table_id":"Table input4MIPs_Omon"
     },
     "variable_entry":{
