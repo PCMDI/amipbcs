@@ -8,18 +8,19 @@ Paul J. Durack 15th Aug 2025
 This script cmorizes CMIP7Plus nc files
 
 PJD 15 Aug 25 - copied from cmorize.py and updated input
+PJD 27 Aug 25 - updated to run on NERSC with m4581/zelinka1 paths
 """
 
 # %% imports
-import cftime as cft
-import cmor
 import datetime
 import json
-import numpy as np
 import os
 import pdb
 import subprocess
 import sys
+import cftime as cft
+import cmor
+import numpy as np
 import xcdat as xc
 import xarray as xr
 
@@ -46,30 +47,31 @@ history = "".join([history, "; \n", host])
 print(history)
 
 # %% Set directories and input data
+srcPath = "/global/cfs/projectdirs/m4581/zelinka1"
 dataPaths = {
     "PCMDI-AMIP-ERSST5-1-0": {
-        "filePath": "newProto/NOAA-ERSST-V5/MODEL.SST.HAD187001-198110.OI198111-202301.NOAA_ERSST_V5.nc",
+        "filePath": "NOAA_ERSST_V5/MODEL.SST.HAD187001-198110.OI198111-202301.NOAA_ERSST_V5.nc",
         "sourceId": "PCMDI-AMIP-ERSST5-1-0",
     },
     "PCMDI-AMIP-Had1p1-1-0": {
-        "filePath": "newProto/HadISST-1p1/MODEL.SST.HAD187001-198110.OI198111-202301.HadISST-1.1.nc",
+        "filePath": "HadISST-1.1/MODEL.SST.HAD187001-198110.OI198111-202301.HadISST-1.1.nc",
         "sourceId": "PCMDI-AMIP-Had1p1-1-0",
     },
     "PCMDI-AMIP-OI2p1-1-0": {
-        "filePath": "newProto/NOAA-OISST-v2.1/MODEL.SST.HAD187001-198110.OI198111-202301.NOAA-OISST-v2.1.nc",
+        "filePath": "NOAA-OISST-v2.1/MODEL.SST.HAD187001-198110.OI198111-202301.NOAA-OISST-v2.1.nc",
         "sourceId": "PCMDI-AMIP-OI2p1-1-0",
     },
 }
 
-# destPath = "/pscratch/sd/d/durack1/" # perlmutter
-destPath = "."
+# destPath = "." # test
+destPath = "/global/cfs/projectdirs/m4581/durack1"  # NERSC
 
 for count, dataset in enumerate(dataPaths.keys()):
     # set file paths
     # homePath = os.path.join(destPath, "Shared/150219_AMIPForcingData/")
     # sanPath = os.path.join(homePath, "".join(["SST_", dataVerNum.replace(".", "-")]))
     print(dataPaths[dataset]["filePath"])
-    sanPath = os.path.join(destPath, dataPaths[dataset]["filePath"])
+    sanPath = os.path.join(srcPath, dataPaths[dataset]["filePath"])
     dataEnd = "202301"
     print("sanPath:", sanPath)
     print("os.getcwd():", os.getcwd())
